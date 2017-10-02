@@ -1,6 +1,3 @@
-import org.sbgn.bindings.Glyph;
-import org.sbml.x2001.ns.celldesigner.*;
-import org.sbml.x2001.ns.celldesigner.CelldesignerBoundsDocument.CelldesignerBounds;
 import org.sbml.x2001.ns.celldesigner.CelldesignerClassDocument.CelldesignerClass;
 import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesAliasDocument.CelldesignerComplexSpeciesAlias;
 import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesDocument.CelldesignerComplexSpecies;
@@ -16,7 +13,7 @@ import java.util.List;
  */
 public class SpeciesWrapper {
 
-    public enum SbgnShape {RECTANGLE, ELLIPSE}
+    public enum CdShape {RECTANGLE, ELLIPSE, PHENOTYPE, LEFT_PARALLELOGRAM, RIGHT_PARALLELOGRAM, TRUNCATED}
 
     private boolean isIncludedSpecies;
     private boolean isComplex;
@@ -27,7 +24,7 @@ public class SpeciesWrapper {
     private String complex;
     private String cdClass;
     private String sbgnClass;
-    private SbgnShape sbgnShape;
+    private CdShape cdShape;
 
     private List<AliasWrapper> aliases;
 
@@ -59,8 +56,8 @@ public class SpeciesWrapper {
             }
         }
 
-        this.sbgnClass = this.getSbgnClass(cdClass);
-        this.sbgnShape = this.getSbgnShape(sbgnClass);
+        this.sbgnClass = getSbgnClass(cdClass);
+        this.cdShape = getSbgnShape(sbgnClass);
     }
 
     public SpeciesWrapper(CelldesignerSpecies species, ModelWrapper modelW) {
@@ -93,7 +90,7 @@ public class SpeciesWrapper {
         }
 
         this.sbgnClass = getSbgnClass(cdClass);
-        this.sbgnShape = getSbgnShape(sbgnClass);
+        this.cdShape = getSbgnShape(sbgnClass);
     }
 
     public static String getSbgnClass(String cdClass) {
@@ -129,21 +126,21 @@ public class SpeciesWrapper {
         return sbgnClass;
     }
 
-    public static SbgnShape getSbgnShape(String sbgnClass) {
+    public static CdShape getSbgnShape(String sbgnClass) {
         switch(sbgnClass) {
             case "macromolecule":
             case "nucleic acid feature":
-            case "phenotype":
-            case "complex": return SbgnShape.RECTANGLE;
+            case "complex": return CdShape.RECTANGLE;
+            case "phenotype": return CdShape.PHENOTYPE;
             case "simple chemical":
             case "unspecified entity":
-            case "source and sink": return SbgnShape.ELLIPSE;
+            case "source and sink": return CdShape.ELLIPSE;
         }
         throw new IllegalArgumentException("Invalid SBGN class given: "+sbgnClass);
     }
 
-    public SbgnShape getSbgnShape() {
-        return sbgnShape;
+    public CdShape getCdShape() {
+        return cdShape;
     }
 
     public boolean isIncludedSpecies() {

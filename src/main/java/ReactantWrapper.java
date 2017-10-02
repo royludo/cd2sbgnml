@@ -1,4 +1,3 @@
-import org.sbml.x2001.ns.celldesigner.*;
 import org.sbml.x2001.ns.celldesigner.CelldesignerBaseProductDocument.CelldesignerBaseProduct;
 import org.sbml.x2001.ns.celldesigner.CelldesignerBaseReactantDocument.CelldesignerBaseReactant;
 import org.sbml.x2001.ns.celldesigner.CelldesignerListOfModificationDocument.CelldesignerListOfModification;
@@ -206,12 +205,19 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
             String cdClass = this.getAliasW().getSpeciesW().getCdClass();
             float angle = perimeterAnchorPointToAngle();
             // ellipse shapes
-            if(this.getAliasW().getSpeciesW().getSbgnShape() == SpeciesWrapper.SbgnShape.ELLIPSE) {
-                relativeLinkStartingPoint = ellipsePerimeterPointFromAngle(width, height, angle);
-            }
-            // rectangle shapes
-            else {
-                relativeLinkStartingPoint = getAnchorPosition(center, width, height);
+            switch(this.getAliasW().getSpeciesW().getCdShape()) {
+                case ELLIPSE:
+                    relativeLinkStartingPoint = ellipsePerimeterPointFromAngle(width, height, angle);
+                    break;
+                case PHENOTYPE:
+                    relativeLinkStartingPoint = getRelativePhenotypeAnchorPosition(width, height);
+                    System.out.println("PHENOTYPE "+width+" "+height+" "+relativeLinkStartingPoint);
+                    break;
+                case LEFT_PARALLELOGRAM:
+                case RIGHT_PARALLELOGRAM:
+                case TRUNCATED:
+                default: // RECTANGLE as default
+                    relativeLinkStartingPoint = getRelativeRectangleAnchorPosition(width, height);
             }
         }
         else {
@@ -254,7 +260,7 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
         throw new RuntimeException("Unexpected error, should not be able to reach this point.");
     }
 
-    public Point2D getAnchorPosition(Point2D center, float width, float height){
+    public Point2D getRelativeRectangleAnchorPosition(float width, float height){
         Point.Float pl = new Point.Float();
         switch(this.anchorPoint) {
             case E:
@@ -320,6 +326,91 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
             case SSE:
                 pl.x = 0.25f * width;
                 pl.y = -0.5f * height;
+                break;
+        }
+        // all that is given in a coordinate system where Y points up.
+        // but it always points down for us.
+        return new Point2D.Float((float)pl.getX(), (float)-pl.getY());
+    }
+
+    /**
+     * angle of the right and left "arrows" of hte phenotype are fixed (45°)
+     * the diagonals on the left and right are the diagonals of 4 squares of side h/2
+     * @param width
+     * @param height
+     * @return
+     */
+    public Point2D getRelativePhenotypeAnchorPosition(float width, float height){
+
+        float halfW = 0.5f * width;
+        float halfH = 0.5f * height;
+        float quartH = 0.25f * height;
+
+        Point.Float pl = new Point.Float();
+        switch(this.anchorPoint) {
+            case E:
+                pl.x = halfW;
+                pl.y = 0;
+                break;
+            case ENE:
+                pl.x = halfW - quartH;
+                pl.y = quartH;
+                break;
+            case NE:
+                pl.x = halfW - halfH;
+                pl.y = halfH;
+                break;
+            case ESE:
+                pl.x = halfW - quartH;
+                pl.y = -quartH;
+                break;
+            case SE:
+                pl.x = halfW - halfH;
+                pl.y = -halfH;
+                break;
+            case W:
+                pl.x = -halfW;
+                pl.y = 0;
+                break;
+            case WNW:
+                pl.x = quartH - halfW;
+                pl.y = quartH;
+                break;
+            case NW:
+                pl.x = halfH - halfW;
+                pl.y = halfH;
+                break;
+            case WSW:
+                pl.x = quartH - halfW;
+                pl.y = -quartH;
+                break;
+            case SW:
+                pl.x = halfH - halfW;
+                pl.y = -halfH;
+                break;
+            case N:
+                pl.x = 0;
+                pl.y = -halfH;
+                break;
+            case NNW:
+                pl.x = 0.5f * (halfH - halfW);
+                pl.y = halfH;
+                break;
+            case NNE:
+                pl.x = 0.5f * (halfW - halfH);
+                pl.y = halfH;
+                break;
+            case S:
+                pl.x = 0;
+                pl.y = -halfH;
+                break;
+            case SSW:
+                pl.x = 0.5f * (halfH - halfW);
+                pl.y = -halfH;
+                break;
+            case SSE:
+                pl.x = 0.5f * (halfW - halfH);
+                pl.y = -halfH;
                 break;
         }
         // all that is given in a coordinate system where Y points up.
