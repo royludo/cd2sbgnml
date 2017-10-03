@@ -7,30 +7,34 @@ import org.sbml.x2001.ns.celldesigner.CelldesignerProductLinkDocument.Celldesign
 import org.sbml.x2001.ns.celldesigner.CelldesignerReactantLinkDocument.CelldesignerReactantLink;
 import org.sbml.x2001.ns.celldesigner.ReactionDocument.Reaction;
 
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.List;
 
 public class LinkWrapper {
 
     private AbstractLinkableCDEntity start, end;
 
-    private List<Point2D> pointList;
+    private List<Point2D.Float> pointList;
+    private List<Point2D.Float> sbgnSpacePointList;
     private int index; // used to get the position in xml modifier list
     private String cdClass;
     private String sbgnClass;
 
-    public LinkWrapper (AbstractLinkableCDEntity start, AbstractLinkableCDEntity end, List<Point2D> pointList) {
+    public LinkWrapper (AbstractLinkableCDEntity start, AbstractLinkableCDEntity end, List<Point2D.Float> pointList) {
         this.start = start;
         this.end = end;
         this.pointList = pointList;
     }
 
-    public LinkWrapper (AbstractLinkableCDEntity start, AbstractLinkableCDEntity end, List<Point2D> pointList, int index) {
+    public LinkWrapper (AbstractLinkableCDEntity start, AbstractLinkableCDEntity end, List<Point2D.Float> pointList, int index) {
         this(start, end, pointList);
         this.index = index;
     }
 
-    public LinkWrapper (AbstractLinkableCDEntity start, AbstractLinkableCDEntity end, List<Point2D> pointList, int index, String cdClass) {
+    public LinkWrapper (AbstractLinkableCDEntity start, AbstractLinkableCDEntity end, List<Point2D.Float> pointList, int index, String cdClass) {
         this(start, end, pointList, index);
         this.cdClass = cdClass;
         this.sbgnClass = getSbgnClass(cdClass);
@@ -90,12 +94,81 @@ public class LinkWrapper {
      * will translate the start and end points of the link, if they point to centers,
      * to the correct perimeter point of the shape.
      */
-    public void normalizeEndPoints() {
+    public List<Point2D.Float> getNormalizedEndPoints(GeometryUtils.AnchorPoint startAnchor, GeometryUtils.AnchorPoint endAnchor) {
+        System.out.println("NORMALIZE");
+        Point2D cdSpaceStart = this.getPointList().get(0);
+        Point2D cdSpaceEnd = this.getPointList().get(this.getPointList().size() - 1);
 
+        // normalize end
+        SpeciesWrapper.CdShape startShape;
+        if(this.start.getType() != AbstractLinkableCDEntity.AbstractLinkableCDEntityType.LOGIC_GATE) {
+            startShape = start.getShape();
+        }
+        else {
+            throw new RuntimeException("Logic gate not managed yet");
+        }
+
+        SpeciesWrapper.CdShape endShape;
+        if(this.end.getType() != AbstractLinkableCDEntity.AbstractLinkableCDEntityType.LOGIC_GATE) {
+            endShape = end.getShape();
+        }
+        else {
+            throw new RuntimeException("Logic gate not managed yet");
+        }
+
+
+        List<Point2D.Float> result = new ArrayList<>();
+
+        // normalize if needed (shape wants it, or links points at center
+        if(startShape == SpeciesWrapper.CdShape.LEFT_PARALLELOGRAM
+                || startShape == SpeciesWrapper.CdShape.RIGHT_PARALLELOGRAM
+                || startAnchor == GeometryUtils.AnchorPoint.CENTER) {
+            // normalize start
+            Point2D.Float nextPoint = this.getPointList().get(1);
+            Rectangle2D.Float startReactant = new Rectangle2D.Float(
+                    (float) start.getCoords().getX(),
+                    (float) start.getCoords().getY(),
+                    start.getWidth(),
+                    start.getHeight());
+            Line2D.Float segment2 = new Line2D.Float(cdSpaceStart, nextPoint);
+            List<Point2D.Float> intersections2 = GeometryUtils.getLineRectangleIntersection(segment2, startReactant);
+            System.out.println(intersections2);
+            Point2D.Float normalizedStart = GeometryUtils.getClosest(intersections2, nextPoint);
+            result.add(normalizedStart);
+        }
+        // else just take the point already defined
+        else {
+            result.add(this.pointList.get(0));
+        }
+
+        for(int i=1; i < this.pointList.size() - 1; i++) {
+            result.add(this.pointList.get(i));
+        }
+
+        if(endShape == SpeciesWrapper.CdShape.LEFT_PARALLELOGRAM
+                || endShape == SpeciesWrapper.CdShape.RIGHT_PARALLELOGRAM
+                || endAnchor == GeometryUtils.AnchorPoint.CENTER) {
+
+            Point2D.Float previousPoint = this.getPointList().get(this.getPointList().size() - 2);
+            Rectangle2D.Float endReactant = new Rectangle2D.Float(
+                    (float) end.getCoords().getX(),
+                    (float) end.getCoords().getY(),
+                    end.getWidth(),
+                    end.getHeight());
+            Line2D.Float segment = new Line2D.Float(previousPoint, cdSpaceEnd);
+            List<Point2D.Float> intersections = GeometryUtils.getLineRectangleIntersection(segment, endReactant);
+            Point2D.Float normalizedEnd = GeometryUtils.getClosest(intersections, previousPoint);
+            result.add(normalizedEnd);
+        }
+        else {
+            result.add(this.pointList.get(this.pointList.size() - 1));
+        }
+
+        return result;
     }
 
 
-    public List<Point2D> getPointList() {
+    public List<Point2D.Float> getPointList() {
         return pointList;
     }
 
@@ -118,5 +191,14 @@ public class LinkWrapper {
     public void setSbgnClass(String sbgnClass) {
         this.sbgnClass = sbgnClass;
     }
+
+    public List<Point2D.Float> getSbgnSpacePointList() {
+        return sbgnSpacePointList;
+    }
+
+    public void setSbgnSpacePointList(List<Point2D.Float> sbgnSpacePointList) {
+        this.sbgnSpacePointList = sbgnSpacePointList;
+    }
+
 
 }

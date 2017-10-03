@@ -66,7 +66,7 @@ public class AliasWrapper {
         this.speciesW = speciesW;
     }
 
-    public Point2D getCenterPoint() {
+    public Point2D.Float getCenterPoint() {
         // TODO check if coords are center or corner (corner it seems)
         return new Point2D.Float(
                 Float.parseFloat(this.bounds.getX()) + Float.parseFloat(this.bounds.getW())/2,

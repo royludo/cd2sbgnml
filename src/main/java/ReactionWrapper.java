@@ -59,19 +59,19 @@ public class ReactionWrapper {
             this.processSegmentIndex = getProcessSegment(reaction);
             //System.out.println("segment count: "+segmentCount+" rectangleIndex: "+processSegmentIndex);
 
-            Point2D baseLinkStartPoint = startR.getLinkStartingPoint();
-            Point2D baseLinkEndPoint = endR.getLinkStartingPoint();
+            Point2D.Float baseLinkStartPoint = startR.getLinkStartingPoint();
+            Point2D.Float baseLinkEndPoint = endR.getLinkStartingPoint();
 
-            List<Point2D> editPoints = getBaseEditPoints();
+            List<Point2D.Float> editPoints = getBaseEditPoints();
             List<AffineTransform> transformList = GeometryUtils.getTransformsToGlobalCoords(baseLinkStartPoint, baseLinkEndPoint);
-            List<Point2D> absoluteEditPoints = convertPoints(editPoints, transformList);
+            List<Point2D.Float> absoluteEditPoints = convertPoints(editPoints, transformList);
 
             // TODO refactor this, overcomplicated
-            Point2D currentStartPoint = baseLinkStartPoint;
-            Point2D currenEndPoint;
-            List<Point2D> subLinkPoints1 = new ArrayList<>();
-            List<Point2D> subLinkPoints2 = new ArrayList<>();
-            List<Point2D> currentSubLink = subLinkPoints1;
+            Point2D.Float currentStartPoint = baseLinkStartPoint;
+            Point2D.Float currenEndPoint;
+            List<Point2D.Float> subLinkPoints1 = new ArrayList<>();
+            List<Point2D.Float> subLinkPoints2 = new ArrayList<>();
+            List<Point2D.Float> currentSubLink = subLinkPoints1;
             currentSubLink.add(currentStartPoint);
             System.out.println("Segment count: "+segmentCount);
             for(int i=0; i < segmentCount; i++) {
@@ -86,9 +86,9 @@ public class ReactionWrapper {
 
                 if(i == processSegmentIndex) { // split this segment in 2
                     System.out.println("process segment");
-                    Point2D processCoords = new Point2D.Double(
-                            currentStartPoint.getX()  + (currenEndPoint.getX() - currentStartPoint.getX()) / 2,
-                            currentStartPoint.getY() + (currenEndPoint.getY() - currentStartPoint.getY()) / 2);
+                    Point2D.Float processCoords = new Point2D.Float(
+                            (float) (currentStartPoint.getX()  + (currenEndPoint.getX() - currentStartPoint.getX()) / 2),
+                            (float) (currentStartPoint.getY() + (currenEndPoint.getY() - currentStartPoint.getY()) / 2));
                     this.process = new Process(processCoords);
                     currentSubLink.add(processCoords);
                     currentSubLink = subLinkPoints2;
@@ -102,6 +102,14 @@ public class ReactionWrapper {
 
             this.baseLinks.add(new LinkWrapper(startR, this.process, subLinkPoints1));
             this.baseLinks.add(new LinkWrapper(this.process, endR, subLinkPoints2));
+            this.baseLinks.get(0).setSbgnSpacePointList(
+                    this.baseLinks.get(0).getNormalizedEndPoints(
+                            startR.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
+                    ));
+            this.baseLinks.get(1).setSbgnSpacePointList(
+                    this.baseLinks.get(1).getNormalizedEndPoints(
+                            GeometryUtils.AnchorPoint.CENTER, endR.getAnchorPoint()
+                    ));
         }
         else {
             if(isBranchTypeLeft()) { // more reactant, association
@@ -123,11 +131,11 @@ public class ReactionWrapper {
                 System.out.println("branch segments count: "+segmentCount);
 
                 // list edit points
-                List<Point2D> editPoints = this.getBaseEditPoints();
+                List<Point2D.Float> editPoints = this.getBaseEditPoints();
 
                 // process association point
-                Point2D assocGlyphLocalCoords = editPoints.get(editPoints.size() - 1);
-                Point2D assocGlyphGlobalCoords = getAssocDissocPoint(
+                Point2D.Float assocGlyphLocalCoords = editPoints.get(editPoints.size() - 1);
+                Point2D.Float assocGlyphGlobalCoords = getAssocDissocPoint(
                         startR1.getCenterPoint(),
                         startR2.getCenterPoint(),
                         endR.getCenterPoint(), assocGlyphLocalCoords);
@@ -135,9 +143,9 @@ public class ReactionWrapper {
 
                 this.process = new Process(assocGlyphGlobalCoords);
 
-                Point2D startR1coordPoint;
-                Point2D startR2coordPoint;
-                Point2D endRcoordPoint;
+                Point2D.Float startR1coordPoint;
+                Point2D.Float startR2coordPoint;
+                Point2D.Float endRcoordPoint;
                 if(this.baseConnectScheme.getConnectPolicy().equals("square")) {
                     startR1coordPoint = startR1.getLinkStartingPoint();
                     startR2coordPoint = startR2.getLinkStartingPoint();
@@ -151,16 +159,31 @@ public class ReactionWrapper {
 
                 // careful here, edit points goes from origin (process glyph) to reactant
                 // but we want the opposite, as a production arc it goes from reactant to process
-                List<Point2D> absoluteEditPoints0 = this.getBranchPoints(process.getCoords(), startR1coordPoint, 0);
+                List<Point2D.Float> absoluteEditPoints0 = this.getBranchPoints(process.getCoords(), startR1coordPoint, 0);
                 Collections.reverse(absoluteEditPoints0);
-                this.baseLinks.add(new LinkWrapper(startR1, process, absoluteEditPoints0));
+                LinkWrapper link0 = new LinkWrapper(startR1, process, absoluteEditPoints0);
+                link0.setSbgnSpacePointList(
+                        link0.getNormalizedEndPoints(
+                                startR1.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
+                        ));
+                this.baseLinks.add(link0);
 
-                List<Point2D> absoluteEditPoints1 = this.getBranchPoints(process.getCoords(), startR2coordPoint, 1);
+                List<Point2D.Float> absoluteEditPoints1 = this.getBranchPoints(process.getCoords(), startR2coordPoint, 1);
                 Collections.reverse(absoluteEditPoints1);
-                this.baseLinks.add(new LinkWrapper(startR2, process, absoluteEditPoints1));
+                LinkWrapper link1 = new LinkWrapper(startR2, process, absoluteEditPoints1);
+                link1.setSbgnSpacePointList(
+                        link1.getNormalizedEndPoints(
+                                startR2.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
+                        ));
+                this.baseLinks.add(link1);
 
-                List<Point2D> absoluteEditPoints2 = this.getBranchPoints(process.getCoords(), endRcoordPoint, 2);
-                this.baseLinks.add(new LinkWrapper(process, endR, absoluteEditPoints2));
+                List<Point2D.Float> absoluteEditPoints2 = this.getBranchPoints(process.getCoords(), endRcoordPoint, 2);
+                LinkWrapper link2 = new LinkWrapper(process, endR, absoluteEditPoints2);
+                link2.setSbgnSpacePointList(
+                        link2.getNormalizedEndPoints(
+                                GeometryUtils.AnchorPoint.CENTER, endR.getAnchorPoint()
+                        ));
+                this.baseLinks.add(link2);
             }
             else { // more products, dissociation
                 ReactantWrapper startR = this.baseReactants.get(0);
@@ -181,11 +204,11 @@ public class ReactionWrapper {
                 System.out.println("branch segments count: "+segmentCount);
 
                 // list edit points
-                List<Point2D> editPoints = this.getBaseEditPoints();
+                List<Point2D.Float> editPoints = this.getBaseEditPoints();
 
                 // process association point
-                Point2D assocGlyphLocalCoords = editPoints.get(editPoints.size() - 1);
-                Point2D assocGlyphGlobalCoords = getAssocDissocPoint(
+                Point2D.Float assocGlyphLocalCoords = editPoints.get(editPoints.size() - 1);
+                Point2D.Float assocGlyphGlobalCoords = getAssocDissocPoint(
                         startR.getCenterPoint(),
                         endR1.getCenterPoint(),
                         endR2.getCenterPoint(), assocGlyphLocalCoords);
@@ -193,16 +216,31 @@ public class ReactionWrapper {
 
                 this.process = new Process(assocGlyphGlobalCoords);
 
-                List<Point2D> absoluteEditPoints0 = this.getBranchPoints(process.getCoords(), startR.getLinkStartingPoint(), 0);
+                List<Point2D.Float> absoluteEditPoints0 = this.getBranchPoints(process.getCoords(), startR.getLinkStartingPoint(), 0);
                 Collections.reverse(absoluteEditPoints0);
-                this.baseLinks.add(new LinkWrapper(startR, process, absoluteEditPoints0));
+                LinkWrapper link0 = new LinkWrapper(startR, process, absoluteEditPoints0);
+                link0.setSbgnSpacePointList(
+                        link0.getNormalizedEndPoints(
+                                startR.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
+                                ));
+                this.baseLinks.add(link0);
 
-                List<Point2D> absoluteEditPoints1 = this.getBranchPoints(process.getCoords(), endR1.getLinkStartingPoint(), 1);
+                List<Point2D.Float> absoluteEditPoints1 = this.getBranchPoints(process.getCoords(), endR1.getLinkStartingPoint(), 1);
                 //Collections.reverse(absoluteEditPoints1);
-                this.baseLinks.add(new LinkWrapper(process, endR1, absoluteEditPoints1));
+                LinkWrapper link1 = new LinkWrapper(process, endR1, absoluteEditPoints1);
+                link1.setSbgnSpacePointList(
+                        link1.getNormalizedEndPoints(
+                                GeometryUtils.AnchorPoint.CENTER, endR1.getAnchorPoint()
+                                ));
+                this.baseLinks.add(link1);
 
-                List<Point2D> absoluteEditPoints2 = this.getBranchPoints(process.getCoords(), endR2.getLinkStartingPoint(), 2);
-                this.baseLinks.add(new LinkWrapper(process, endR2, absoluteEditPoints2));
+                List<Point2D.Float> absoluteEditPoints2 = this.getBranchPoints(process.getCoords(), endR2.getLinkStartingPoint(), 2);
+                LinkWrapper link2 = new LinkWrapper(process, endR2, absoluteEditPoints2);
+                link2.setSbgnSpacePointList(
+                        link2.getNormalizedEndPoints(
+                                GeometryUtils.AnchorPoint.CENTER, endR2.getAnchorPoint()
+                        ));
+                this.baseLinks.add(link2);
             }
 
         }
@@ -212,16 +250,16 @@ public class ReactionWrapper {
             // simple case, no logic gate
             System.out.println("modifier: "+reactantW.getAliasW().getId());
             int modifIndex = reactantW.getLink().getIndex();
-            List<Point2D> editPoints = this.getEditPointsForModifier(modifIndex);
+            List<Point2D.Float> editPoints = this.getEditPointsForModifier(modifIndex);
             CelldesignerModification modif = reaction.getAnnotation().
                     getCelldesignerListOfModification().getCelldesignerModificationArray(modifIndex);
-            Point2D processAnchorPoint = process.getAbsoluteAnchorCoords(ReactantWrapper.getProcessAnchorIndex(modif));
+            Point2D.Float processAnchorPoint = process.getAbsoluteAnchorCoords(ReactantWrapper.getProcessAnchorIndex(modif));
 
             System.out.println("edit points: "+editPoints);
 
             List<AffineTransform> transformList =
                     GeometryUtils.getTransformsToGlobalCoords(reactantW.getLinkStartingPoint(), processAnchorPoint);
-            List<Point2D> absoluteEditPoints = new ArrayList<>();
+            List<Point2D.Float> absoluteEditPoints = new ArrayList<>();
             absoluteEditPoints.add(reactantW.getLinkStartingPoint());
             absoluteEditPoints.addAll(convertPoints(editPoints, transformList));
             absoluteEditPoints.add(processAnchorPoint);
@@ -229,8 +267,14 @@ public class ReactionWrapper {
             String linkCdClass = reaction.getAnnotation().getCelldesignerListOfModification().
                     getCelldesignerModificationArray(modifIndex).getType();
 
-            reactantW.setLink(new LinkWrapper(reactantW, process, absoluteEditPoints,
-                    modifIndex, linkCdClass));
+            LinkWrapper link = new LinkWrapper(reactantW, process, absoluteEditPoints,
+                    modifIndex, linkCdClass);
+            link.setSbgnSpacePointList(
+                    link.getNormalizedEndPoints(
+                            reactantW.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
+                            ));
+
+            reactantW.setLink(link);
 
 
         }
@@ -328,7 +372,7 @@ public class ReactionWrapper {
     }*/
 
 
-    public List<Point2D> getBaseEditPoints (){
+    public List<Point2D.Float> getBaseEditPoints (){
         if(!reaction.getAnnotation().isSetCelldesignerEditPoints()) {
             return new ArrayList<>();
         }
@@ -338,13 +382,13 @@ public class ReactionWrapper {
        return parseEditPointsString(editPointString);
     }
 
-    public List<Point2D> getEditPointsForBranch(int b) {
-        List<Point2D> editPoints = this.getBaseEditPoints();
+    public List<Point2D.Float> getEditPointsForBranch(int b) {
+        List<Point2D.Float> editPoints = this.getBaseEditPoints();
         int num0 = Integer.parseInt(reaction.getAnnotation().getCelldesignerEditPoints().getNum0());
         int num1 = Integer.parseInt(reaction.getAnnotation().getCelldesignerEditPoints().getNum1());
         int num2 = Integer.parseInt(reaction.getAnnotation().getCelldesignerEditPoints().getNum2());
 
-        List<Point2D> finalEditPoints = new ArrayList<>();
+        List<Point2D.Float> finalEditPoints = new ArrayList<>();
         switch(b) {
             case 0:
                 for(int i=0; i < num0; i++) {
@@ -369,7 +413,7 @@ public class ReactionWrapper {
         return finalEditPoints;
     }
 
-    public List<Point2D> getEditPointsForModifier(int index) {
+    public List<Point2D.Float> getEditPointsForModifier(int index) {
         CelldesignerModification modif = reaction.getAnnotation().
                 getCelldesignerListOfModification().getCelldesignerModificationArray(index);
 
@@ -381,8 +425,8 @@ public class ReactionWrapper {
         return parseEditPointsString(editPointString);
     }
 
-    public List<Point2D> parseEditPointsString(String editPointString) {
-        List<Point2D> editPoints = new ArrayList<>();
+    public List<Point2D.Float> parseEditPointsString(String editPointString) {
+        List<Point2D.Float> editPoints = new ArrayList<>();
         Arrays.stream(editPointString.split(" ")).
                 forEach(e -> {
                     String[] tmp = e.split(",");
@@ -424,9 +468,9 @@ public class ReactionWrapper {
      * @param transforms a list of transforms to be applied
      * @return a new list of points
      */
-    public List<Point2D> convertPoints(List<Point2D> points, List<AffineTransform> transforms) {
+    public List<Point2D.Float> convertPoints(List<Point2D.Float> points, List<AffineTransform> transforms) {
 
-        List<Point2D> convertedPoints = new ArrayList<>();
+        List<Point2D.Float> convertedPoints = new ArrayList<>();
         for (Point2D editP : points) {
             Point2D p = new Point2D.Double(editP.getX(), editP.getY());
 
@@ -441,12 +485,12 @@ public class ReactionWrapper {
         return convertedPoints;
     }
 
-    public static Point2D getAssocDissocPoint(Point2D origin, Point2D pX, Point2D pY, Point2D editPoint) {
+    public static Point2D.Float getAssocDissocPoint(Point2D.Float origin, Point2D.Float pX, Point2D.Float pY, Point2D.Float editPoint) {
         //System.out.println("local coord system: "+origin+" "+pX+" "+pY);
         //System.out.println("local edit points: "+editPoint);
 
         // transform association glyph point
-        Point2D absolutePoint = new Point2D.Double(editPoint.getX(), editPoint.getY());
+        Point2D.Float absolutePoint = new Point2D.Float((float) editPoint.getX(), (float) editPoint.getY());
         for(AffineTransform t: GeometryUtils.getTransformsToGlobalCoords(origin, pX, pY)) {
             t.transform(absolutePoint, absolutePoint);
         }
@@ -454,9 +498,9 @@ public class ReactionWrapper {
         return absolutePoint;
     }
 
-    public LinkedList<Point2D> getBranchPoints(Point2D origin, Point2D pX, int branch) {
+    public LinkedList<Point2D.Float> getBranchPoints(Point2D.Float origin, Point2D.Float pX, int branch) {
 
-        LinkedList<Point2D> absoluteEditPoints = new LinkedList<>();
+        LinkedList<Point2D.Float> absoluteEditPoints = new LinkedList<>();
         absoluteEditPoints.add(origin);
         System.out.println("local system: "+origin+" "+pX);
         System.out.println("points for BRANCH "+branch+" "+ this.getEditPointsForBranch(branch));

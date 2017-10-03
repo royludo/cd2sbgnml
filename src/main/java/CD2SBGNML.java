@@ -292,9 +292,9 @@ public class CD2SBGNML extends GeneralConverter {
         arc1.setTarget(target);
         arc1.setClazz(clazz);
 
-        int pointCounts = linkW.getPointList().size();
-        Point2D startPoint = linkW.getPointList().get(0);
-        Point2D endPoint = linkW.getPointList().get(pointCounts - 1);
+        int pointCounts = linkW.getSbgnSpacePointList().size();
+        Point2D startPoint = linkW.getSbgnSpacePointList().get(0);
+        Point2D endPoint = linkW.getSbgnSpacePointList().get(pointCounts - 1);
 
         // start end
         Arc.Start s1 = new Arc.Start();
@@ -303,7 +303,7 @@ public class CD2SBGNML extends GeneralConverter {
         arc1.setStart(s1);
 
         for(int i=1; i<pointCounts - 1; i++) {
-            Point2D p = linkW.getPointList().get(i);
+            Point2D p = linkW.getSbgnSpacePointList().get(i);
             Arc.Next next = new Arc.Next();
             next.setX((float) p.getX());
             next.setY((float) p.getY());

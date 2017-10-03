@@ -13,7 +13,7 @@ import java.util.List;
  */
 public class SpeciesWrapper {
 
-    public enum CdShape {RECTANGLE, ELLIPSE, PHENOTYPE, LEFT_PARALLELOGRAM, RIGHT_PARALLELOGRAM, TRUNCATED}
+    public enum CdShape {RECTANGLE, ELLIPSE, PHENOTYPE, LEFT_PARALLELOGRAM, RIGHT_PARALLELOGRAM, TRUNCATED, CIRCLE}
 
     private boolean isIncludedSpecies;
     private boolean isComplex;
@@ -57,7 +57,7 @@ public class SpeciesWrapper {
         }
 
         this.sbgnClass = getSbgnClass(cdClass);
-        this.cdShape = getSbgnShape(sbgnClass);
+        this.cdShape = getCdShape(cdClass);
     }
 
     public SpeciesWrapper(CelldesignerSpecies species, ModelWrapper modelW) {
@@ -90,7 +90,7 @@ public class SpeciesWrapper {
         }
 
         this.sbgnClass = getSbgnClass(cdClass);
-        this.cdShape = getSbgnShape(sbgnClass);
+        this.cdShape = getCdShape(cdClass);
     }
 
     public static String getSbgnClass(String cdClass) {
@@ -126,17 +126,33 @@ public class SpeciesWrapper {
         return sbgnClass;
     }
 
-    public static CdShape getSbgnShape(String sbgnClass) {
-        switch(sbgnClass) {
-            case "macromolecule":
-            case "nucleic acid feature":
-            case "complex": return CdShape.RECTANGLE;
-            case "phenotype": return CdShape.PHENOTYPE;
-            case "simple chemical":
-            case "unspecified entity":
-            case "source and sink": return CdShape.ELLIPSE;
+    public static CdShape getCdShape(String cdClass) {
+        switch(cdClass) {
+            case "PROTEIN": return CdShape.RECTANGLE;
+            case "GENE": return CdShape.RECTANGLE;
+            case "RNA": return CdShape.RIGHT_PARALLELOGRAM;
+            case "ANTISENSE_RNA": return CdShape.LEFT_PARALLELOGRAM;
+            case "PHENOTYPE": return CdShape.PHENOTYPE;
+            case "ION": return CdShape.CIRCLE;
+            case "SIMPLE_MOLECULE": return CdShape.ELLIPSE;
+            case "DRUG": return CdShape.RECTANGLE; // TODO approximative
+            case "UNKNOWN": return CdShape.ELLIPSE;
+            case "COMPLEX": return CdShape.RECTANGLE;
+
+            // these are for compartment shapes
+            /*case "SQUARE": return "";
+            case "OVAL": return "";
+            case "SQUARE_CLOSEUP_NORTHWEST": return "";
+            case "SQUARE_CLOSEUP_NORTHEAST": return "";
+            case "SQUARE_CLOSEUP_SOUTHWEST": return "";
+            case "SQUARE_CLOSEUP_NORTH": return "";
+            case "SQUARE_CLOSEUP_EAST": return "";
+            case "SQUARE_CLOSEUP_WEST": return "";
+            case "SQUARE_CLOSEUP_SOUTH": return "";*/
+
+            case "DEGRADED": return CdShape.CIRCLE;
         }
-        throw new IllegalArgumentException("Invalid SBGN class given: "+sbgnClass);
+        throw new IllegalArgumentException("Invalid celldesigner class given: "+cdClass);
     }
 
     public CdShape getCdShape() {

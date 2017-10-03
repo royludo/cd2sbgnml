@@ -20,28 +20,27 @@ import java.util.List;
 public class ReactantWrapper extends AbstractLinkableCDEntity {
 
     public enum ReactantType {BASE_REACTANT, BASE_PRODUCT, ADDITIONAL_REACTANT, ADDITIONAL_PRODUCT, MODIFICATION}
-    public enum AnchorPoint { N, NNE, NE, ENE, E, ESE, SE, SSE, S,
-            SSW, SW, WSW, W, WNW, NW, NNW, CENTER}
+
 
     private ReactantType reactantType;
     private AliasWrapper aliasW;
     private LinkWrapper link;
-    private AnchorPoint anchorPoint;
+    private GeometryUtils.AnchorPoint anchorPoint;
 
     private ReactantWrapper (CelldesignerBaseReactant baseReactant, AliasWrapper aliasW) {
         super(AbstractLinkableCDEntityType.SPECIES);
         this.reactantType = ReactantType.BASE_REACTANT;
         this.aliasW = aliasW;
-        this.link = new LinkWrapper(this, new AbstractLinkableCDEntity(AbstractLinkableCDEntityType.PROCESS), null);
+        this.link = new LinkWrapper(this, new Process(), null);
 
         // get reactanct's link anchor point
         if(baseReactant.isSetCelldesignerLinkAnchor() &&
                 ! baseReactant.getCelldesignerLinkAnchor().getDomNode().getAttributes().
                         getNamedItem("position").getNodeValue().equals("INACTIVE")) {
-            this.anchorPoint = AnchorPoint.valueOf(baseReactant.getCelldesignerLinkAnchor().getPosition().toString());
+            this.anchorPoint = GeometryUtils.AnchorPoint.valueOf(baseReactant.getCelldesignerLinkAnchor().getPosition().toString());
         }
         else {
-            this.anchorPoint = AnchorPoint.CENTER;
+            this.anchorPoint = GeometryUtils.AnchorPoint.CENTER;
         }
 
     }
@@ -50,7 +49,7 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
         super(AbstractLinkableCDEntityType.SPECIES);
         this.reactantType = ReactantType.BASE_PRODUCT;
         this.aliasW = aliasW;
-        this.link = new LinkWrapper(new AbstractLinkableCDEntity(AbstractLinkableCDEntityType.PROCESS), this, null);
+        this.link = new LinkWrapper(new Process(), this, null);
 
         // get reactanct's link anchor point
         // value can be INACTIVE which shouldn't be possible
@@ -58,10 +57,10 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
         if(baseProduct.isSetCelldesignerLinkAnchor() &&
                 ! baseProduct.getCelldesignerLinkAnchor().getDomNode().getAttributes().
                         getNamedItem("position").getNodeValue().equals("INACTIVE")) {
-                this.anchorPoint = AnchorPoint.valueOf(baseProduct.getCelldesignerLinkAnchor().getPosition().toString());
+                this.anchorPoint = GeometryUtils.AnchorPoint.valueOf(baseProduct.getCelldesignerLinkAnchor().getPosition().toString());
         }
         else {
-            this.anchorPoint = AnchorPoint.CENTER;
+            this.anchorPoint = GeometryUtils.AnchorPoint.CENTER;
         }
     }
 
@@ -69,7 +68,7 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
         super(AbstractLinkableCDEntityType.SPECIES);
         this.reactantType = ReactantType.ADDITIONAL_REACTANT;
         this.aliasW = aliasW;
-        this.link = new LinkWrapper(this, new AbstractLinkableCDEntity(AbstractLinkableCDEntityType.PROCESS), null);
+        this.link = new LinkWrapper(this, new Process(), null);
 
         // get reactanct's link anchor point
         if(reactantLink.isSetCelldesignerLinkAnchor()) {
@@ -79,13 +78,13 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
             for(int i=0; i < reactantLink.getDomNode().getChildNodes().getLength(); i++) {
                 Node n = reactantLink.getDomNode().getChildNodes().item(i);
                 if(n.getNodeName().equals("celldesigner_linkAnchor")) {
-                    this.anchorPoint = AnchorPoint.valueOf(n.getAttributes().getNamedItem("position").getNodeValue());
+                    this.anchorPoint = GeometryUtils.AnchorPoint.valueOf(n.getAttributes().getNamedItem("position").getNodeValue());
                     break;
                 }
             }
         }
         else {
-            this.anchorPoint = AnchorPoint.CENTER;
+            this.anchorPoint = GeometryUtils.AnchorPoint.CENTER;
         }
 
     }
@@ -94,7 +93,7 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
         super(AbstractLinkableCDEntityType.SPECIES);
         this.reactantType = ReactantType.ADDITIONAL_PRODUCT;
         this.aliasW = aliasW;
-        this.link = new LinkWrapper(new AbstractLinkableCDEntity(AbstractLinkableCDEntityType.PROCESS), this, null);
+        this.link = new LinkWrapper(new Process(), this, null);
 
         // get reactanct's link anchor point
         if(productLink.isSetCelldesignerLinkAnchor()) {
@@ -103,13 +102,13 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
             for(int i=0; i < productLink.getDomNode().getChildNodes().getLength(); i++) {
                 Node n = productLink.getDomNode().getChildNodes().item(i);
                 if(n.getNodeName().equals("celldesigner_linkAnchor")) {
-                    this.anchorPoint = AnchorPoint.valueOf(n.getAttributes().getNamedItem("position").getNodeValue());
+                    this.anchorPoint = GeometryUtils.AnchorPoint.valueOf(n.getAttributes().getNamedItem("position").getNodeValue());
                     break;
                 }
             }
         }
         else {
-            this.anchorPoint = AnchorPoint.CENTER;
+            this.anchorPoint = GeometryUtils.AnchorPoint.CENTER;
         }
     }
 
@@ -118,7 +117,7 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
         super(AbstractLinkableCDEntityType.SPECIES);
         this.reactantType = ReactantType.MODIFICATION;
         this.aliasW = aliasW;
-        this.link = new LinkWrapper(this, new AbstractLinkableCDEntity(AbstractLinkableCDEntityType.PROCESS), null, index);
+        this.link = new LinkWrapper(this, new Process(), null, index);
 
         // get reactanct's link anchor point
         if(modification.isSetCelldesignerLinkTarget()) {
@@ -134,11 +133,11 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
                         Node n2 = n.getChildNodes().item(j);
                         if(n2.getNodeName().equals("celldesigner_linkAnchor")) {
                             try{
-                                this.anchorPoint = AnchorPoint.valueOf(n2.getAttributes().getNamedItem("position").getNodeValue());
+                                this.anchorPoint = GeometryUtils.AnchorPoint.valueOf(n2.getAttributes().getNamedItem("position").getNodeValue());
                             }
                             // here the position can be INACTIVE
                             catch(IllegalArgumentException e) {
-                                this.anchorPoint = AnchorPoint.CENTER;
+                                this.anchorPoint = GeometryUtils.AnchorPoint.CENTER;
                             }
                             break;
                         }
@@ -147,7 +146,7 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
             }
         }
         else {
-            this.anchorPoint = AnchorPoint.CENTER;
+            this.anchorPoint = GeometryUtils.AnchorPoint.CENTER;
         }
     }
 
@@ -195,29 +194,34 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
         return reactantList;
     }
 
-    public Point2D getLinkStartingPoint() {
+    public Point2D.Float getLinkStartingPoint() {
         Point2D center = this.aliasW.getCenterPoint();
         float width = Float.parseFloat(this.aliasW.getBounds().getW());
         float height = Float.parseFloat(this.aliasW.getBounds().getH());
 
         Point2D relativeLinkStartingPoint = null;
-        if(this.anchorPoint != AnchorPoint.CENTER) {
+        if(this.anchorPoint != GeometryUtils.AnchorPoint.CENTER) {
             String cdClass = this.getAliasW().getSpeciesW().getCdClass();
             float angle = perimeterAnchorPointToAngle();
             // ellipse shapes
             switch(this.getAliasW().getSpeciesW().getCdShape()) {
                 case ELLIPSE:
-                    relativeLinkStartingPoint = ellipsePerimeterPointFromAngle(width, height, angle);
+                case CIRCLE:
+                    relativeLinkStartingPoint = GeometryUtils.ellipsePerimeterPointFromAngle(width, height, angle);
                     break;
                 case PHENOTYPE:
-                    relativeLinkStartingPoint = getRelativePhenotypeAnchorPosition(width, height);
+                    relativeLinkStartingPoint = GeometryUtils.getRelativePhenotypeAnchorPosition(this.anchorPoint, width, height);
                     System.out.println("PHENOTYPE "+width+" "+height+" "+relativeLinkStartingPoint);
                     break;
                 case LEFT_PARALLELOGRAM:
+                    relativeLinkStartingPoint = GeometryUtils.getRelativeLeftParallelogramAnchorPosition(this.anchorPoint, width, height);
+                    break;
                 case RIGHT_PARALLELOGRAM:
+                    relativeLinkStartingPoint = GeometryUtils.getRelativeRightParallelogramAnchorPosition(this.anchorPoint, width, height);
+                    break;
                 case TRUNCATED:
                 default: // RECTANGLE as default
-                    relativeLinkStartingPoint = getRelativeRectangleAnchorPosition(width, height);
+                    relativeLinkStartingPoint = GeometryUtils.getRelativeRectangleAnchorPosition(this.anchorPoint, width, height);
             }
         }
         else {
@@ -229,7 +233,7 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
                 (float) (relativeLinkStartingPoint.getY() + center.getY()));
     }
 
-    public Point2D getCenterPoint() {
+    public Point2D.Float getCenterPoint() {
         return this.aliasW.getCenterPoint();
     }
 
@@ -260,163 +264,7 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
         throw new RuntimeException("Unexpected error, should not be able to reach this point.");
     }
 
-    public Point2D getRelativeRectangleAnchorPosition(float width, float height){
-        Point.Float pl = new Point.Float();
-        switch(this.anchorPoint) {
-            case E:
-                pl.x = 0.5f * width;
-                pl.y = 0;
-                break;
-            case ENE:
-                pl.x = 0.5f * width;
-                pl.y = 0.25f * height;
-                break;
-            case NE:
-                pl.x = 0.5f * width;
-                pl.y = 0.5f * height;
-                break;
-            case ESE:
-                pl.x = 0.5f * width;
-                pl.y = -0.25f * height;
-                break;
-            case SE:
-                pl.x = 0.5f * width;
-                pl.y = -0.5f * height;
-                break;
-            case W:
-                pl.x = -0.5f * width;
-                pl.y = 0;
-                break;
-            case WNW:
-                pl.x = -0.5f * width;
-                pl.y = 0.25f * height;
-                break;
-            case NW:
-                pl.x = -0.5f * width;
-                pl.y = 0.5f * height;
-                break;
-            case WSW:
-                pl.x = -0.5f * width;
-                pl.y = -0.25f * height;
-                break;
-            case SW:
-                pl.x = -0.5f * width;
-                pl.y = -0.5f * height;
-                break;
-            case N:
-                pl.x = 0;
-                pl.y = 0.5f * height;
-                break;
-            case NNW:
-                pl.x = -0.25f * width;
-                pl.y = 0.5f * height;
-                break;
-            case NNE:
-                pl.x = 0.25f * width;
-                pl.y = 0.5f * height;
-                break;
-            case S:
-                pl.x = 0;
-                pl.y = -0.5f * height;
-                break;
-            case SSW:
-                pl.x = -0.25f * width;
-                pl.y = -0.5f * height;
-                break;
-            case SSE:
-                pl.x = 0.25f * width;
-                pl.y = -0.5f * height;
-                break;
-        }
-        // all that is given in a coordinate system where Y points up.
-        // but it always points down for us.
-        return new Point2D.Float((float)pl.getX(), (float)-pl.getY());
-    }
 
-    /**
-     * angle of the right and left "arrows" of hte phenotype are fixed (45°)
-     * the diagonals on the left and right are the diagonals of 4 squares of side h/2
-     * @param width
-     * @param height
-     * @return
-     */
-    public Point2D getRelativePhenotypeAnchorPosition(float width, float height){
-
-        float halfW = 0.5f * width;
-        float halfH = 0.5f * height;
-        float quartH = 0.25f * height;
-
-        Point.Float pl = new Point.Float();
-        switch(this.anchorPoint) {
-            case E:
-                pl.x = halfW;
-                pl.y = 0;
-                break;
-            case ENE:
-                pl.x = halfW - quartH;
-                pl.y = quartH;
-                break;
-            case NE:
-                pl.x = halfW - halfH;
-                pl.y = halfH;
-                break;
-            case ESE:
-                pl.x = halfW - quartH;
-                pl.y = -quartH;
-                break;
-            case SE:
-                pl.x = halfW - halfH;
-                pl.y = -halfH;
-                break;
-            case W:
-                pl.x = -halfW;
-                pl.y = 0;
-                break;
-            case WNW:
-                pl.x = quartH - halfW;
-                pl.y = quartH;
-                break;
-            case NW:
-                pl.x = halfH - halfW;
-                pl.y = halfH;
-                break;
-            case WSW:
-                pl.x = quartH - halfW;
-                pl.y = -quartH;
-                break;
-            case SW:
-                pl.x = halfH - halfW;
-                pl.y = -halfH;
-                break;
-            case N:
-                pl.x = 0;
-                pl.y = -halfH;
-                break;
-            case NNW:
-                pl.x = 0.5f * (halfH - halfW);
-                pl.y = halfH;
-                break;
-            case NNE:
-                pl.x = 0.5f * (halfW - halfH);
-                pl.y = halfH;
-                break;
-            case S:
-                pl.x = 0;
-                pl.y = -halfH;
-                break;
-            case SSW:
-                pl.x = 0.5f * (halfH - halfW);
-                pl.y = -halfH;
-                break;
-            case SSE:
-                pl.x = 0.5f * (halfW - halfH);
-                pl.y = -halfH;
-                break;
-        }
-        // all that is given in a coordinate system where Y points up.
-        // but it always points down for us.
-        return new Point2D.Float((float)pl.getX(), (float)-pl.getY());
-    }
 
     /**
      *
@@ -482,19 +330,6 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
         return edgePoint;
     }
 
-    /**
-     * Assuming the ellipse is aligned to axis and center of ellipse is 0,0
-     * @param bboxWidth
-     * @param bboxHeight
-     * @param deg
-     * @return
-     */
-    public Point2D ellipsePerimeterPointFromAngle(float bboxWidth, float bboxHeight, float deg) {
-        double theta = deg * Math.PI / 180;
-        return new Point2D.Double(
-                (bboxWidth / 2) * Math.cos(theta),
-                -(bboxHeight / 2) * Math.sin(theta));
-    }
 
     public static int getProcessAnchorIndex(CelldesignerModification modif) {
         String targetLineIndex = modif.getTargetLineIndex().getStringValue();
@@ -520,4 +355,29 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
     public void setLink(LinkWrapper link) {
         this.link = link;
     }
+
+    @Override
+    public Point2D.Float getCoords() {
+        return this.aliasW.getCenterPoint();
+    }
+
+    @Override
+    public float getHeight() {
+        return Float.parseFloat(this.aliasW.getBounds().getH());
+    }
+
+    @Override
+    public float getWidth() {
+        return Float.parseFloat(this.aliasW.getBounds().getW());
+    }
+
+    @Override
+    public SpeciesWrapper.CdShape getShape() {
+        return this.aliasW.getSpeciesW().getCdShape();
+    }
+
+    public GeometryUtils.AnchorPoint getAnchorPoint() {
+        return anchorPoint;
+    }
+
 }
