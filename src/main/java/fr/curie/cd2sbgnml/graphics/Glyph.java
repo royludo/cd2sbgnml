@@ -46,8 +46,8 @@ public class Glyph {
         return label;
     }
 
-
-
-
-
+    @Override
+    public String toString() {
+        return "[Center: "+this.getCenter()+" width: "+this.width+" height: "+this.height+ "]";
+    }
 }

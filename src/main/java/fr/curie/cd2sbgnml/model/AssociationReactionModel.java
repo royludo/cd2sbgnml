@@ -64,9 +64,10 @@ public class AssociationReactionModel extends GenericReactionModel {
                 ));*/
 
         List<Point2D.Float> absoluteEditPoints2 = this.getBranchPoints(association.getGlyph().getCenter(), endRcoordPoint, 2);
-        absoluteEditPoints2 = LinkModel.getNormalizedEndPoints(absoluteEditPoints2,
-                association,
-                endModel,
+        System.out.println("REACTION ID: "+reactionW.getId());
+        absoluteEditPoints2 = GeometryUtils.getNormalizedEndPoints(absoluteEditPoints2,
+                association.getGlyph(),
+                endModel.getGlyph(),
                 AnchorPoint.CENTER,
                 endModel.getReactantW().getAnchorPoint());
         //LinkModel link2 = new LinkModel(association, endModel, new Link(absolutePoints2));
@@ -96,13 +97,13 @@ public class AssociationReactionModel extends GenericReactionModel {
             As it is not a valid SBGN thing, it is weirdly drawn by visualization tool.
             Better if the link does not overlap the process here.
              */
-            List<Point2D.Float> normalizedSubLinesTuple1 = LinkModel.getNormalizedEndPoints(subLinesTuple.getKey(),
-                    association,
-                    process,
+            /*List<Point2D.Float> normalizedSubLinesTuple1 = GeometryUtils.getNormalizedEndPoints(subLinesTuple.getKey(),
+                    association.getGlyph(),
+                    process.getGlyph(),
                     AnchorPoint.CENTER,
-                    AnchorPoint.CENTER);
+                    AnchorPoint.CENTER);*/
 
-            LinkModel l21 = new LinkModel(association, process, new Link(normalizedSubLinesTuple1));
+            LinkModel l21 = new LinkModel(association, process, new Link(subLinesTuple.getKey()));
             LinkModel l22 = new LinkModel(process, endModel, new Link(subLinesTuple.getValue()));
             System.out.println("link edit points: "+link0.getLink().getEditPoints()+" "+l21.getLink().getStart()+" "+l21.getLink().getEditPoints());
 

@@ -3,6 +3,7 @@ package fr.curie.cd2sbgnml.model;
 import fr.curie.cd2sbgnml.graphics.GeometryUtils;
 import fr.curie.cd2sbgnml.LinkWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ModelWrapper;
+import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
 import org.sbml.x2001.ns.celldesigner.CelldesignerModificationDocument;
 
@@ -27,10 +28,12 @@ public class GenericReactionModel {
         this.reactantModels = new ArrayList<>();
         this.linkModels = new ArrayList<>();
 
+    }
 
-        /*
-        // process modifiers
-        for(ReactantWrapper reactantW: this.getModifiers()) {
+    /*
+    public void processModifiers(Process process) {
+        int modifIndex=0;
+        for(ReactantWrapper reactantW: this.getReactionW().getModifiers()) {
             // simple case, no logic gate
             System.out.println("modifier: "+reactantW.getAliasW().getId());
             int modifIndex = reactantW.getLink().getIndex();
@@ -60,11 +63,9 @@ public class GenericReactionModel {
 
             reactantW.setLink(link);
 
-
+            modifIndex++;
         }
-        */
-
-    }
+    }*/
 
     /*
      //TODO remove, probably unused anymore

@@ -45,9 +45,9 @@ public class DissociationReactionModel extends GenericReactionModel{
         // branch 0
         List<Point2D.Float> absoluteEditPoints0 = this.getBranchPoints(dissociation.getGlyph().getCenter(), startRcoordPoint, 0);
         Collections.reverse(absoluteEditPoints0);
-        absoluteEditPoints0 = LinkModel.getNormalizedEndPoints(absoluteEditPoints0,
-                startModel,
-                dissociation,
+        absoluteEditPoints0 = GeometryUtils.getNormalizedEndPoints(absoluteEditPoints0,
+                startModel.getGlyph(),
+                dissociation.getGlyph(),
                 startModel.getReactantW().getAnchorPoint(),
                 AnchorPoint.CENTER);
         //LinkModel link0 = new LinkModel(startModel, dissociation, new Link(absoluteEditPoints0));
@@ -57,11 +57,14 @@ public class DissociationReactionModel extends GenericReactionModel{
                 ));*/
 
         List<Point2D.Float> absoluteEditPoints1 = this.getBranchPoints(dissociation.getGlyph().getCenter(), endR1coordPoint, 1);
-        absoluteEditPoints1 = LinkModel.getNormalizedEndPoints(absoluteEditPoints1,
-                dissociation,
-                endModel1,
+        System.out.println("dissoc BUUUUG: "+absoluteEditPoints1);
+        System.out.println("dissoc BUUUUG: "+dissociation.getGlyph()+" "+endModel1.getGlyph()+" "+endModel1.getReactantW().getAnchorPoint());
+        absoluteEditPoints1 = GeometryUtils.getNormalizedEndPoints(absoluteEditPoints1,
+                dissociation.getGlyph(),
+                endModel1.getGlyph(),
                 AnchorPoint.CENTER,
                 endModel1.getReactantW().getAnchorPoint());
+        System.out.println("dissoc BUUUUG: "+absoluteEditPoints1);
         LinkModel link1 = new LinkModel(dissociation, endModel1, new Link(absoluteEditPoints1));
         /*link1.setSbgnSpacePointList(
                 link1.getNormalizedEndPoints(
@@ -69,9 +72,9 @@ public class DissociationReactionModel extends GenericReactionModel{
                 ));*/
 
         List<Point2D.Float> absoluteEditPoints2 = this.getBranchPoints(dissociation.getGlyph().getCenter(), endR2coordPoint, 2);
-        absoluteEditPoints2 = LinkModel.getNormalizedEndPoints(absoluteEditPoints2,
-                dissociation,
-                endModel2,
+        absoluteEditPoints2 = GeometryUtils.getNormalizedEndPoints(absoluteEditPoints2,
+                dissociation.getGlyph(),
+                endModel2.getGlyph(),
                 AnchorPoint.CENTER,
                 endModel2.getReactantW().getAnchorPoint());
         LinkModel link2 = new LinkModel(dissociation, endModel2, new Link(absoluteEditPoints2));
@@ -105,14 +108,14 @@ public class DissociationReactionModel extends GenericReactionModel{
             As it is not a valid SBGN thing, it is weirdly drawn by visualization tool.
             Better if the link does not overlap the process here.
              */
-            List<Point2D.Float> normalizedSubLinesTuple1 = LinkModel.getNormalizedEndPoints(subLinesTuple.getKey(),
-                    startModel,
-                    process,
+            List<Point2D.Float> normalizedSubLinesTuple1 = GeometryUtils.getNormalizedEndPoints(subLinesTuple.getKey(),
+                    startModel.getGlyph(),
+                    process.getGlyph(),
                     startModel.getReactantW().getAnchorPoint(),
                     AnchorPoint.CENTER);
-            List<Point2D.Float> normalizedSubLinesTuple2 = LinkModel.getNormalizedEndPoints(subLinesTuple.getValue(),
-                    process,
-                    dissociation,
+            List<Point2D.Float> normalizedSubLinesTuple2 = GeometryUtils.getNormalizedEndPoints(subLinesTuple.getValue(),
+                    process.getGlyph(),
+                    dissociation.getGlyph(),
                     AnchorPoint.CENTER,
                     AnchorPoint.CENTER);
 

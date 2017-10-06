@@ -34,11 +34,13 @@ public class SimpleReactionModel extends GenericReactionModel{
         absoluteEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
         absoluteEditPoints.add(baseLinkEndPoint);
 
-        absoluteEditPoints = LinkModel.getNormalizedEndPoints(absoluteEditPoints,
-                startModel,
-                endModel,
+        System.out.println("BEFORE NOMRALIZE "+absoluteEditPoints);
+        absoluteEditPoints = GeometryUtils.getNormalizedEndPoints(absoluteEditPoints,
+                startModel.getGlyph(),
+                endModel.getGlyph(),
                 startModel.getReactantW().getAnchorPoint(),
                 endModel.getReactantW().getAnchorPoint());
+        System.out.println("AFTER NOMRALIZE "+absoluteEditPoints);
 
         if(this.hasProcess()) {
 
@@ -64,7 +66,12 @@ public class SimpleReactionModel extends GenericReactionModel{
             this.getLinkModels().add(l2);
         }
         else {
-            // TODO do other cases
+            LinkModel l1 = new LinkModel(startModel, endModel, new Link(absoluteEditPoints));
+
+            // add everything to the reaction lists
+            this.getReactantModels().add(startModel);
+            this.getReactantModels().add(endModel);
+            this.getLinkModels().add(l1);
         }
 
         /*this.baseLinks.get(0).setSbgnSpacePointList(

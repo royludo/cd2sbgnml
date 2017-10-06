@@ -80,27 +80,31 @@ public class CD2SBGNML extends GeneralConverter {
 
             System.out.println(reactionW.getId()+" "+reactionW.getReactantList().size());
             //System.out.println("branch ? "+reactionW.isBranchType()+" right: "+reactionW.isBranchTypeRight()+" left: "+reactionW.isBranchTypeLeft());
-            Point2D processCoord = genericReactionModel.getProcess().getGlyph().getCenter();
-            System.out.println("process coord "+processCoord);
+
+            String processId = null;
+            if(reactionW.hasProcess()) {
+                Point2D processCoord = genericReactionModel.getProcess().getGlyph().getCenter();
+                System.out.println("process coord " + processCoord);
 
 
-            Glyph processGlyph = new Glyph();
-            processGlyph.setClazz("process");
-            String processId = "pr"+
-                    reactionW.getBaseReactants().get(0).getAliasW().getId()+"_"+
-                    reactionW.getBaseProducts().get(0).getAliasW().getId();
-            processGlyph.setId(processId);
+                Glyph processGlyph = new Glyph();
+                processGlyph.setClazz("process");
+                processId = "pr" +
+                        reactionW.getBaseReactants().get(0).getAliasW().getId() + "_" +
+                        reactionW.getBaseProducts().get(0).getAliasW().getId();
+                processGlyph.setId(processId);
 
-            Bbox processBbox = new Bbox();
-            processBbox.setX((float) processCoord.getX() - Process.PROCESS_SIZE / 2);
-            processBbox.setY((float) processCoord.getY() - Process.PROCESS_SIZE / 2);
-            processBbox.setH(Process.PROCESS_SIZE);
-            processBbox.setW(Process.PROCESS_SIZE);
-            processGlyph.setBbox(processBbox);
+                Bbox processBbox = new Bbox();
+                processBbox.setX((float) processCoord.getX() - Process.PROCESS_SIZE / 2);
+                processBbox.setY((float) processCoord.getY() - Process.PROCESS_SIZE / 2);
+                processBbox.setH(Process.PROCESS_SIZE);
+                processBbox.setW(Process.PROCESS_SIZE);
+                processGlyph.setBbox(processBbox);
 
-            glyphList.add(processGlyph);
-            glyphMap.put(processId, processGlyph);
-            map.getGlyph().add(processGlyph);
+                glyphList.add(processGlyph);
+                glyphMap.put(processId, processGlyph);
+                map.getGlyph().add(processGlyph);
+            }
 
 
 
@@ -109,15 +113,23 @@ public class CD2SBGNML extends GeneralConverter {
             // ARCS
 
             if(!reactionW.isBranchType()){
-                Glyph source1 = glyphMap.get(baseReactant.getAliasW().getSpeciesId()+"_"+baseReactant.getAliasW().getId());
-                Glyph target1 = glyphMap.get(processId);
+                if(reactionW.hasProcess()) {
+                    Glyph source1 = glyphMap.get(baseReactant.getAliasW().getSpeciesId() + "_" + baseReactant.getAliasW().getId());
+                    Glyph target1 = glyphMap.get(processId);
 
-                map.getArc().add(getArc(genericReactionModel.getLinkModels().get(0).getLink(), source1, target1, "consumption"));
+                    map.getArc().add(getArc(genericReactionModel.getLinkModels().get(0).getLink(), source1, target1, "consumption"));
 
-                Glyph source2 = glyphMap.get(processId);
-                Glyph target2 = glyphMap.get(baseProduct.getAliasW().getSpeciesId()+"_"+baseProduct.getAliasW().getId());
+                    Glyph source2 = glyphMap.get(processId);
+                    Glyph target2 = glyphMap.get(baseProduct.getAliasW().getSpeciesId() + "_" + baseProduct.getAliasW().getId());
 
-                map.getArc().add(getArc(genericReactionModel.getLinkModels().get(1).getLink(), source2, target2, "production"));
+                    map.getArc().add(getArc(genericReactionModel.getLinkModels().get(1).getLink(), source2, target2, "production"));
+                }
+                else {
+                    Glyph source1 = glyphMap.get(baseReactant.getAliasW().getSpeciesId() + "_" + baseReactant.getAliasW().getId());
+                    Glyph target1 = glyphMap.get(baseProduct.getAliasW().getSpeciesId() + "_" + baseProduct.getAliasW().getId());
+
+                    map.getArc().add(getArc(genericReactionModel.getLinkModels().get(0).getLink(), source1, target1, "production"));
+                }
             }
             else if(reactionW.isBranchTypeLeft()) {
                 System.out.println("REACTION: "+reactionW.getId());

@@ -1,7 +1,5 @@
 package fr.curie.cd2sbgnml.graphics;
 
-import fr.curie.cd2sbgnml.graphics.AnchorPoint;
-
 import java.awt.*;
 import java.awt.geom.*;
 import java.util.AbstractMap;
@@ -500,6 +498,12 @@ public class GeometryUtils {
                 (float) (-(bboxHeight / 2) * Math.sin(theta)));
     }
 
+    /**
+     * return between 0 and 4 points
+     * @param line
+     * @param rect
+     * @return
+     */
     public static List<Point2D.Float> getLineRectangleIntersection(Line2D.Float line, Rectangle2D.Float rect) {
         Point2D.Float p1 = new Point2D.Float(
                 (float) (rect.getX() - rect.getWidth() / 2),
@@ -525,16 +529,16 @@ public class GeometryUtils {
 
         List<Point2D.Float> result = new ArrayList<>();
         // if parallele lines, we get Nan and infinity
-        if(isDefinedAndFinite(i1.getX()) && isDefinedAndFinite(i1.getY())) {
+        if(i1 != null && isDefinedAndFinite(i1.getX()) && isDefinedAndFinite(i1.getY())) {
             result.add(i1);
         }
-        if(isDefinedAndFinite(i2.getX()) && isDefinedAndFinite(i2.getY())) {
+        if(i2 != null && isDefinedAndFinite(i2.getX()) && isDefinedAndFinite(i2.getY())) {
             result.add(i2);
         }
-        if(isDefinedAndFinite(i3.getX()) && isDefinedAndFinite(i3.getY())) {
+        if(i3 != null && isDefinedAndFinite(i3.getX()) && isDefinedAndFinite(i3.getY())) {
             result.add(i3);
         }
-        if(isDefinedAndFinite(i4.getX()) && isDefinedAndFinite(i4.getY())) {
+        if(i4 != null && isDefinedAndFinite(i4.getX()) && isDefinedAndFinite(i4.getY())) {
             result.add(i4);
         }
 
@@ -547,6 +551,7 @@ public class GeometryUtils {
 
     /**
      * https://stackoverflow.com/a/5185725
+     * return intersection even if out of segment. It extends segments.
      * @param line1
      * @param line2
      * @return
@@ -569,7 +574,12 @@ public class GeometryUtils {
                         (x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4)
                 );
 
-        return new Point2D.Float((float)x, (float)y);
+
+        if(line1.intersectsLine(line2)) {
+            return new Point2D.Float((float)x, (float)y);
+        }
+
+        return null;
     }
 
     /**
@@ -685,5 +695,92 @@ public class GeometryUtils {
         System.out.println(subLinkPoints1+" //// "+subLinkPoints2);
 
         return new AbstractMap.SimpleEntry<>(subLinkPoints1, subLinkPoints2);
+    }
+
+    /**
+     * Assuming the point list is definitively set in absolute coordinates,
+     * will translate the start and end points of the link, if they point to centers,
+     * to the correct perimeter point of the shape.
+     */
+    public static List<Point2D.Float> getNormalizedEndPoints(List<Point2D.Float> points,
+                                                             Glyph startGlyph,
+                                                             Glyph endGlyph,
+                                                             AnchorPoint startAnchor,
+                                                             AnchorPoint endAnchor) {
+        System.out.println("NORMALIZE points: " + points);
+        Point2D.Float cdSpaceStart = points.get(0);
+        Point2D.Float cdSpaceEnd = points.get(points.size() - 1);
+
+        // normalize end
+        CdShape startShape = startGlyph.getCdShape();
+        CdShape endShape = endGlyph.getCdShape();
+
+
+        List<Point2D.Float> result = new ArrayList<>();
+
+        // normalize if needed (shape wants it, or links points at center
+        if(startShape == CdShape.LEFT_PARALLELOGRAM
+                || startShape == CdShape.RIGHT_PARALLELOGRAM
+                || startAnchor == AnchorPoint.CENTER) {
+            // normalize start
+            Point2D.Float nextPoint = points.get(1);
+            Rectangle2D.Float startReactant = new Rectangle2D.Float(
+                    (float) startGlyph.getCenter().getX(),
+                    (float) startGlyph.getCenter().getY(),
+                    startGlyph.getWidth(),
+                    startGlyph.getHeight());
+            Line2D.Float segment2 = new Line2D.Float(cdSpaceStart, nextPoint);
+            System.out.println("Intersect segement: "+segment2.getP1()+" "+segment2.getP2()+" with rectangle "+startReactant);
+            List<Point2D.Float> intersections2 = GeometryUtils.getLineRectangleIntersection(segment2, startReactant);
+            System.out.println("INTERSECTION START"+intersections2);
+            if(intersections2.isEmpty()) {
+                result.add(cdSpaceStart);
+            }
+            else {
+                Point2D.Float normalizedStart = GeometryUtils.getClosest(intersections2, nextPoint);
+                result.add(normalizedStart);
+            }
+        }
+        // else just take the point already defined
+        else {
+            result.add(points.get(0));
+        }
+        System.out.println("normalized start: " + result);
+
+        for(int i=1; i < points.size() - 1; i++) {
+            result.add(points.get(i));
+        }
+        System.out.println("middle points: " + result);
+
+        if(endShape == CdShape.LEFT_PARALLELOGRAM
+                || endShape == CdShape.RIGHT_PARALLELOGRAM
+                || endAnchor == AnchorPoint.CENTER) {
+
+            Point2D.Float previousPoint = points.get(points.size() - 2);
+            Rectangle2D.Float endReactant = new Rectangle2D.Float(
+                    (float) endGlyph.getCenter().getX(),
+                    (float) endGlyph.getCenter().getY(),
+                    endGlyph.getWidth(),
+                    endGlyph.getHeight());
+            Line2D.Float segment = new Line2D.Float(previousPoint, cdSpaceEnd);
+            System.out.println("Intersect segement: "+segment+" with rectangle "+endReactant);
+            List<Point2D.Float> intersections = GeometryUtils.getLineRectangleIntersection(segment, endReactant);
+            System.out.println("INTERSECTIONS "+intersections);
+            if(intersections.isEmpty()) {
+                result.add(cdSpaceEnd);
+            }
+            else {
+                Point2D.Float normalizedEnd = GeometryUtils.getClosest(intersections, previousPoint);
+                System.out.println("normalized end: "+normalizedEnd);
+                result.add(normalizedEnd);
+            }
+        }
+        else {
+            result.add(cdSpaceEnd);
+        }
+
+        System.out.println("NORMALIZE RESULT: " + result);
+
+        return result;
     }
 }

@@ -10,6 +10,9 @@ public class ReactionModelFactory {
         else if(reactionWrapper.getReactionType().equals("DISSOCIATION")) {
             return new DissociationReactionModel(reactionWrapper);
         }
+        else if(reactionWrapper.getReactionType().equals("TRUNCATION")) {
+            return new DissociationReactionModel(reactionWrapper);
+        }
         else {
             return new SimpleReactionModel(reactionWrapper);
         }
