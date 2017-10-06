@@ -1,38 +1,29 @@
-import java.awt.*;
+package fr.curie.cd2sbgnml.model;
+
+import fr.curie.cd2sbgnml.AbstractLinkableCDEntity;
+import fr.curie.cd2sbgnml.graphics.CdShape;
+import fr.curie.cd2sbgnml.graphics.Glyph;
+import fr.curie.cd2sbgnml.graphics.SbgnShape;
+import fr.curie.cd2sbgnml.xmlcdwrappers.SpeciesWrapper;
+
 import java.awt.geom.Point2D;
 
-public class Process extends AbstractLinkableCDEntity {
+public class Process extends ReactionNodeModel {
 
     public static final float PROCESS_SIZE = 10;
 
-    private Point2D.Float coords;
-
-    public Process() {
-        super(AbstractLinkableCDEntityType.PROCESS);
+    public Process(GenericReactionModel genericReactionModel, Glyph glyph) {
+        super(genericReactionModel, glyph);
     }
 
-    public Process(Point2D.Float coords) {
-        super(AbstractLinkableCDEntityType.PROCESS);
-        this.coords = coords;
-    }
-
-    public Point2D.Float getCoords() {
-        return coords;
-    }
-
-    @Override
-    public float getHeight() {
-        return PROCESS_SIZE;
-    }
-
-    @Override
-    public float getWidth() {
-        return PROCESS_SIZE;
-    }
-
-    @Override
-    public SpeciesWrapper.CdShape getShape() {
-        return SpeciesWrapper.CdShape.RECTANGLE;
+    public Process(GenericReactionModel genericReactionModel, Point2D.Float centerCoords) {
+        super(genericReactionModel, new Glyph(
+                centerCoords,
+                PROCESS_SIZE,
+                PROCESS_SIZE,
+                CdShape.RECTANGLE,
+                SbgnShape.RECTANGLE
+        ));
     }
 
     /**
@@ -57,8 +48,8 @@ public class Process extends AbstractLinkableCDEntity {
     public Point2D.Float getAbsoluteAnchorCoords(int index) {
         Point2D.Float relativeCoords = getRelativeAnchorCoords(index);
         return new Point2D.Float(
-                (float) (relativeCoords.getX() + this.getCoords().getX()),
-                (float) (relativeCoords.getY() + this.getCoords().getY()));
+                (float) (relativeCoords.getX() + this.getGlyph().getCenter().getX()),
+                (float) (relativeCoords.getY() + this.getGlyph().getCenter().getY()));
     }
 
 }

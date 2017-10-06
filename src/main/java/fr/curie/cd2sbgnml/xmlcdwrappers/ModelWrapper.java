@@ -1,8 +1,8 @@
-import fr.curie.BiNoM.pathways.wrappers.CellDesigner;
+package fr.curie.cd2sbgnml.xmlcdwrappers;
+
 import org.sbml.x2001.ns.celldesigner.*;
 import org.sbml.x2001.ns.celldesigner.CelldesignerCompartmentAliasDocument.CelldesignerCompartmentAlias;
 import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesAliasDocument.CelldesignerComplexSpeciesAlias;
-import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesDocument.CelldesignerComplexSpecies;
 import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesAliasDocument.CelldesignerSpeciesAlias;
 import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesDocument.CelldesignerSpecies;
 import org.sbml.x2001.ns.celldesigner.CompartmentDocument.Compartment;
@@ -42,7 +42,7 @@ public class ModelWrapper {
 
 
     private HashMap<String, List<AliasWrapper>> complexSpeciesAlias2speciesAliasWrapper;
-    //private HashMap<String, AliasWrapper> globalAliasMap;
+    //private HashMap<String, fr.curie.cd2sbgnml.xmlcdwrappers.AliasWrapper> globalAliasMap;
 
     private List<ReactionWrapper> listOfReactionWrapper;
     private HashMap<String, ReactionWrapper> mapOfReactionWrapper;

@@ -1,3 +1,5 @@
+package fr.curie.cd2sbgnml;
+
 import fr.curie.BiNoM.pathways.wrappers.CellDesigner;
 import org.sbfc.converter.exceptions.ReadModelException;
 import org.sbfc.converter.exceptions.WriteModelException;

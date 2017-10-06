@@ -1,13 +1,15 @@
+package fr.curie.cd2sbgnml.graphics;
+
+import fr.curie.cd2sbgnml.graphics.AnchorPoint;
+
 import java.awt.*;
 import java.awt.geom.*;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class GeometryUtils {
-
-    public enum AnchorPoint { N, NNE, NE, ENE, E, ESE, SE, SSE, S,
-        SSW, SW, WSW, W, WNW, NW, NNW, CENTER}
 
     /**
      * Given 3 points in global map coordinate, defining an origin and 2 unit vectors,
@@ -136,7 +138,34 @@ public class GeometryUtils {
         //return Math.atan2(v2.getY(), v2.getX()) - Math.atan2(v1.getY(), v1.getX());
     }
 
-    public static Point2D getRelativeRectangleAnchorPosition(AnchorPoint anchorPoint, float width, float height){
+    /**
+     *
+     * @return angle in degree starting from positive X axis (= East)
+     */
+    public static float perimeterAnchorPointToAngle(AnchorPoint anchorPoint) {
+        switch(anchorPoint){
+            case N: return 90; //0;
+            case NNE: return 67.5f; //22.5f;
+            case NE: return 45;
+            case ENE: return 22.5f; //67.5f;
+            case E: return 0; //90;
+            case ESE: return -22.5f; //337.5f; //112.5f;
+            case SE: return -45; //315; //135;
+            case SSE: return -67.5f; //292.5f; //157.5f;
+            case S: return -90; //270; //180;
+            case SSW: return -112.5f; //247.5f; //202.5f;
+            case SW: return -135; //225;
+            case WSW: return -157.5f; //202.5f; //247.5f;
+            case W: return 180; //270;
+            case WNW: return 157.5f; //292.5f;
+            case NW: return 135; //315;
+            case NNW: return 112.5f; //337.5f;
+            case CENTER: throw new RuntimeException("Cannot infer angle from link starting at center");
+        }
+        throw new RuntimeException("Unexpected error, should not be able to reach this point.");
+    }
+
+    public static Point2D.Float getRelativeRectangleAnchorPosition(AnchorPoint anchorPoint, float width, float height){
         Point.Float pl = new Point.Float();
         switch(anchorPoint) {
             case E:
@@ -216,7 +245,7 @@ public class GeometryUtils {
      * @param height
      * @return
      */
-    public static Point2D getRelativePhenotypeAnchorPosition(AnchorPoint anchorPoint, float width, float height){
+    public static Point2D.Float getRelativePhenotypeAnchorPosition(AnchorPoint anchorPoint, float width, float height){
 
         float halfW = 0.5f * width;
         float halfH = 0.5f * height;
@@ -301,7 +330,7 @@ public class GeometryUtils {
      * @param height
      * @return
      */
-    public static Point2D getRelativeRightParallelogramAnchorPosition(AnchorPoint anchorPoint, float width, float height){
+    public static Point2D.Float getRelativeRightParallelogramAnchorPosition(AnchorPoint anchorPoint, float width, float height){
 
         float halfW = 0.5f * width;
         float halfH = 0.5f * height;
@@ -379,7 +408,7 @@ public class GeometryUtils {
         return new Point2D.Float((float)pl.getX(), (float)-pl.getY());
     }
 
-    public static Point2D getRelativeLeftParallelogramAnchorPosition(AnchorPoint anchorPoint, float width, float height){
+    public static Point2D.Float getRelativeLeftParallelogramAnchorPosition(AnchorPoint anchorPoint, float width, float height){
 
         float halfW = 0.5f * width;
         float halfH = 0.5f * height;
@@ -464,11 +493,11 @@ public class GeometryUtils {
      * @param deg
      * @return
      */
-    public static Point2D ellipsePerimeterPointFromAngle(float bboxWidth, float bboxHeight, float deg) {
+    public static Point2D.Float ellipsePerimeterPointFromAngle(float bboxWidth, float bboxHeight, float deg) {
         double theta = deg * Math.PI / 180;
-        return new Point2D.Double(
-                (bboxWidth / 2) * Math.cos(theta),
-                -(bboxHeight / 2) * Math.sin(theta));
+        return new Point2D.Float(
+                (float) ((bboxWidth / 2) * Math.cos(theta)),
+                (float) (-(bboxHeight / 2) * Math.sin(theta)));
     }
 
     public static List<Point2D.Float> getLineRectangleIntersection(Line2D.Float line, Rectangle2D.Float rect) {
@@ -565,5 +594,96 @@ public class GeometryUtils {
         }
 
         return closest;
+    }
+
+    /**
+     * Apply a list of affine transforms to a list of points.
+     * Used to change the coordinate system of a set of points.
+     * @param points a list of 2D coordinates
+     * @param transforms a list of transforms to be applied
+     * @return a new list of points
+     */
+    public static List<Point2D.Float> convertPoints(List<Point2D.Float> points, List<AffineTransform> transforms) {
+
+        List<Point2D.Float> convertedPoints = new ArrayList<>();
+        for (Point2D editP : points) {
+            Point2D p = new Point2D.Double(editP.getX(), editP.getY());
+
+            for(AffineTransform t: transforms) {
+                t.transform(p, p);
+            }
+
+            System.out.println("result: " + editP + " -> " + p.toString());
+            convertedPoints.add(new Point2D.Float((float) p.getX(), (float) p.getY()));
+
+        }
+        return convertedPoints;
+    }
+
+    public static Point2D.Float getMiddle(Point2D.Float p1, Point2D.Float p2) {
+        return new Point2D.Float(
+                p1.x + ((p2.x - p1.x) / 2),
+                p1.y + ((p2.y - p1.y) / 2));
+    }
+
+    /**
+     * Given a polyline defined by a list of points, and a segment index (starting at 0 for the first segment of the
+     * polyline), returns the middle of the specified segment.
+     * Polyline has to be valid, point list has to have at least 2 points.
+     * @param points
+     * @param segment
+     * @return
+     */
+    public static Point2D.Float getMiddleOfPolylineSegment(List<Point2D.Float> points, int segment) {
+        if(points.size() < 2) {
+            throw new IllegalArgumentException("Polyline needs to have at least 2 points, "+ points.size()+" points provided.");
+        }
+        if(segment < 0 || segment > points.size() - 1) {
+            throw new IllegalArgumentException("segment has to be between 0 and polyline segment count, "+segment+" was provided.");
+        }
+
+        Point2D.Float p1 = points.get(segment);
+        Point2D.Float p2 = points.get(segment + 1);
+        System.out.println("middle of "+p1+" "+p2+" -> "+getMiddle(p1, p2));
+        return getMiddle(p1, p2);
+    }
+
+    public static AbstractMap.SimpleEntry<List<Point2D.Float>, List<Point2D.Float>> splitPolylineAtSegment(List<Point2D.Float> points, int segment) {
+        if(points.size() < 2) {
+            throw new IllegalArgumentException("Polyline needs to have at least 2 points, "+ points.size()+" points provided.");
+        }
+        if(segment < 0 || segment > points.size() - 1) {
+            throw new IllegalArgumentException("segment has to be between 0 and polyline segment count, "+segment+" was provided.");
+        }
+
+        List<Point2D.Float> subLinkPoints1 = new ArrayList<>();
+        List<Point2D.Float> subLinkPoints2 = new ArrayList<>();
+        List<Point2D.Float> currentSubLink = subLinkPoints1;
+
+        for(int i=0; i < points.size() - 1; i++) {
+            System.out.println("i: "+i);
+            Point2D.Float currentStartPoint = points.get(i);
+            Point2D.Float currenEndPoint = points.get(i + 1);
+
+            currentSubLink.add(currentStartPoint);
+
+            if(i == segment) { // split this segment in 2
+                System.out.println("process segment");
+                Point2D.Float middle = getMiddle(currentStartPoint, currenEndPoint);
+                System.out.println(currentStartPoint+" "+middle+" "+currenEndPoint);
+                currentSubLink.add(middle);
+                currentSubLink = subLinkPoints2;
+                currentSubLink.add(middle);
+            }
+
+            if(i == points.size() - 2) {
+                currentSubLink.add(currenEndPoint);
+            }
+
+        }
+
+        System.out.println(subLinkPoints1+" //// "+subLinkPoints2);
+
+        return new AbstractMap.SimpleEntry<>(subLinkPoints1, subLinkPoints2);
     }
 }

@@ -1,3 +1,8 @@
+package fr.curie.cd2sbgnml;
+
+import fr.curie.cd2sbgnml.graphics.CdShape;
+import fr.curie.cd2sbgnml.xmlcdwrappers.SpeciesWrapper;
+
 import java.awt.geom.Point2D;
 
 /**
@@ -30,7 +35,7 @@ public abstract class AbstractLinkableCDEntity {
 
     public abstract float getWidth();
 
-    public abstract SpeciesWrapper.CdShape getShape();
+    public abstract CdShape getShape();
 
 
 }

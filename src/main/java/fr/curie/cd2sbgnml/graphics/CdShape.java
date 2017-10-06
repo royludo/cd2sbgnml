@@ -1,0 +1,5 @@
+package fr.curie.cd2sbgnml.graphics;
+
+public enum CdShape {
+    RECTANGLE, ELLIPSE, PHENOTYPE, LEFT_PARALLELOGRAM, RIGHT_PARALLELOGRAM, TRUNCATED, CIRCLE, EMPTY
+}

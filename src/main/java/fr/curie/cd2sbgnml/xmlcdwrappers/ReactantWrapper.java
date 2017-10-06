@@ -1,3 +1,9 @@
+package fr.curie.cd2sbgnml.xmlcdwrappers;
+
+import fr.curie.cd2sbgnml.AbstractLinkableCDEntity;
+import fr.curie.cd2sbgnml.graphics.AnchorPoint;
+import fr.curie.cd2sbgnml.LinkWrapper;
+import fr.curie.cd2sbgnml.model.Process;
 import org.sbml.x2001.ns.celldesigner.CelldesignerBaseProductDocument.CelldesignerBaseProduct;
 import org.sbml.x2001.ns.celldesigner.CelldesignerBaseReactantDocument.CelldesignerBaseReactant;
 import org.sbml.x2001.ns.celldesigner.CelldesignerListOfModificationDocument.CelldesignerListOfModification;
@@ -7,7 +13,6 @@ import org.sbml.x2001.ns.celldesigner.CelldesignerReactantLinkDocument.Celldesig
 import org.sbml.x2001.ns.celldesigner.ReactionDocument.Reaction;
 import org.w3c.dom.Node;
 
-import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,39 +22,35 @@ import java.util.List;
  * group reactant description
  *  = baseReactant, baseProduct, reactantLink and productLink
  */
-public class ReactantWrapper extends AbstractLinkableCDEntity {
+public class ReactantWrapper {
 
     public enum ReactantType {BASE_REACTANT, BASE_PRODUCT, ADDITIONAL_REACTANT, ADDITIONAL_PRODUCT, MODIFICATION}
 
 
     private ReactantType reactantType;
     private AliasWrapper aliasW;
-    private LinkWrapper link;
-    private GeometryUtils.AnchorPoint anchorPoint;
+    //private LinkWrapper link;
+    private AnchorPoint anchorPoint;
 
     private ReactantWrapper (CelldesignerBaseReactant baseReactant, AliasWrapper aliasW) {
-        super(AbstractLinkableCDEntityType.SPECIES);
         this.reactantType = ReactantType.BASE_REACTANT;
         this.aliasW = aliasW;
-        this.link = new LinkWrapper(this, new Process(), null);
 
         // get reactanct's link anchor point
         if(baseReactant.isSetCelldesignerLinkAnchor() &&
                 ! baseReactant.getCelldesignerLinkAnchor().getDomNode().getAttributes().
                         getNamedItem("position").getNodeValue().equals("INACTIVE")) {
-            this.anchorPoint = GeometryUtils.AnchorPoint.valueOf(baseReactant.getCelldesignerLinkAnchor().getPosition().toString());
+            this.anchorPoint = AnchorPoint.valueOf(baseReactant.getCelldesignerLinkAnchor().getPosition().toString());
         }
         else {
-            this.anchorPoint = GeometryUtils.AnchorPoint.CENTER;
+            this.anchorPoint = AnchorPoint.CENTER;
         }
 
     }
 
     private ReactantWrapper (CelldesignerBaseProduct baseProduct, AliasWrapper aliasW) {
-        super(AbstractLinkableCDEntityType.SPECIES);
         this.reactantType = ReactantType.BASE_PRODUCT;
         this.aliasW = aliasW;
-        this.link = new LinkWrapper(new Process(), this, null);
 
         // get reactanct's link anchor point
         // value can be INACTIVE which shouldn't be possible
@@ -57,18 +58,16 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
         if(baseProduct.isSetCelldesignerLinkAnchor() &&
                 ! baseProduct.getCelldesignerLinkAnchor().getDomNode().getAttributes().
                         getNamedItem("position").getNodeValue().equals("INACTIVE")) {
-                this.anchorPoint = GeometryUtils.AnchorPoint.valueOf(baseProduct.getCelldesignerLinkAnchor().getPosition().toString());
+                this.anchorPoint = AnchorPoint.valueOf(baseProduct.getCelldesignerLinkAnchor().getPosition().toString());
         }
         else {
-            this.anchorPoint = GeometryUtils.AnchorPoint.CENTER;
+            this.anchorPoint = AnchorPoint.CENTER;
         }
     }
 
     private ReactantWrapper (CelldesignerReactantLink reactantLink, AliasWrapper aliasW) {
-        super(AbstractLinkableCDEntityType.SPECIES);
         this.reactantType = ReactantType.ADDITIONAL_REACTANT;
         this.aliasW = aliasW;
-        this.link = new LinkWrapper(this, new Process(), null);
 
         // get reactanct's link anchor point
         if(reactantLink.isSetCelldesignerLinkAnchor()) {
@@ -78,22 +77,20 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
             for(int i=0; i < reactantLink.getDomNode().getChildNodes().getLength(); i++) {
                 Node n = reactantLink.getDomNode().getChildNodes().item(i);
                 if(n.getNodeName().equals("celldesigner_linkAnchor")) {
-                    this.anchorPoint = GeometryUtils.AnchorPoint.valueOf(n.getAttributes().getNamedItem("position").getNodeValue());
+                    this.anchorPoint = AnchorPoint.valueOf(n.getAttributes().getNamedItem("position").getNodeValue());
                     break;
                 }
             }
         }
         else {
-            this.anchorPoint = GeometryUtils.AnchorPoint.CENTER;
+            this.anchorPoint = AnchorPoint.CENTER;
         }
 
     }
 
     private ReactantWrapper (CelldesignerProductLink productLink, AliasWrapper aliasW) {
-        super(AbstractLinkableCDEntityType.SPECIES);
         this.reactantType = ReactantType.ADDITIONAL_PRODUCT;
         this.aliasW = aliasW;
-        this.link = new LinkWrapper(new Process(), this, null);
 
         // get reactanct's link anchor point
         if(productLink.isSetCelldesignerLinkAnchor()) {
@@ -102,22 +99,20 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
             for(int i=0; i < productLink.getDomNode().getChildNodes().getLength(); i++) {
                 Node n = productLink.getDomNode().getChildNodes().item(i);
                 if(n.getNodeName().equals("celldesigner_linkAnchor")) {
-                    this.anchorPoint = GeometryUtils.AnchorPoint.valueOf(n.getAttributes().getNamedItem("position").getNodeValue());
+                    this.anchorPoint = AnchorPoint.valueOf(n.getAttributes().getNamedItem("position").getNodeValue());
                     break;
                 }
             }
         }
         else {
-            this.anchorPoint = GeometryUtils.AnchorPoint.CENTER;
+            this.anchorPoint = AnchorPoint.CENTER;
         }
     }
 
     // used when guaranteed that modifier is single entity (= no logic gate)
     private ReactantWrapper (CelldesignerModification modification, AliasWrapper aliasW, int index) {
-        super(AbstractLinkableCDEntityType.SPECIES);
         this.reactantType = ReactantType.MODIFICATION;
         this.aliasW = aliasW;
-        this.link = new LinkWrapper(this, new Process(), null, index);
 
         // get reactanct's link anchor point
         if(modification.isSetCelldesignerLinkTarget()) {
@@ -133,11 +128,11 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
                         Node n2 = n.getChildNodes().item(j);
                         if(n2.getNodeName().equals("celldesigner_linkAnchor")) {
                             try{
-                                this.anchorPoint = GeometryUtils.AnchorPoint.valueOf(n2.getAttributes().getNamedItem("position").getNodeValue());
+                                this.anchorPoint = AnchorPoint.valueOf(n2.getAttributes().getNamedItem("position").getNodeValue());
                             }
                             // here the position can be INACTIVE
                             catch(IllegalArgumentException e) {
-                                this.anchorPoint = GeometryUtils.AnchorPoint.CENTER;
+                                this.anchorPoint = AnchorPoint.CENTER;
                             }
                             break;
                         }
@@ -146,7 +141,7 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
             }
         }
         else {
-            this.anchorPoint = GeometryUtils.AnchorPoint.CENTER;
+            this.anchorPoint = AnchorPoint.CENTER;
         }
     }
 
@@ -194,74 +189,10 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
         return reactantList;
     }
 
-    public Point2D.Float getLinkStartingPoint() {
-        Point2D center = this.aliasW.getCenterPoint();
-        float width = Float.parseFloat(this.aliasW.getBounds().getW());
-        float height = Float.parseFloat(this.aliasW.getBounds().getH());
 
-        Point2D relativeLinkStartingPoint = null;
-        if(this.anchorPoint != GeometryUtils.AnchorPoint.CENTER) {
-            String cdClass = this.getAliasW().getSpeciesW().getCdClass();
-            float angle = perimeterAnchorPointToAngle();
-            // ellipse shapes
-            switch(this.getAliasW().getSpeciesW().getCdShape()) {
-                case ELLIPSE:
-                case CIRCLE:
-                    relativeLinkStartingPoint = GeometryUtils.ellipsePerimeterPointFromAngle(width, height, angle);
-                    break;
-                case PHENOTYPE:
-                    relativeLinkStartingPoint = GeometryUtils.getRelativePhenotypeAnchorPosition(this.anchorPoint, width, height);
-                    System.out.println("PHENOTYPE "+width+" "+height+" "+relativeLinkStartingPoint);
-                    break;
-                case LEFT_PARALLELOGRAM:
-                    relativeLinkStartingPoint = GeometryUtils.getRelativeLeftParallelogramAnchorPosition(this.anchorPoint, width, height);
-                    break;
-                case RIGHT_PARALLELOGRAM:
-                    relativeLinkStartingPoint = GeometryUtils.getRelativeRightParallelogramAnchorPosition(this.anchorPoint, width, height);
-                    break;
-                case TRUNCATED:
-                default: // RECTANGLE as default
-                    relativeLinkStartingPoint = GeometryUtils.getRelativeRectangleAnchorPosition(this.anchorPoint, width, height);
-            }
-        }
-        else {
-            relativeLinkStartingPoint = new Point2D.Float(0,0);
-        }
-
-        return new Point2D.Float(
-                (float) (relativeLinkStartingPoint.getX() + center.getX()),
-                (float) (relativeLinkStartingPoint.getY() + center.getY()));
-    }
 
     public Point2D.Float getCenterPoint() {
         return this.aliasW.getCenterPoint();
-    }
-
-    /**
-     *
-     * @return angle in degree starting from positive X axis (= East)
-     */
-    public float perimeterAnchorPointToAngle() {
-        switch(this.anchorPoint){
-            case N: return 90; //0;
-            case NNE: return 67.5f; //22.5f;
-            case NE: return 45;
-            case ENE: return 22.5f; //67.5f;
-            case E: return 0; //90;
-            case ESE: return -22.5f; //337.5f; //112.5f;
-            case SE: return -45; //315; //135;
-            case SSE: return -67.5f; //292.5f; //157.5f;
-            case S: return -90; //270; //180;
-            case SSW: return -112.5f; //247.5f; //202.5f;
-            case SW: return -135; //225;
-            case WSW: return -157.5f; //202.5f; //247.5f;
-            case W: return 180; //270;
-            case WNW: return 157.5f; //292.5f;
-            case NW: return 135; //315;
-            case NNW: return 112.5f; //337.5f;
-            case CENTER: throw new RuntimeException("Cannot infer angle from link starting at center");
-        }
-        throw new RuntimeException("Unexpected error, should not be able to reach this point.");
     }
 
 
@@ -348,35 +279,28 @@ public class ReactantWrapper extends AbstractLinkableCDEntity {
         return reactantType;
     }
 
-    public LinkWrapper getLink() {
+    /*public LinkWrapper getLink() {
         return link;
-    }
+    }*/
 
-    public void setLink(LinkWrapper link) {
+    /*public void setLink(LinkWrapper link) {
         this.link = link;
-    }
+    }*/
 
-    @Override
-    public Point2D.Float getCoords() {
-        return this.aliasW.getCenterPoint();
-    }
-
-    @Override
     public float getHeight() {
         return Float.parseFloat(this.aliasW.getBounds().getH());
     }
 
-    @Override
     public float getWidth() {
         return Float.parseFloat(this.aliasW.getBounds().getW());
     }
 
-    @Override
+    /*@Override
     public SpeciesWrapper.CdShape getShape() {
         return this.aliasW.getSpeciesW().getCdShape();
-    }
+    }*/
 
-    public GeometryUtils.AnchorPoint getAnchorPoint() {
+    public AnchorPoint getAnchorPoint() {
         return anchorPoint;
     }
 
