@@ -1,8 +1,15 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
+import fr.curie.cd2sbgnml.graphics.AnchorPoint;
 import org.sbml.x2001.ns.celldesigner.CelldesignerConnectSchemeDocument.CelldesignerConnectScheme;
 import org.sbml.x2001.ns.celldesigner.CelldesignerModificationDocument;
+import org.sbml.x2001.ns.celldesigner.CelldesignerModificationDocument.CelldesignerModification;
+import org.sbml.x2001.ns.celldesigner.CelldesignerProductLinkDocument;
+import org.sbml.x2001.ns.celldesigner.CelldesignerProductLinkDocument.CelldesignerProductLink;
+import org.sbml.x2001.ns.celldesigner.CelldesignerReactantLinkDocument;
+import org.sbml.x2001.ns.celldesigner.CelldesignerReactantLinkDocument.CelldesignerReactantLink;
 import org.sbml.x2001.ns.celldesigner.ReactionDocument.Reaction;
+import org.w3c.dom.Node;
 
 import java.awt.geom.Point2D;
 import java.util.*;
@@ -113,6 +120,11 @@ public class ReactionWrapper {
         }
     }
 
+    /**
+     * Parse a string of the form "x,y x2,y2 ..." to a list of Point2D
+     * @param editPointString
+     * @return
+     */
     public static List<Point2D.Float> parseEditPointsString(String editPointString) {
         List<Point2D.Float> editPoints = new ArrayList<>();
         Arrays.stream(editPointString.split(" ")).
@@ -175,7 +187,7 @@ public class ReactionWrapper {
      * @return
      */
     public static List<Point2D.Float> getEditPointsForModifier(Reaction reaction, int index) {
-        CelldesignerModificationDocument.CelldesignerModification modif = reaction.getAnnotation().
+        CelldesignerModification modif = reaction.getAnnotation().
                 getCelldesignerListOfModification().getCelldesignerModificationArray(index);
 
         if(!modif.isSetEditPoints()) {
@@ -184,6 +196,40 @@ public class ReactionWrapper {
 
         String editPointString = modif.getEditPoints().getStringValue();
         return parseEditPointsString(editPointString);
+    }
+
+    /**
+     * get edit points for the additional reactant located at position: index in the xml list of additional reactant
+     * @param reaction
+     * @param index
+     * @return
+     */
+    public static List<Point2D.Float> getEditPointsForAdditionalReactant(Reaction reaction, int index) {
+        CelldesignerReactantLink reactLink = reaction.getAnnotation().
+                getCelldesignerListOfReactantLinks().getCelldesignerReactantLinkArray(index);
+
+        for(int i=0; i < reactLink.getDomNode().getChildNodes().getLength(); i++) {
+            Node n = reactLink.getDomNode().getChildNodes().item(i);
+            if(n.getNodeName().equals("celldesigner_editPoints")) {
+                return parseEditPointsString(n.getChildNodes().item(0).getNodeValue());
+            }
+        }
+
+        return new ArrayList<>();
+    }
+
+    public static List<Point2D.Float> getEditPointsForAdditionalProduct(Reaction reaction, int index) {
+        CelldesignerProductLink reactLink = reaction.getAnnotation().
+                getCelldesignerListOfProductLinks().getCelldesignerProductLinkArray(index);
+
+        for(int i=0; i < reactLink.getDomNode().getChildNodes().getLength(); i++) {
+            Node n = reactLink.getDomNode().getChildNodes().item(i);
+            if(n.getNodeName().equals("celldesigner_editPoints")) {
+                return parseEditPointsString(n.getChildNodes().item(0).getNodeValue());
+            }
+        }
+
+        return new ArrayList<>();
     }
 
 

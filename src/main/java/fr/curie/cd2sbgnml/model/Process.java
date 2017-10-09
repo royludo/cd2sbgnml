@@ -2,28 +2,52 @@ package fr.curie.cd2sbgnml.model;
 
 import fr.curie.cd2sbgnml.AbstractLinkableCDEntity;
 import fr.curie.cd2sbgnml.graphics.CdShape;
+import fr.curie.cd2sbgnml.graphics.GeometryUtils;
 import fr.curie.cd2sbgnml.graphics.Glyph;
 import fr.curie.cd2sbgnml.graphics.SbgnShape;
 import fr.curie.cd2sbgnml.xmlcdwrappers.SpeciesWrapper;
 
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 
 public class Process extends ReactionNodeModel {
 
     public static final float PROCESS_SIZE = 10;
 
-    public Process(GenericReactionModel genericReactionModel, Glyph glyph) {
-        super(genericReactionModel, glyph);
+    /**
+     * Represents the oriented line on which the process is oriented.
+     * Gives a direction to the reaction, and influences where the anchor points are located
+     * on the process glyph.
+     * It is assumed that the center of the process lies in the middle of this line.
+     * Coordinates of the axis are assumed to be absolute coordinates.
+     */
+    private Line2D.Float axis;
+
+    /**
+     * If the process is part of a polyline, then the 0 and 1 anchor points are put very close to the process
+     * glyph.
+     * If the process lies on a single direct segment, those anchor points are located at a distance of 10% of the
+     * segment's length from the process.
+     */
+    private boolean onPolyline;
+
+    public Process(GenericReactionModel genericReactionModel, Glyph glyph, String id, Line2D.Float axis, boolean onPolyline) {
+        super(genericReactionModel, glyph, id);
+        this.axis = axis;
+        this.onPolyline = onPolyline;
     }
 
-    public Process(GenericReactionModel genericReactionModel, Point2D.Float centerCoords) {
-        super(genericReactionModel, new Glyph(
-                centerCoords,
-                PROCESS_SIZE,
-                PROCESS_SIZE,
-                CdShape.RECTANGLE,
-                SbgnShape.RECTANGLE
-        ));
+    public Process(GenericReactionModel genericReactionModel, Point2D.Float centerCoords, String id, Line2D.Float axis, boolean onPolyline) {
+        super(genericReactionModel,
+                new Glyph(
+                    centerCoords,
+                    PROCESS_SIZE,
+                    PROCESS_SIZE,
+                    CdShape.RECTANGLE,
+                    SbgnShape.RECTANGLE),
+                id);
+        this.axis = axis;
+        this.onPolyline = onPolyline;
     }
 
     /**
@@ -32,9 +56,25 @@ public class Process extends ReactionNodeModel {
      * @param index
      * @return relative coordinates corresponding to the anchor index point
      */
-    public static Point2D.Float getRelativeAnchorCoords(int index) {
+    public Point2D.Float getRelativeAnchorCoords (int index) {
         float halfSize = PROCESS_SIZE / 2;
         switch(index) {
+            case 0:
+                if(this.isOnPolyline()) {
+                    return new Point2D.Float(-halfSize, 0);
+                }
+                else {
+                    float distance = (float) this.getAxis().getP1().distance(this.getAxis().getP2()) * 0.2f;
+                    return new Point2D.Float(-distance, 0);
+                }
+            case 1:
+                if(this.isOnPolyline()) {
+                    return new Point2D.Float(halfSize, 0);
+                }
+                else {
+                    float distance = (float) this.getAxis().getP1().distance(this.getAxis().getP2()) * 0.2f;
+                    return new Point2D.Float(distance, 0);
+                }
             case 2: return new Point2D.Float(0, -halfSize);
             case 3: return new Point2D.Float(0, halfSize);
             case 4: return new Point2D.Float(-halfSize, -halfSize);
@@ -47,9 +87,52 @@ public class Process extends ReactionNodeModel {
 
     public Point2D.Float getAbsoluteAnchorCoords(int index) {
         Point2D.Float relativeCoords = getRelativeAnchorCoords(index);
-        return new Point2D.Float(
-                (float) (relativeCoords.getX() + this.getGlyph().getCenter().getX()),
-                (float) (relativeCoords.getY() + this.getGlyph().getCenter().getY()));
+
+        /**
+         * for 0 and 1 (additional reactants and products) we need the exact point on the line of the process
+         */
+        if( index == 0) {
+            if(this.isOnPolyline()) {
+                float distance = PROCESS_SIZE * (float) Math.sqrt(2); // diag distance of the process
+                return GeometryUtils.interpolationByDistance(this.getGlyph().getCenter(),
+                        (Point2D.Float) this.getAxis().getP1(), distance);
+            }
+            else {
+                return GeometryUtils.interpolationByRatio(this.getGlyph().getCenter(),
+                        (Point2D.Float) this.getAxis().getP1(), 0.2f);
+            }
+        }
+        else if (index == 1) {
+            if(this.isOnPolyline()) {
+                float distance = PROCESS_SIZE * (float) Math.sqrt(2); // diag distance of the process
+                return GeometryUtils.interpolationByDistance(this.getGlyph().getCenter(),
+                        (Point2D.Float) this.getAxis().getP2(), distance);
+            }
+            else {
+                return GeometryUtils.interpolationByRatio(this.getGlyph().getCenter(),
+                        (Point2D.Float) this.getAxis().getP2(), 0.2f);
+            }
+        }
+        /**
+         * for other anchor points, only get relative position to the center without taking the orientation of the
+         * process. This leads to inversion ofthe top and bottom of anchor points in the case of the process' reaction
+         * going from right to left.
+         * TODO take process orientation in count
+         */
+        else {
+            return new Point2D.Float(
+                    (float) (relativeCoords.getX() + this.getGlyph().getCenter().getX()),
+                    (float) (relativeCoords.getY() + this.getGlyph().getCenter().getY()));
+        }
     }
+
+    public Line2D.Float getAxis() {
+        return axis;
+    }
+
+    public boolean isOnPolyline() {
+        return onPolyline;
+    }
+
 
 }

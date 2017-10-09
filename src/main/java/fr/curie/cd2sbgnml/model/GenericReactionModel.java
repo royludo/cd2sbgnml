@@ -1,11 +1,12 @@
 package fr.curie.cd2sbgnml.model;
 
+import fr.curie.cd2sbgnml.graphics.AnchorPoint;
 import fr.curie.cd2sbgnml.graphics.GeometryUtils;
-import fr.curie.cd2sbgnml.LinkWrapper;
-import fr.curie.cd2sbgnml.xmlcdwrappers.ModelWrapper;
+import fr.curie.cd2sbgnml.graphics.Link;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
-import org.sbml.x2001.ns.celldesigner.CelldesignerModificationDocument;
+import org.sbml.x2001.ns.celldesigner.CelldesignerModificationDocument.CelldesignerModification;
+import org.sbml.x2001.ns.celldesigner.ReactionDocument.Reaction;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -20,8 +21,6 @@ public class GenericReactionModel {
     private List<ReactantModel> reactantModels;
     private List<LinkModel> linkModels;
 
-    private List<LinkWrapper> baseLinks;
-
     public GenericReactionModel(ReactionWrapper reactionW) {
         this.reactionW = reactionW;
         this.reactionNodeModels = new ArrayList<>();
@@ -30,42 +29,138 @@ public class GenericReactionModel {
 
     }
 
-    /*
-    public void processModifiers(Process process) {
-        int modifIndex=0;
+    public void addModifiers(Process process) {
         for(ReactantWrapper reactantW: this.getReactionW().getModifiers()) {
             // simple case, no logic gate
             System.out.println("modifier: "+reactantW.getAliasW().getId());
-            int modifIndex = reactantW.getLink().getIndex();
-            List<Point2D.Float> editPoints = this.getEditPointsForModifier(modifIndex);
-            CelldesignerModificationDocument.CelldesignerModification modif = reaction.getAnnotation().
+
+            ReactantModel modifModel = new ReactantModel(this, reactantW);
+
+            Reaction reaction = this.getReactionW().getReaction();
+            int modifIndex = reactantW.getPositionIndex();
+            List<Point2D.Float> editPoints = ReactionWrapper.getEditPointsForModifier(reaction, modifIndex);
+            CelldesignerModification modif = reaction.getAnnotation().
                     getCelldesignerListOfModification().getCelldesignerModificationArray(modifIndex);
             Point2D.Float processAnchorPoint = process.getAbsoluteAnchorCoords(ReactantWrapper.getProcessAnchorIndex(modif));
 
             System.out.println("edit points: "+editPoints);
 
             List<AffineTransform> transformList =
-                    GeometryUtils.getTransformsToGlobalCoords(reactantW.getLinkStartingPoint(), processAnchorPoint);
+                    GeometryUtils.getTransformsToGlobalCoords(
+                            modifModel.getAbsoluteAnchorCoordinate(
+                                    reactantW.getAnchorPoint()),
+                            processAnchorPoint);
             List<Point2D.Float> absoluteEditPoints = new ArrayList<>();
-            absoluteEditPoints.add(reactantW.getLinkStartingPoint());
-            absoluteEditPoints.addAll(convertPoints(editPoints, transformList));
+            absoluteEditPoints.add(modifModel.getAbsoluteAnchorCoordinate(reactantW.getAnchorPoint()));
+            absoluteEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
             absoluteEditPoints.add(processAnchorPoint);
+
+            absoluteEditPoints = GeometryUtils.getNormalizedEndPoints(absoluteEditPoints,
+                    modifModel.getGlyph(),
+                    process.getGlyph(),
+                    modifModel.getReactantW().getAnchorPoint(),
+                    AnchorPoint.E);
 
             String linkCdClass = reaction.getAnnotation().getCelldesignerListOfModification().
                     getCelldesignerModificationArray(modifIndex).getType();
 
-            LinkWrapper link = new LinkWrapper(reactantW, process, absoluteEditPoints,
+            LinkModel modifLink = new LinkModel(modifModel, process, new Link(absoluteEditPoints),
+                    "modif_"+modifModel.getId()+"_"+process.getId()+"_"+modifIndex, "catalysis"); // TODO adapt class
+
+            /*LinkWrapper link = new LinkWrapper(reactantW, process, absoluteEditPoints,
                     modifIndex, linkCdClass);
             link.setSbgnSpacePointList(
                     link.getNormalizedEndPoints(
                             reactantW.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
-                    ));
+                    ));*/
 
-            reactantW.setLink(link);
-
-            modifIndex++;
+            // add everything to the reaction lists
+            this.getReactantModels().add(modifModel);
+            this.getLinkModels().add(modifLink);
         }
-    }*/
+    }
+
+    public void addAdditionalReactants(Process process) {
+        for(ReactantWrapper reactantW: this.getReactionW().getAdditionalReactants()) {
+            ReactantModel reactantModel = new ReactantModel(this, reactantW);
+
+            List<AffineTransform> transformList =
+                    GeometryUtils.getTransformsToGlobalCoords(
+                            reactantModel.getAbsoluteAnchorCoordinate(
+                                    reactantW.getAnchorPoint()),
+                            process.getAbsoluteAnchorCoords(0));
+
+            int positionIndex = reactantW.getPositionIndex();
+            System.out.println("POSITION INDEX "+positionIndex);
+            Reaction reaction = this.getReactionW().getReaction();
+            List<Point2D.Float> editPoints = ReactionWrapper.getEditPointsForAdditionalReactant(reaction, positionIndex);
+            System.out.println("ADDITIONAL REACT EDIT POINTS "+editPoints);
+
+            List<Point2D.Float> absoluteEditPoints = new ArrayList<>();
+            absoluteEditPoints.add(reactantModel.getAbsoluteAnchorCoordinate(reactantW.getAnchorPoint()));
+            absoluteEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
+            absoluteEditPoints.add(process.getAbsoluteAnchorCoords(0));
+            System.out.println("ABSOLUTE POINTS: "+absoluteEditPoints);
+
+            Point2D.Float normalizedStart = GeometryUtils.normalizePoint(absoluteEditPoints.get(0),
+                    absoluteEditPoints.get(1),
+                    reactantModel.getGlyph(),
+                    reactantModel.getReactantW().getAnchorPoint());
+
+            List<Point2D.Float> normalizedEditPoints = new ArrayList<>();
+            normalizedEditPoints.add(normalizedStart);
+            normalizedEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
+            normalizedEditPoints.add(process.getAbsoluteAnchorCoords(0));
+
+            LinkModel reactLink = new LinkModel(reactantModel, process, new Link(normalizedEditPoints),
+                    "modif_"+reactantModel.getId()+"_"+process.getId()+"_"+positionIndex, "consumption"); // TODO adapt class
+
+            // add everything to the reaction lists
+            this.getReactantModels().add(reactantModel);
+            this.getLinkModels().add(reactLink);
+        }
+    }
+
+    public void addAdditionalProducts(Process process) {
+        for(ReactantWrapper reactantW: this.getReactionW().getAdditionalProducts()) {
+            ReactantModel reactantModel = new ReactantModel(this, reactantW);
+
+            List<AffineTransform> transformList =
+                    GeometryUtils.getTransformsToGlobalCoords(
+                            process.getAbsoluteAnchorCoords(1),
+                            reactantModel.getAbsoluteAnchorCoordinate(
+                                    reactantW.getAnchorPoint()));
+
+            int positionIndex = reactantW.getPositionIndex();
+            System.out.println("POSITION INDEX "+positionIndex);
+            Reaction reaction = this.getReactionW().getReaction();
+            List<Point2D.Float> editPoints = ReactionWrapper.getEditPointsForAdditionalProduct(reaction, positionIndex);
+            System.out.println("ADDITIONAL REACT EDIT POINTS "+editPoints);
+
+            List<Point2D.Float> absoluteEditPoints = new ArrayList<>();
+            absoluteEditPoints.add(process.getAbsoluteAnchorCoords(1));
+            absoluteEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
+            absoluteEditPoints.add(reactantModel.getAbsoluteAnchorCoordinate(reactantW.getAnchorPoint()));
+            System.out.println("ABSOLUTE POINTS: "+absoluteEditPoints);
+
+            Point2D.Float normalizedEnd = GeometryUtils.normalizePoint(absoluteEditPoints.get(absoluteEditPoints.size() - 1),
+                    absoluteEditPoints.get(absoluteEditPoints.size() - 2),
+                    reactantModel.getGlyph(),
+                    reactantModel.getReactantW().getAnchorPoint());
+
+            List<Point2D.Float> normalizedEditPoints = new ArrayList<>();
+            normalizedEditPoints.add(process.getAbsoluteAnchorCoords(1));
+            normalizedEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
+            normalizedEditPoints.add(normalizedEnd);
+
+            LinkModel reactLink = new LinkModel(process, reactantModel, new Link(normalizedEditPoints),
+                    "modif_"+process.getId()+"_"+reactantModel.getId()+"_"+positionIndex, "production"); // TODO adapt class
+
+            // add everything to the reaction lists
+            this.getReactantModels().add(reactantModel);
+            this.getLinkModels().add(reactLink);
+        }
+    }
 
     /*
      //TODO remove, probably unused anymore

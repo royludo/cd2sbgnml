@@ -9,7 +9,7 @@ import fr.curie.cd2sbgnml.graphics.Glyph;
  */
 public class ReactionNodeModel extends GenericReactionElement {
 
-    public ReactionNodeModel(GenericReactionModel genericReactionModel, Glyph glyph) {
-        super(glyph);
+    public ReactionNodeModel(GenericReactionModel genericReactionModel, Glyph glyph, String id) {
+        super(glyph, id);
     }
 }

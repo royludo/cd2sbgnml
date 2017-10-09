@@ -1,9 +1,6 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
-import fr.curie.cd2sbgnml.AbstractLinkableCDEntity;
 import fr.curie.cd2sbgnml.graphics.AnchorPoint;
-import fr.curie.cd2sbgnml.LinkWrapper;
-import fr.curie.cd2sbgnml.model.Process;
 import org.sbml.x2001.ns.celldesigner.CelldesignerBaseProductDocument.CelldesignerBaseProduct;
 import org.sbml.x2001.ns.celldesigner.CelldesignerBaseReactantDocument.CelldesignerBaseReactant;
 import org.sbml.x2001.ns.celldesigner.CelldesignerListOfModificationDocument.CelldesignerListOfModification;
@@ -31,6 +28,7 @@ public class ReactantWrapper {
     private AliasWrapper aliasW;
     //private LinkWrapper link;
     private AnchorPoint anchorPoint;
+    private int positionIndex;
 
     private ReactantWrapper (CelldesignerBaseReactant baseReactant, AliasWrapper aliasW) {
         this.reactantType = ReactantType.BASE_REACTANT;
@@ -65,47 +63,47 @@ public class ReactantWrapper {
         }
     }
 
-    private ReactantWrapper (CelldesignerReactantLink reactantLink, AliasWrapper aliasW) {
+    private ReactantWrapper (CelldesignerReactantLink reactantLink, AliasWrapper aliasW, int index) {
         this.reactantType = ReactantType.ADDITIONAL_REACTANT;
         this.aliasW = aliasW;
+        this.positionIndex = index;
 
         // get reactanct's link anchor point
+        this.anchorPoint = AnchorPoint.CENTER; // default to center
         if(reactantLink.isSetCelldesignerLinkAnchor()) {
             // !!!!!!! limitation of the API here, getCelldesignerLinkAnchor() crashes !!!
 
             //this.anchorPoint = AnchorPoint.valueOf(reactantLink.getCelldesignerLinkAnchor().getPosition().toString());
             for(int i=0; i < reactantLink.getDomNode().getChildNodes().getLength(); i++) {
                 Node n = reactantLink.getDomNode().getChildNodes().item(i);
-                if(n.getNodeName().equals("celldesigner_linkAnchor")) {
+                if(n.getNodeName().equals("celldesigner_linkAnchor") &&
+                        ! n.getAttributes().getNamedItem("position").getNodeValue().equals("INACTIVE")) {
                     this.anchorPoint = AnchorPoint.valueOf(n.getAttributes().getNamedItem("position").getNodeValue());
                     break;
                 }
             }
         }
-        else {
-            this.anchorPoint = AnchorPoint.CENTER;
-        }
 
     }
 
-    private ReactantWrapper (CelldesignerProductLink productLink, AliasWrapper aliasW) {
+    private ReactantWrapper (CelldesignerProductLink productLink, AliasWrapper aliasW, int index) {
         this.reactantType = ReactantType.ADDITIONAL_PRODUCT;
         this.aliasW = aliasW;
+        this.positionIndex = index;
 
         // get reactanct's link anchor point
+        this.anchorPoint = AnchorPoint.CENTER; // default to center
         if(productLink.isSetCelldesignerLinkAnchor()) {
             // !!!!!!! limitation of the API here, getCelldesignerLinkAnchor() crashes !!!
             //this.anchorPoint = AnchorPoint.valueOf(productLink.getCelldesignerLinkAnchor().getPosition().toString());
             for(int i=0; i < productLink.getDomNode().getChildNodes().getLength(); i++) {
                 Node n = productLink.getDomNode().getChildNodes().item(i);
-                if(n.getNodeName().equals("celldesigner_linkAnchor")) {
+                if(n.getNodeName().equals("celldesigner_linkAnchor") &&
+                        ! n.getAttributes().getNamedItem("position").getNodeValue().equals("INACTIVE")) {
                     this.anchorPoint = AnchorPoint.valueOf(n.getAttributes().getNamedItem("position").getNodeValue());
                     break;
                 }
             }
-        }
-        else {
-            this.anchorPoint = AnchorPoint.CENTER;
         }
     }
 
@@ -113,6 +111,7 @@ public class ReactantWrapper {
     private ReactantWrapper (CelldesignerModification modification, AliasWrapper aliasW, int index) {
         this.reactantType = ReactantType.MODIFICATION;
         this.aliasW = aliasW;
+        this.positionIndex = index;
 
         // get reactanct's link anchor point
         if(modification.isSetCelldesignerLinkTarget()) {
@@ -156,13 +155,21 @@ public class ReactantWrapper {
                 .forEach(e -> reactantList.add(new ReactantWrapper(e, modelW.getAliasWrapperFor(e.getAlias()))));
 
         if(reaction.getAnnotation().getCelldesignerListOfReactantLinks() != null) {
-            Arrays.asList(reaction.getAnnotation().getCelldesignerListOfReactantLinks().getCelldesignerReactantLinkArray())
-                    .forEach(e -> reactantList.add(new ReactantWrapper(e, modelW.getAliasWrapperFor(e.getAlias()))));
+            int i=0;
+            for(CelldesignerReactantLink rlink: Arrays.asList(
+                    reaction.getAnnotation().getCelldesignerListOfReactantLinks().getCelldesignerReactantLinkArray())) {
+                reactantList.add(new ReactantWrapper(rlink, modelW.getAliasWrapperFor(rlink.getAlias()), i));
+                i++;
+            }
         }
 
         if(reaction.getAnnotation().getCelldesignerListOfProductLinks() != null) {
-            Arrays.asList(reaction.getAnnotation().getCelldesignerListOfProductLinks().getCelldesignerProductLinkArray())
-                    .forEach(e -> reactantList.add(new ReactantWrapper(e, modelW.getAliasWrapperFor(e.getAlias()))));
+            int i=0;
+            for(CelldesignerProductLink plink: Arrays.asList(
+                    reaction.getAnnotation().getCelldesignerListOfProductLinks().getCelldesignerProductLinkArray())) {
+                reactantList.add(new ReactantWrapper(plink, modelW.getAliasWrapperFor(plink.getAlias()), i));
+                i++;
+            }
         }
 
         if(reaction.getAnnotation().getCelldesignerListOfModification() != null) {
@@ -302,6 +309,10 @@ public class ReactantWrapper {
 
     public AnchorPoint getAnchorPoint() {
         return anchorPoint;
+    }
+
+    public int getPositionIndex() {
+        return positionIndex;
     }
 
 }

@@ -1,10 +1,8 @@
 package fr.curie.cd2sbgnml;
 
 import fr.curie.cd2sbgnml.graphics.Link;
-import fr.curie.cd2sbgnml.model.AssocDissoc;
-import fr.curie.cd2sbgnml.model.GenericReactionModel;
+import fr.curie.cd2sbgnml.model.*;
 import fr.curie.cd2sbgnml.model.Process;
-import fr.curie.cd2sbgnml.model.ReactionModelFactory;
 import fr.curie.cd2sbgnml.xmlcdwrappers.*;
 import org.sbfc.converter.GeneralConverter;
 import org.sbfc.converter.exceptions.ConversionException;
@@ -89,9 +87,7 @@ public class CD2SBGNML extends GeneralConverter {
 
                 Glyph processGlyph = new Glyph();
                 processGlyph.setClazz("process");
-                processId = "pr" +
-                        reactionW.getBaseReactants().get(0).getAliasW().getId() + "_" +
-                        reactionW.getBaseProducts().get(0).getAliasW().getId();
+                processId = genericReactionModel.getProcess().getId();
                 processGlyph.setId(processId);
 
                 Bbox processBbox = new Bbox();
@@ -113,22 +109,8 @@ public class CD2SBGNML extends GeneralConverter {
             // ARCS
 
             if(!reactionW.isBranchType()){
-                if(reactionW.hasProcess()) {
-                    Glyph source1 = glyphMap.get(baseReactant.getAliasW().getSpeciesId() + "_" + baseReactant.getAliasW().getId());
-                    Glyph target1 = glyphMap.get(processId);
-
-                    map.getArc().add(getArc(genericReactionModel.getLinkModels().get(0).getLink(), source1, target1, "consumption"));
-
-                    Glyph source2 = glyphMap.get(processId);
-                    Glyph target2 = glyphMap.get(baseProduct.getAliasW().getSpeciesId() + "_" + baseProduct.getAliasW().getId());
-
-                    map.getArc().add(getArc(genericReactionModel.getLinkModels().get(1).getLink(), source2, target2, "production"));
-                }
-                else {
-                    Glyph source1 = glyphMap.get(baseReactant.getAliasW().getSpeciesId() + "_" + baseReactant.getAliasW().getId());
-                    Glyph target1 = glyphMap.get(baseProduct.getAliasW().getSpeciesId() + "_" + baseProduct.getAliasW().getId());
-
-                    map.getArc().add(getArc(genericReactionModel.getLinkModels().get(0).getLink(), source1, target1, "production"));
+                for(LinkModel ln: genericReactionModel.getLinkModels()) {
+                    map.getArc().add(getArc(ln));
                 }
             }
             else if(reactionW.isBranchTypeLeft()) {
@@ -137,9 +119,7 @@ public class CD2SBGNML extends GeneralConverter {
                 // add association glyph
                 Glyph assocGlyph = new Glyph();
                 assocGlyph.setClazz("association");
-                String assocId = "assoc_"+
-                        reactionW.getBaseReactants().get(0).getAliasW().getId()+"_"+
-                        reactionW.getBaseProducts().get(0).getAliasW().getId();
+                String assocId = genericReactionModel.getAssocDissoc().getId();
                 assocGlyph.setId(assocId);
 
                 Point2D assocCoord = genericReactionModel.getAssocDissoc().getGlyph().getCenter();
@@ -154,27 +134,9 @@ public class CD2SBGNML extends GeneralConverter {
                 glyphMap.put(assocId, assocGlyph);
                 map.getGlyph().add(assocGlyph);
 
-                Glyph source1 = glyphMap.get(baseReactant.getAliasW().getSpeciesId()+"_"+baseReactant.getAliasW().getId());
-                Glyph target1 = glyphMap.get(assocId);
-
-                map.getArc().add(getArc(genericReactionModel.getLinkModels().get(0).getLink(), source1, target1, "consumption"));
-
-                ReactantWrapper baseReactant2 = reactionW.getBaseReactants().get(1);
-                Glyph source2 = glyphMap.get(baseReactant2.getAliasW().getSpeciesId()+"_"+baseReactant2.getAliasW().getId());
-                Glyph target2 = glyphMap.get(assocId);
-
-                map.getArc().add(getArc(genericReactionModel.getLinkModels().get(1).getLink(), source2, target2, "consumption"));
-
-
-                Glyph source3 = glyphMap.get(assocId);
-                Glyph target3 = glyphMap.get(processId);
-
-                map.getArc().add(getArc(genericReactionModel.getLinkModels().get(2).getLink(), source3, target3, "consumption"));
-
-                Glyph source4= glyphMap.get(processId);
-                Glyph target4 = glyphMap.get(baseProduct.getAliasW().getSpeciesId()+"_"+baseProduct.getAliasW().getId());
-
-                map.getArc().add(getArc(genericReactionModel.getLinkModels().get(3).getLink(), source4, target4, "production"));
+                for(LinkModel ln: genericReactionModel.getLinkModels()) {
+                    map.getArc().add(getArc(ln));
+                }
             }
             else {
                 System.out.println("REACTION: "+reactionW.getId());
@@ -182,9 +144,7 @@ public class CD2SBGNML extends GeneralConverter {
                 // add association glyph
                 Glyph dissocGlyph = new Glyph();
                 dissocGlyph.setClazz("dissociation");
-                String dissocId = "dissoc_"+
-                        reactionW.getBaseReactants().get(0).getAliasW().getId()+"_"+
-                        reactionW.getBaseProducts().get(0).getAliasW().getId();
+                String dissocId = genericReactionModel.getAssocDissoc().getId();
                 dissocGlyph.setId(dissocId);
 
                 Point2D dissocCoord = genericReactionModel.getAssocDissoc().getGlyph().getCenter();
@@ -199,31 +159,13 @@ public class CD2SBGNML extends GeneralConverter {
                 glyphMap.put(dissocId, dissocGlyph);
                 map.getGlyph().add(dissocGlyph);
 
-                Glyph source1 = glyphMap.get(baseReactant.getAliasW().getSpeciesId()+"_"+baseReactant.getAliasW().getId());
-                Glyph target1 = glyphMap.get(processId);
-
-                map.getArc().add(getArc(genericReactionModel.getLinkModels().get(0).getLink(), source1, target1, "consumption"));
-
-                Glyph source2 = glyphMap.get(processId);
-                Glyph target2 = glyphMap.get(dissocId);
-
-                map.getArc().add(getArc(genericReactionModel.getLinkModels().get(1).getLink(), source2, target2, "consumption"));
-
-                Glyph source3 = glyphMap.get(dissocId);
-                Glyph target3 = glyphMap.get(baseProduct.getAliasW().getSpeciesId()+"_"+baseProduct.getAliasW().getId());
-
-                map.getArc().add(getArc(genericReactionModel.getLinkModels().get(2).getLink(), source3, target3, "production"));
-
-                ReactantWrapper baseProduct2 = reactionW.getBaseProducts().get(1);
-                Glyph source4 = glyphMap.get(dissocId);
-                Glyph target4 = glyphMap.get(baseProduct2.getAliasW().getSpeciesId()+"_"+baseProduct2.getAliasW().getId());
-
-                map.getArc().add(getArc(genericReactionModel.getLinkModels().get(3).getLink(), source4, target4, "production"));
+                for(LinkModel ln: genericReactionModel.getLinkModels()) {
+                    map.getArc().add(getArc(ln));
+                }
 
             }
 
-            /*
-            for(ReactantWrapper reactantW: reactionW.getModifiers()) {
+            /*for(ReactantWrapper reactantW: reactionW.getModifiers()) {
                 System.out.println("MODIFIER "+reactantW.getAliasW().getId());
 
                 Glyph source = glyphMap.get(reactantW.getAliasW().getSpeciesId()+"_"+reactantW.getAliasW().getId());
@@ -356,11 +298,21 @@ public class CD2SBGNML extends GeneralConverter {
         return glyph;
     }
 
-    public Arc getArc(Link link, Glyph source, Glyph target, String clazz) {
+    public Arc getArc(LinkModel linkM) {
+        return getArc(
+                linkM.getLink(),
+                this.glyphMap.get(linkM.getStart()),
+                this.glyphMap.get(linkM.getEnd()),
+                linkM.getSbgnClass(),
+                linkM.getId());
+    }
+
+    public Arc getArc(Link link, Glyph source, Glyph target, String clazz, String id) {
         Arc arc1 = new Arc();
         arc1.setSource(source);
         arc1.setTarget(target);
         arc1.setClazz(clazz);
+        arc1.setId(id);
 
         int pointCounts = link.getEditPoints().size();
         Point2D startPoint = link.getStart();

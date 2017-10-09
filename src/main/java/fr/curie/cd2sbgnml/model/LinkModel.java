@@ -11,11 +11,15 @@ import java.util.List;
 public class LinkModel {
     GenericReactionElement start, end;
     Link link;
+    private String id;
+    private String sbgnClass;
 
-    public LinkModel(GenericReactionElement start, GenericReactionElement end, Link link) {
+    public LinkModel(GenericReactionElement start, GenericReactionElement end, Link link, String id, String clazz) {
         this.start = start;
         this.end = end;
         this.link = link;
+        this.id = id;
+        this.sbgnClass = clazz;
     }
 
     public GenericReactionElement getStart() {
@@ -29,6 +33,15 @@ public class LinkModel {
     public Link getLink() {
         return link;
     }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getSbgnClass() {
+        return sbgnClass;
+    }
+
 
 
 }

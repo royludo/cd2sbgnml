@@ -6,10 +6,12 @@ import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
 
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 
 public class SimpleReactionModel extends GenericReactionModel{
@@ -44,14 +46,36 @@ public class SimpleReactionModel extends GenericReactionModel{
 
         if(this.hasProcess()) {
 
+            boolean isPolyline = absoluteEditPoints.size() > 2;
+            Line2D.Float processAxis = new Line2D.Float(absoluteEditPoints.get(0),
+                    absoluteEditPoints.get(absoluteEditPoints.size() - 1));
+
             Process process = new Process(
                     this,
-                    GeometryUtils.getMiddleOfPolylineSegment(absoluteEditPoints, reactionW.getProcessSegmentIndex()));
+                    GeometryUtils.getMiddleOfPolylineSegment(absoluteEditPoints, reactionW.getProcessSegmentIndex()),
+                    UUID.randomUUID().toString(),
+                    processAxis,
+                    isPolyline);
 
             AbstractMap.SimpleEntry<List<Point2D.Float>, List<Point2D.Float>> subLinesTuple =
                     GeometryUtils.splitPolylineAtSegment(absoluteEditPoints, reactionW.getProcessSegmentIndex());
-            LinkModel l1 = new LinkModel(startModel, process, new Link(subLinesTuple.getKey()));
-            LinkModel l2 = new LinkModel(process, endModel, new Link(subLinesTuple.getValue()));
+
+            List<Point2D.Float> subLinesTuple1 = GeometryUtils.getNormalizedEndPoints(subLinesTuple.getKey(),
+                    startModel.getGlyph(),
+                    process.getGlyph(),
+                    startModel.getReactantW().getAnchorPoint(),
+                    AnchorPoint.CENTER);
+
+            List<Point2D.Float> subLinesTuple2 = GeometryUtils.getNormalizedEndPoints(subLinesTuple.getValue(),
+                    process.getGlyph(),
+                    endModel.getGlyph(),
+                    AnchorPoint.CENTER,
+                    endModel.getReactantW().getAnchorPoint());
+
+            LinkModel l1 = new LinkModel(startModel, process, new Link(subLinesTuple1),
+                    "cons_"+startModel.getId()+"_"+process.getId(), "consumption");
+            LinkModel l2 = new LinkModel(process, endModel, new Link(subLinesTuple2),
+                    "prod_"+process.getId()+"_"+endModel.getId(), "production");
             /*System.out.println("process coords "+process.getGlyph().getCenter());
             System.out.println("original edit points "+absoluteEditPoints);
             System.out.println("subline1 "+subLinesTuple.getKey());
@@ -64,9 +88,14 @@ public class SimpleReactionModel extends GenericReactionModel{
             this.getReactionNodeModels().add(process);
             this.getLinkModels().add(l1);
             this.getLinkModels().add(l2);
+
+            this.addModifiers(process);
+            this.addAdditionalReactants(process);
+            this.addAdditionalProducts(process);
         }
         else {
-            LinkModel l1 = new LinkModel(startModel, endModel, new Link(absoluteEditPoints));
+            LinkModel l1 = new LinkModel(startModel, endModel, new Link(absoluteEditPoints),
+                    "prod_"+startModel.getId()+"_"+endModel.getId(), "production");
 
             // add everything to the reaction lists
             this.getReactantModels().add(startModel);

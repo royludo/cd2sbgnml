@@ -9,6 +9,7 @@ import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
 import org.sbml.x2001.ns.celldesigner.CelldesignerLineDirectionDocument;
 
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.util.*;
 
@@ -36,7 +37,8 @@ public class AssociationReactionModel extends GenericReactionModel {
                 endR.getCenterPoint(), assocGlyphLocalCoords);
         System.out.println("result: " + assocGlyphLocalCoords + " -> " + assocGlyphGlobalCoords);
 
-        AssocDissoc association = new AssocDissoc(this, assocGlyphGlobalCoords);
+        String assocId = "assoc_"+startModel0.getId()+"_"+startModel1.getId()+"_"+endModel.getId();
+        AssocDissoc association = new AssocDissoc(this, assocGlyphGlobalCoords, assocId);
 
         // get the relevant points
         Point2D.Float startR1coordPoint = startModel0.getAbsoluteAnchorCoordinate(startR1.getAnchorPoint());
@@ -49,7 +51,8 @@ public class AssociationReactionModel extends GenericReactionModel {
         // branch 0
         List<Point2D.Float> absoluteEditPoints0 = this.getBranchPoints(association.getGlyph().getCenter(), startR1coordPoint, 0);
         Collections.reverse(absoluteEditPoints0);
-        LinkModel link0 = new LinkModel(startModel0, association, new Link(absoluteEditPoints0));
+        LinkModel link0 = new LinkModel(startModel0, association, new Link(absoluteEditPoints0),
+                "cons_"+startModel0.getId()+"_"+association.getId(), "consumption");
         /*link0.setSbgnSpacePointList(
                 link0.getNormalizedEndPoints(
                         startR1.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
@@ -57,7 +60,8 @@ public class AssociationReactionModel extends GenericReactionModel {
 
         List<Point2D.Float> absoluteEditPoints1 = this.getBranchPoints(association.getGlyph().getCenter(), startR2coordPoint, 1);
         Collections.reverse(absoluteEditPoints1);
-        LinkModel link1 = new LinkModel(startModel1, association, new Link(absoluteEditPoints1));
+        LinkModel link1 = new LinkModel(startModel1, association, new Link(absoluteEditPoints1),
+                "cons_"+startModel1.getId()+"_"+association.getId(), "consumption");
         /*link1.setSbgnSpacePointList(
                 link1.getNormalizedEndPoints(
                         startR2.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
@@ -80,6 +84,12 @@ public class AssociationReactionModel extends GenericReactionModel {
 
             System.out.println("association process segment "+reactionW.getProcessSegmentIndex());
             System.out.println("absolutepoints2 "+absoluteEditPoints2);
+
+            boolean isPolyline = absoluteEditPoints0.size() > 2 ||
+                    absoluteEditPoints1.size() > 2 ||absoluteEditPoints2.size() > 2;
+            Line2D.Float processAxis = new Line2D.Float(absoluteEditPoints2.get(0),
+                    absoluteEditPoints2.get(absoluteEditPoints2.size() - 1));
+
             /*
             !!!!!! process coords must be computed AFTER normalization of arrows !!!!!
             else, if the link is pointing to the center and not the border of the glyph, process will get shifted
@@ -87,7 +97,10 @@ public class AssociationReactionModel extends GenericReactionModel {
              */
             Process process = new Process(
                     this,
-                    GeometryUtils.getMiddleOfPolylineSegment(absoluteEditPoints2, reactionW.getProcessSegmentIndex()));
+                    GeometryUtils.getMiddleOfPolylineSegment(absoluteEditPoints2, reactionW.getProcessSegmentIndex()),
+                    UUID.randomUUID().toString(),
+                    processAxis,
+                    isPolyline);
 
             AbstractMap.SimpleEntry<List<Point2D.Float>, List<Point2D.Float>> subLinesTuple =
                     GeometryUtils.splitPolylineAtSegment(absoluteEditPoints2, reactionW.getProcessSegmentIndex());
@@ -97,14 +110,22 @@ public class AssociationReactionModel extends GenericReactionModel {
             As it is not a valid SBGN thing, it is weirdly drawn by visualization tool.
             Better if the link does not overlap the process here.
              */
-            /*List<Point2D.Float> normalizedSubLinesTuple1 = GeometryUtils.getNormalizedEndPoints(subLinesTuple.getKey(),
+            List<Point2D.Float> normalizedSubLinesTuple1 = GeometryUtils.getNormalizedEndPoints(subLinesTuple.getKey(),
                     association.getGlyph(),
                     process.getGlyph(),
                     AnchorPoint.CENTER,
-                    AnchorPoint.CENTER);*/
+                    AnchorPoint.CENTER);
 
-            LinkModel l21 = new LinkModel(association, process, new Link(subLinesTuple.getKey()));
-            LinkModel l22 = new LinkModel(process, endModel, new Link(subLinesTuple.getValue()));
+            List<Point2D.Float> normalizedSubLinesTuple2 = GeometryUtils.getNormalizedEndPoints(subLinesTuple.getValue(),
+                    process.getGlyph(),
+                    endModel.getGlyph(),
+                    AnchorPoint.CENTER,
+                    AnchorPoint.CENTER);
+
+            LinkModel l21 = new LinkModel(association, process, new Link(normalizedSubLinesTuple1),
+                    "cons_"+association.getId()+"_"+process.getId(), "consumption");
+            LinkModel l22 = new LinkModel(process, endModel, new Link(normalizedSubLinesTuple2),
+                    "prod_"+process.getId()+"_"+endModel.getId(), "production");
             System.out.println("link edit points: "+link0.getLink().getEditPoints()+" "+l21.getLink().getStart()+" "+l21.getLink().getEditPoints());
 
             // add everything to the reaction lists
@@ -117,9 +138,12 @@ public class AssociationReactionModel extends GenericReactionModel {
             this.getLinkModels().add(link1);
             this.getLinkModels().add(l21);
             this.getLinkModels().add(l22);
+
+            this.addModifiers(process);
+            this.addAdditionalReactants(process);
+            this.addAdditionalProducts(process);
         }
         else {
-            // TODO do other cases
             throw new RuntimeException("Association has no process ! How is it even possible. Reaction id: "+reactionW.getId());
         }
     }

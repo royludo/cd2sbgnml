@@ -17,7 +17,9 @@ public class ReactantModel extends GenericReactionElement{
                 reactantW.getWidth(),
                 reactantW.getHeight(),
                 getCdShape(reactantW.getAliasW().getSpeciesW().getCdClass()),
-                getSbgnShape(getSbgnClass(reactantW.getAliasW().getSpeciesW().getCdClass()))));
+                getSbgnShape(getSbgnClass(reactantW.getAliasW().getSpeciesW().getCdClass()))),
+                reactantW.getAliasW().getSpeciesId()+"_"+reactantW.getAliasW().getId()
+        );
         this.reactionModel = genericReactionModel;
         this.reactantW = reactantW;
 
