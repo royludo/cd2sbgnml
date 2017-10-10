@@ -87,8 +87,8 @@ public class AssociationReactionModel extends GenericReactionModel {
 
             boolean isPolyline = absoluteEditPoints0.size() > 2 ||
                     absoluteEditPoints1.size() > 2 ||absoluteEditPoints2.size() > 2;
-            Line2D.Float processAxis = new Line2D.Float(absoluteEditPoints2.get(0),
-                    absoluteEditPoints2.get(absoluteEditPoints2.size() - 1));
+            Line2D.Float processAxis = new Line2D.Float(absoluteEditPoints2.get(reactionW.getProcessSegmentIndex()),
+                    absoluteEditPoints2.get(reactionW.getProcessSegmentIndex() + 1));
 
             /*
             !!!!!! process coords must be computed AFTER normalization of arrows !!!!!
@@ -98,7 +98,7 @@ public class AssociationReactionModel extends GenericReactionModel {
             Process process = new Process(
                     this,
                     GeometryUtils.getMiddleOfPolylineSegment(absoluteEditPoints2, reactionW.getProcessSegmentIndex()),
-                    UUID.randomUUID().toString(),
+                    "_"+UUID.randomUUID().toString(),
                     processAxis,
                     isPolyline);
 

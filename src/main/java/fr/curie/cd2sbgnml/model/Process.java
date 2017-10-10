@@ -7,8 +7,11 @@ import fr.curie.cd2sbgnml.graphics.Glyph;
 import fr.curie.cd2sbgnml.graphics.SbgnShape;
 import fr.curie.cd2sbgnml.xmlcdwrappers.SpeciesWrapper;
 
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.util.Arrays;
+import java.util.List;
 
 public class Process extends ReactionNodeModel {
 
@@ -93,7 +96,7 @@ public class Process extends ReactionNodeModel {
          */
         if( index == 0) {
             if(this.isOnPolyline()) {
-                float distance = PROCESS_SIZE * (float) Math.sqrt(2); // diag distance of the process
+                float distance = PROCESS_SIZE * (float) Math.sqrt(2) / 2; // diag distance of the process
                 return GeometryUtils.interpolationByDistance(this.getGlyph().getCenter(),
                         (Point2D.Float) this.getAxis().getP1(), distance);
             }
@@ -104,7 +107,7 @@ public class Process extends ReactionNodeModel {
         }
         else if (index == 1) {
             if(this.isOnPolyline()) {
-                float distance = PROCESS_SIZE * (float) Math.sqrt(2); // diag distance of the process
+                float distance = PROCESS_SIZE * (float) Math.sqrt(2) / 2; // diag distance of the process
                 return GeometryUtils.interpolationByDistance(this.getGlyph().getCenter(),
                         (Point2D.Float) this.getAxis().getP2(), distance);
             }
@@ -120,10 +123,48 @@ public class Process extends ReactionNodeModel {
          * TODO take process orientation in count
          */
         else {
-            return new Point2D.Float(
-                    (float) (relativeCoords.getX() + this.getGlyph().getCenter().getX()),
-                    (float) (relativeCoords.getY() + this.getGlyph().getCenter().getY()));
+            Point2D p2AtOrigin = new Point2D.Double(this.getAxis().getP2().getX() - this.getGlyph().getCenter().getX(),
+                    this.getAxis().getP2().getY() - this.getGlyph().getCenter().getY());
+            System.out.println("P2 AT ORIG: from "+this.getAxis().getP2()+" TO "+p2AtOrigin);
+            double angle = GeometryUtils.angle(new Point2D.Float(1,0), p2AtOrigin);
+            AffineTransform t2 = new AffineTransform();
+            t2.rotate(angle);
+
+            Point2D.Float afterRotate = new Point2D.Float();
+            t2.transform(relativeCoords, afterRotate);
+            Point2D.Float absolute = new Point2D.Float(
+                    (float) (afterRotate.getX() + this.getGlyph().getCenter().getX()),
+                    (float) (afterRotate.getY() + this.getGlyph().getCenter().getY()));
+            System.out.println("PROCESS ROTATE: "+angle+" "+this.getGlyph().getCenter()+" "+relativeCoords+" "+afterRotate+" "+absolute);
+
+            return absolute;
         }
+    }
+
+    public static String getSbgnClass(String reactionType) {
+        switch(reactionType) {
+            case "STATE_TRANSITION": return "process";
+            case "KNOWN_TRANSITION_OMITTED": return "omitted process";
+            case "UNKNOWN_TRANSITION": return "uncertain process";
+            case "TRANSPORT": return "process";
+            case "TRUNCATION": return "process";
+            case "TRANSCRIPTION": return "process";
+            case "TRANSLATION": return "process";
+            case "HETERODIMER_ASSOCIATION": return "process";
+            case "DISSOCIATION": return "process";
+
+            /*case "CATALYSIS": return "";
+            case "UNKNOWN_CATALYSIS": return "";
+            case "INHIBITION": return "";
+            case "UNKNOWN_INHIBITION": return "";
+
+            case "TRANSCRIPTIONAL_ACTIVATION": return "";
+            case "TRANSCRIPTIONAL_INHIBITION": return "";
+            case "TRANSLATIONAL_ACTIVATION": return "";
+            case "TRANSLATIONAL_INHIBITION": return "";*/
+
+        }
+        throw new IllegalArgumentException("Could not infer SBGN class from reaction type: "+reactionType);
     }
 
     public Line2D.Float getAxis() {

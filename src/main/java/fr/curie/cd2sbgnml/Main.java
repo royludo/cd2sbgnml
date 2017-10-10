@@ -52,14 +52,14 @@ public class Main {
 
         CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
         try {
-            cdModel.setModelFromFile("src/main/resources/reaction.xml");
+            cdModel.setModelFromFile("src/main/resources/ReconMap-2.01.xml");
             //System.out.println(cdModel.modelToString());
         } catch (ReadModelException e) {
             e.printStackTrace();
         }
 
         try {
-            SbgnUtil.writeToFile(new CD2SBGNML().toSbgn(cdModel.getModel()), new File("src/main/resources/out.sbgnml"));
+            SbgnUtil.writeToFile(new CD2SBGNML().toSbgn(cdModel.getModel()), new File("src/main/resources/out.sbgn"));
         } catch (JAXBException e) {
             e.printStackTrace();
         }

@@ -94,8 +94,8 @@ public class DissociationReactionModel extends GenericReactionModel{
 
             boolean isPolyline = absoluteEditPoints0.size() > 2 ||
                     absoluteEditPoints1.size() > 2 ||absoluteEditPoints2.size() > 2;
-            Line2D.Float processAxis = new Line2D.Float(absoluteEditPoints0.get(0),
-                    absoluteEditPoints0.get(absoluteEditPoints0.size() - 1));
+            Line2D.Float processAxis = new Line2D.Float(absoluteEditPoints0.get(absoluteEditPoints0.size() - 2 - reactionW.getProcessSegmentIndex()),
+                    absoluteEditPoints0.get(absoluteEditPoints0.size() - 1 - reactionW.getProcessSegmentIndex()));
             /*
             !!!!!! process coords must be computed AFTER normalization of arrows !!!!!
             else, if the link is pointing to the center and not the border of the glyph, process will get shifted
@@ -107,7 +107,7 @@ public class DissociationReactionModel extends GenericReactionModel{
                     this,
                     GeometryUtils.getMiddleOfPolylineSegment(absoluteEditPoints0,
                             absoluteEditPoints0.size() - 2 - reactionW.getProcessSegmentIndex()),
-                    UUID.randomUUID().toString(),
+                    "_"+UUID.randomUUID().toString(),
                     processAxis,
                     isPolyline);
 
@@ -157,62 +157,5 @@ public class DissociationReactionModel extends GenericReactionModel{
             throw new RuntimeException("Association has no process ! How is it even possible. Reaction id: "+reactionW.getId());
         }
 
-
-        /* TODO adapt
-        ReactantWrapper startR = this.baseReactants.get(0);
-        ReactantWrapper endR1 = this.baseProducts.get(0);
-        ReactantWrapper endR2 = this.baseProducts.get(1);
-
-        List<Integer> segmentCount = new ArrayList<>();
-        segmentCount.add(0);
-        segmentCount.add(0);
-        segmentCount.add(0);
-        List<CelldesignerLineDirectionDocument.CelldesignerLineDirection> listOfLineDirection =
-                Arrays.asList(this.getBaseConnectScheme().getCelldesignerListOfLineDirection().getCelldesignerLineDirectionArray());
-        for(CelldesignerLineDirectionDocument.CelldesignerLineDirection lineDirection: listOfLineDirection){
-            int arm = Integer.parseInt(lineDirection.getArm());
-            segmentCount.set(arm, segmentCount.get(arm) + 1);
-        }
-
-        System.out.println("branch segments count: "+segmentCount);
-
-        // list edit points
-        List<Point2D.Float> editPoints = this.getBaseEditPoints();
-
-        // process association point
-        Point2D.Float assocGlyphLocalCoords = editPoints.get(editPoints.size() - 1);
-        Point2D.Float assocGlyphGlobalCoords = getAbsolutePoint(
-                startR.getCenterPoint(),
-                endR1.getCenterPoint(),
-                endR2.getCenterPoint(), assocGlyphLocalCoords);
-        System.out.println("result: " + assocGlyphLocalCoords + " -> " + assocGlyphGlobalCoords);
-
-        this.process = new Process(assocGlyphGlobalCoords);
-
-        List<Point2D.Float> absoluteEditPoints0 = this.getBranchPoints(process.getCoords(), startR.getLinkStartingPoint(), 0);
-        Collections.reverse(absoluteEditPoints0);
-        LinkWrapper link0 = new LinkWrapper(startR, process, absoluteEditPoints0);
-        link0.setSbgnSpacePointList(
-                link0.getNormalizedEndPoints(
-                        startR.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
-                ));
-        this.baseLinks.add(link0);
-
-        List<Point2D.Float> absoluteEditPoints1 = this.getBranchPoints(process.getCoords(), endR1.getLinkStartingPoint(), 1);
-        //Collections.reverse(absoluteEditPoints1);
-        LinkWrapper link1 = new LinkWrapper(process, endR1, absoluteEditPoints1);
-        link1.setSbgnSpacePointList(
-                link1.getNormalizedEndPoints(
-                        GeometryUtils.AnchorPoint.CENTER, endR1.getAnchorPoint()
-                ));
-        this.baseLinks.add(link1);
-
-        List<Point2D.Float> absoluteEditPoints2 = this.getBranchPoints(process.getCoords(), endR2.getLinkStartingPoint(), 2);
-        LinkWrapper link2 = new LinkWrapper(process, endR2, absoluteEditPoints2);
-        link2.setSbgnSpacePointList(
-                link2.getNormalizedEndPoints(
-                        GeometryUtils.AnchorPoint.CENTER, endR2.getAnchorPoint()
-                ));
-        this.baseLinks.add(link2);*/
     }
 }

@@ -22,6 +22,53 @@ public class LinkModel {
         this.sbgnClass = clazz;
     }
 
+    public static String getSbgnClass(String reactionType) {
+        switch(reactionType) {
+            case "STATE_TRANSITION": return "production";
+            case "KNOWN_TRANSITION_OMITTED": return "production";
+            case "UNKNOWN_TRANSITION": return "production";
+            case "TRANSPORT": return "production";
+            case "TRUNCATION": return "production";
+            case "TRANSCRIPTION": return "production";
+            case "TRANSLATION": return "production";
+            case "HETERODIMER_ASSOCIATION": return "production";
+            case "DISSOCIATION": return "production";
+
+            case "CATALYSIS": return "catalysis";
+            case "UNKNOWN_CATALYSIS": return "catalysis";
+            case "INHIBITION": return "inhibition";
+            case "UNKNOWN_INHIBITION": return "inhibition";
+
+            case "TRANSCRIPTIONAL_ACTIVATION": return "production"; // TODO check these 4
+            case "TRANSCRIPTIONAL_INHIBITION": return "production";
+            case "TRANSLATIONAL_ACTIVATION": return "production";
+            case "TRANSLATIONAL_INHIBITION": return "production";
+
+            case "PHYSICAL_STIMULATION": return "stimulation";
+            case "MODULATION": return "modulation";
+            case "TRIGGER": return "necessary stimulation";
+
+            /*case "BOOLEAN_LOGIC_GATE_AND": return "";
+            case "BOOLEAN_LOGIC_GATE_OR": return "";
+            case "BOOLEAN_LOGIC_GATE_NOT": return "";
+            case "BOOLEAN_LOGIC_GATE_UNKNOWN": return "";*/
+
+            // some direct connection types
+            case "NEGATIVE_INFLUENCE": return "inhibition";
+            case "POSITIVE_INFLUENCE": return "stimulation";
+            case "REDUCED_MODULATION": return "modulation";
+            case "REDUCED_PHYSICAL_STIMULATION": return "stimulation";
+            case "REDUCED_TRIGGER": return "necessary stimulation";
+            case "UNKNOWN_NEGATIVE_INFLUENCE": return "inhibition";
+            case "UNKNOWN_POSITIVE_INFLUENCE": return "stimulation";
+            case "UNKNOWN_REDUCED_MODULATION": return "modulation";
+            case "UNKNOWN_REDUCED_TRIGGER": return "necessary stimulation";
+            case "UNKNOWN_REDUCED_PHYSICAL_STIMULATION": return "stimulation";
+
+        }
+        throw new IllegalArgumentException("Could not infer SBGN class from reaction type: "+reactionType);
+    }
+
     public GenericReactionElement getStart() {
         return start;
     }

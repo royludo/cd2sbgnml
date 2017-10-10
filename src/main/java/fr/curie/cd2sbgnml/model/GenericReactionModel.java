@@ -21,11 +21,14 @@ public class GenericReactionModel {
     private List<ReactantModel> reactantModels;
     private List<LinkModel> linkModels;
 
+    private String cdReactionType;
+
     public GenericReactionModel(ReactionWrapper reactionW) {
         this.reactionW = reactionW;
         this.reactionNodeModels = new ArrayList<>();
         this.reactantModels = new ArrayList<>();
         this.linkModels = new ArrayList<>();
+        this.cdReactionType = reactionW.getReactionType();
 
     }
 
@@ -65,7 +68,8 @@ public class GenericReactionModel {
                     getCelldesignerModificationArray(modifIndex).getType();
 
             LinkModel modifLink = new LinkModel(modifModel, process, new Link(absoluteEditPoints),
-                    "modif_"+modifModel.getId()+"_"+process.getId()+"_"+modifIndex, "catalysis"); // TODO adapt class
+                    "modif_"+modifModel.getId()+"_"+process.getId()+"_"+modifIndex,
+                    LinkModel.getSbgnClass(modif.getType()));
 
             /*LinkWrapper link = new LinkWrapper(reactantW, process, absoluteEditPoints,
                     modifIndex, linkCdClass);
@@ -113,7 +117,8 @@ public class GenericReactionModel {
             normalizedEditPoints.add(process.getAbsoluteAnchorCoords(0));
 
             LinkModel reactLink = new LinkModel(reactantModel, process, new Link(normalizedEditPoints),
-                    "modif_"+reactantModel.getId()+"_"+process.getId()+"_"+positionIndex, "consumption"); // TODO adapt class
+                    "modif_"+reactantModel.getId()+"_"+process.getId()+"_"+positionIndex,
+                    "consumption");
 
             // add everything to the reaction lists
             this.getReactantModels().add(reactantModel);
@@ -154,7 +159,7 @@ public class GenericReactionModel {
             normalizedEditPoints.add(normalizedEnd);
 
             LinkModel reactLink = new LinkModel(process, reactantModel, new Link(normalizedEditPoints),
-                    "modif_"+process.getId()+"_"+reactantModel.getId()+"_"+positionIndex, "production"); // TODO adapt class
+                    "modif_"+process.getId()+"_"+reactantModel.getId()+"_"+positionIndex, "production");
 
             // add everything to the reaction lists
             this.getReactantModels().add(reactantModel);
@@ -322,5 +327,9 @@ public class GenericReactionModel {
 
     public List<LinkModel> getLinkModels() {
         return linkModels;
+    }
+
+    public String getCdReactionType() {
+        return cdReactionType;
     }
 }

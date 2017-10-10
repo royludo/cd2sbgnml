@@ -86,7 +86,7 @@ public class CD2SBGNML extends GeneralConverter {
 
 
                 Glyph processGlyph = new Glyph();
-                processGlyph.setClazz("process");
+                processGlyph.setClazz(Process.getSbgnClass(genericReactionModel.getCdReactionType()));
                 processId = genericReactionModel.getProcess().getId();
                 processGlyph.setId(processId);
 
@@ -301,8 +301,8 @@ public class CD2SBGNML extends GeneralConverter {
     public Arc getArc(LinkModel linkM) {
         return getArc(
                 linkM.getLink(),
-                this.glyphMap.get(linkM.getStart()),
-                this.glyphMap.get(linkM.getEnd()),
+                this.glyphMap.get(linkM.getStart().getId()),
+                this.glyphMap.get(linkM.getEnd().getId()),
                 linkM.getSbgnClass(),
                 linkM.getId());
     }
