@@ -1,5 +1,6 @@
 package fr.curie.cd2sbgnml;
 
+import fr.curie.cd2sbgnml.graphics.GeometryUtils;
 import fr.curie.cd2sbgnml.graphics.Link;
 import fr.curie.cd2sbgnml.model.*;
 import fr.curie.cd2sbgnml.model.Process;
@@ -19,6 +20,7 @@ import org.sbml.x2001.ns.celldesigner.ReactionDocument.Reaction;
 import org.sbml.x2001.ns.celldesigner.SpeciesDocument.Species;
 
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -211,10 +213,17 @@ public class CD2SBGNML extends GeneralConverter {
                             modelW.getModel().getAnnotation().getCelldesignerModelDisplay();
                     float mapSizeX = Float.parseFloat(display.getSizeX());
                     float mapSizeY = Float.parseFloat(display.getSizeY());
-                    compBbox.setX(pointX);
-                    compBbox.setY(pointY);
-                    compBbox.setW(mapSizeX - pointX);
-                    compBbox.setH(mapSizeY - pointY);
+
+                    Rectangle2D.Float bbox = GeometryUtils.getCompartmentBbox(
+                            alias.getCelldesignerClass().getDomNode().getChildNodes().item(0).getNodeValue(),
+                            pointX, pointY,
+                            Float.parseFloat(alias.getCelldesignerDoubleLine().getThickness()),
+                            mapSizeX, mapSizeY);
+
+                    compBbox.setX((float) bbox.getX());
+                    compBbox.setY((float) bbox.getY());
+                    compBbox.setW((float) bbox.getWidth());
+                    compBbox.setH((float) bbox.getHeight());
                 } else {
                     compBbox.setX(Float.parseFloat(cdBounds.getX()));
                     compBbox.setY(Float.parseFloat(cdBounds.getY()));

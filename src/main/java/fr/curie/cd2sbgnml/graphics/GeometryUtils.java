@@ -788,4 +788,75 @@ public class GeometryUtils {
         float y = ratio*p2.y + (1.0f - ratio)*p1.y;
         return new Point2D.Float(x, y);
     }
+
+    /**
+     * In some case, a CD compartment only has coordinates, no width or height. We need to create an appropriate
+     * bounding box for it, depending of its class.
+     * @param cdClass
+     * @param x
+     * @param y
+     * @param thickness
+     * @param mapW
+     * @param mapH
+     * @return
+     */
+    public static Rectangle2D.Float getCompartmentBbox(String cdClass, float x, float y,
+                                                 float thickness, float mapW, float mapH){
+        float resX, resY, resW, resH;
+        switch(cdClass) {
+            case "SQUARE_CLOSEUP_NORTHWEST":
+                resX = x;
+                resY = y;
+                resW = mapW - x;
+                resH = mapH - y;
+                break;
+            case "SQUARE_CLOSEUP_NORTHEAST":
+                resX = 0;
+                resY = y;
+                resW = x;
+                resH = mapH - y;
+                break;
+            case "SQUARE_CLOSEUP_SOUTHWEST":
+                resX = x;
+                resY = 0;
+                resW = mapW - x;
+                resH = y;
+                break;
+            case "SQUARE_CLOSEUP_SOUTHEAST":
+                resX = 0;
+                resY = 0;
+                resW = x;
+                resH = y;
+                break;
+            case "SQUARE_CLOSEUP_NORTH":
+                resX = 0;
+                resY = y;
+                resW = mapW;
+                resH = thickness;
+                break;
+            case "SQUARE_CLOSEUP_EAST":
+                resX = x - thickness;
+                resY = 0;
+                resW = thickness;
+                resH = mapH;
+                break;
+            case "SQUARE_CLOSEUP_WEST":
+                resX = x;
+                resY = 0;
+                resW = thickness;
+                resH = mapH;
+                break;
+            case "SQUARE_CLOSEUP_SOUTH":
+                resX = 0;
+                resY = y - thickness;
+                resW = mapW;
+                resH = thickness;
+                break;
+            default:
+                throw new IllegalArgumentException("Compartment bbox can be inferred only for the " +
+                        "special CLOSEUP classes. Invalid class provided: "+cdClass);
+        }
+
+        return new Rectangle2D.Float(resX, resY, resW, resH);
+    }
 }
