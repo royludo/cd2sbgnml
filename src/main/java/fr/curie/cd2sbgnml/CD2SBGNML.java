@@ -40,6 +40,7 @@ public class CD2SBGNML extends GeneralConverter {
     public Sbgn toSbgn( SbmlDocument sbmlDoc) {
         Sbgn sbgn = new Sbgn();
         Map map = new Map();
+        map.setId("mapID");
         sbgn.getMap().add(map);
 
         ModelWrapper modelW = ModelWrapper.create(sbmlDoc);
@@ -59,8 +60,8 @@ public class CD2SBGNML extends GeneralConverter {
         }
 
         // species section
-        for(Species species: modelW.getListOfSpecies()) {
-            SpeciesWrapper speciesW = new SpeciesWrapper(species, modelW);
+        for(SpeciesWrapper speciesW: modelW.getListOfSpeciesWrapper()) {
+            //SpeciesWrapper speciesW = new SpeciesWrapper(species, modelW);
             processSpecies(speciesW, modelW, map);
         }
 
@@ -76,8 +77,8 @@ public class CD2SBGNML extends GeneralConverter {
         }*/
 
         // reactions
-        for(Reaction reaction: modelW.getListOfReactions()) {
-            ReactionWrapper reactionW = modelW.getReactionWrapperFor(reaction.getId());
+        for(ReactionWrapper reactionW: modelW.getListOfReactionWrapper()) {
+            //ReactionWrapper reactionW = modelW.getReactionWrapperFor(reaction.getId());
             GenericReactionModel genericReactionModel = ReactionModelFactory.create(reactionW);
 
 
@@ -374,6 +375,31 @@ public class CD2SBGNML extends GeneralConverter {
 
             glyph.getGlyph().add(unitOfInfoMultimer);
 
+        }
+
+        // state variables
+        System.out.println("Create residues for "+species.getId()+" size: "+species.getResidues().size());
+        for(ResidueWrapper residueW: species.getResidues()) {
+            Glyph residue = new Glyph();
+            Label infoLabel = new Label();
+            String text = residueW.getSbgnText();
+            infoLabel.setText(text);
+            residue.setLabel(infoLabel);
+
+            System.out.println("Get residue bbox: "+residueW.angle+" -> deg "+(float) (residueW.angle / Math.PI * 180));
+            Rectangle2D.Float infoRect = GeometryUtils.getAuxUnitBbox(bboxRect, text,
+                    GeometryUtils.unsignedRadianToSignedDegree(residueW.angle));
+            Bbox infoBbox = new Bbox();
+            infoBbox.setX((float) infoRect.getX());
+            infoBbox.setY((float) infoRect.getY());
+            infoBbox.setW((float) infoRect.getWidth());
+            infoBbox.setH((float) infoRect.getHeight());
+            residue.setBbox(infoBbox);
+
+            residue.setClazz("state variable");
+            residue.setId("_"+UUID.randomUUID());
+
+            glyph.getGlyph().add(residue);
         }
 
         // class

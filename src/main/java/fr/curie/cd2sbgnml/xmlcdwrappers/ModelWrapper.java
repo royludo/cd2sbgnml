@@ -1,8 +1,12 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
 import org.sbml.x2001.ns.celldesigner.*;
+import org.sbml.x2001.ns.celldesigner.CelldesignerAntisenseRNADocument.CelldesignerAntisenseRNA;
 import org.sbml.x2001.ns.celldesigner.CelldesignerCompartmentAliasDocument.CelldesignerCompartmentAlias;
 import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesAliasDocument.CelldesignerComplexSpeciesAlias;
+import org.sbml.x2001.ns.celldesigner.CelldesignerGeneDocument.CelldesignerGene;
+import org.sbml.x2001.ns.celldesigner.CelldesignerProteinDocument.CelldesignerProtein;
+import org.sbml.x2001.ns.celldesigner.CelldesignerRNADocument.CelldesignerRNA;
 import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesAliasDocument.CelldesignerSpeciesAlias;
 import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesDocument.CelldesignerSpecies;
 import org.sbml.x2001.ns.celldesigner.CompartmentDocument.Compartment;
@@ -32,9 +36,17 @@ public class ModelWrapper {
     private List<CelldesignerSpeciesAlias> listOfSpeciesAliases;
     private List<CelldesignerComplexSpeciesAlias> listOfComplexSpeciesAliases;
     private List<Reaction> listOfReactions;
+    private List<CelldesignerProtein> listOfProtein;
+    private List<CelldesignerRNA> listOfRna;
+    private List<CelldesignerAntisenseRNA> listOfAntisenseRna;
+    private List<CelldesignerGene> listOfGene;
 
     private HashMap<String, Species> mapOfSpecies;
     private HashMap<String, CelldesignerSpecies> mapOfIncludedSpecies;
+    private HashMap<String, CelldesignerProtein> mapOfProtein;
+    private HashMap<String, CelldesignerRNA> mapOfRna;
+    private HashMap<String, CelldesignerAntisenseRNA> mapOfAntisenseRna;
+    private HashMap<String, CelldesignerGene> mapOfGene;
 
     private HashMap<String, List<CelldesignerCompartmentAlias>> compartment2aliasMap;
     private HashMap<String, List<CelldesignerSpeciesAlias>> species2aliasMap;
@@ -95,6 +107,15 @@ public class ModelWrapper {
         else {
             this.listOfReactions = Arrays.asList(model.getListOfReactions().getReactionArray());
         }
+
+        this.listOfProtein =
+                Arrays.asList(model.getAnnotation().getCelldesignerListOfProteins().getCelldesignerProteinArray());
+        this.listOfRna =
+                Arrays.asList(model.getAnnotation().getCelldesignerListOfRNAs().getCelldesignerRNAArray());
+        this.listOfAntisenseRna =
+                Arrays.asList(model.getAnnotation().getCelldesignerListOfAntisenseRNAs().getCelldesignerAntisenseRNAArray());
+        this.listOfGene =
+                Arrays.asList(model.getAnnotation().getCelldesignerListOfGenes().getCelldesignerGeneArray());
     }
 
     /**
@@ -110,6 +131,27 @@ public class ModelWrapper {
         for(CelldesignerSpecies species: this.listOfIncludedSpecies) {
             this.mapOfIncludedSpecies.put(species.getId(), species);
         }
+
+        this.mapOfProtein = new HashMap<>();
+        for(CelldesignerProtein pr: this.listOfProtein) {
+            this.mapOfProtein.put(pr.getId(), pr);
+        }
+
+        this.mapOfRna = new HashMap<>();
+        for(CelldesignerRNA pr: this.listOfRna) {
+            this.mapOfRna.put(pr.getId(), pr);
+        }
+
+        this.mapOfAntisenseRna = new HashMap<>();
+        for(CelldesignerAntisenseRNA pr: this.listOfAntisenseRna) {
+            this.mapOfAntisenseRna.put(pr.getId(), pr);
+        }
+
+        this.mapOfGene = new HashMap<>();
+        for(CelldesignerGene pr: this.listOfGene) {
+            this.mapOfGene.put(pr.getId(), pr);
+        }
+
 
         this.compartment2aliasMap = new HashMap<>();
         for(CelldesignerCompartmentAlias alias: this.listOfCompartmentAliases) {
@@ -259,7 +301,37 @@ public class ModelWrapper {
         return listOfReactions;
     }
 
+    public List<CelldesignerProtein> getListOfProtein() {
+        return listOfProtein;
+    }
 
+    public List<CelldesignerRNA> getListOfRna() {
+        return listOfRna;
+    }
+
+    public List<CelldesignerAntisenseRNA> getListOfAntisenseRna() {
+        return listOfAntisenseRna;
+    }
+
+    public List<CelldesignerGene> getListOfGene() {
+        return listOfGene;
+    }
+
+    public CelldesignerProtein getProtein(String id) {
+        return this.mapOfProtein.get(id);
+    }
+
+    public CelldesignerRNA getRNA(String id) {
+        return this.mapOfRna.get(id);
+    }
+
+    public CelldesignerAntisenseRNA getAntisenseRNA(String id) {
+        return this.mapOfAntisenseRna.get(id);
+    }
+
+    public CelldesignerGene getGene(String id) {
+        return this.mapOfGene.get(id);
+    }
 
     public List<CelldesignerCompartmentAlias> getCompartmentAliasFor(String compartmentId) {
         return this.compartment2aliasMap.get(compartmentId);

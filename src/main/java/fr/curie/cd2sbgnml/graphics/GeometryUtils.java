@@ -881,12 +881,14 @@ public class GeometryUtils {
      */
     public static Rectangle2D.Float getAuxUnitBbox(Rectangle2D.Float parentBbox, String s, float angle) {
 
-        Point2D.Float unitCenter = rectanglePerimeterPointFromAngle(parentBbox, angle);
+        Point2D.Float unitCenter = rectanglePerimeterPointFromAngleDegree(parentBbox, angle);
         System.out.println("unitcenter "+unitCenter);
         float unitWidth = getLengthForString(s);
+        float unitHeight = 10;
         // limit size of infobox to parent glyph width
         unitWidth = unitWidth > parentBbox.width ? parentBbox.width : unitWidth;
-        float unitHeight = 10;
+        // limit minimum size, in case of empty string
+        unitWidth = unitWidth < unitHeight ? unitHeight : unitWidth;
         Rectangle2D.Float res = new Rectangle2D.Float(
                 (float) (unitCenter.getX() + parentBbox.getX() + parentBbox.getWidth() / 2 - unitWidth / 2),
                 (float) (unitCenter.getY() + parentBbox.getY() + parentBbox.getHeight() / 2 - unitHeight / 2),
@@ -899,15 +901,15 @@ public class GeometryUtils {
     /**
      *
      * @param rect
-     * @param deg
+     * @param radian
      * @return intersection point relative to rectangle center
      */
-    public static Point2D.Float rectanglePerimeterPointFromAngle(Rectangle2D.Float rect, float deg) {
+    public static Point2D.Float rectanglePerimeterPointFromAngle(Rectangle2D.Float rect, float radian) {
         //System.out.println("width: "+rectWidth+" height: "+rectHeight);
         float rectWidth = rect.width;
         float rectHeight = rect.height;
         double twoPI = Math.PI*2;
-        double theta = deg * Math.PI / 180;
+        double theta = radian;
         //System.out.println(theta);
 
         /*while (theta < -Math.PI) {
@@ -961,5 +963,18 @@ public class GeometryUtils {
         return new Point2D.Float(
                 (float) (edgePoint.getX()),
                 (float) (edgePoint.getY()));
+    }
+
+    public static Point2D.Float rectanglePerimeterPointFromAngleDegree(Rectangle2D.Float rect, float deg) {
+        float theta = (float) (deg * Math.PI / 180);
+        return rectanglePerimeterPointFromAngle(rect, theta);
+    }
+
+    public static float unsignedRadianToSignedDegree(float radian) {
+        float unsignedDegree = (float) (radian / Math.PI * 180);
+        if(unsignedDegree > 180) {
+            return unsignedDegree - 360;
+        }
+        return unsignedDegree;
     }
 }

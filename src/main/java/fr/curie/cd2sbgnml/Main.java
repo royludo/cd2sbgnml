@@ -3,9 +3,11 @@ package fr.curie.cd2sbgnml;
 import org.sbfc.converter.exceptions.ReadModelException;
 import org.sbgn.SbgnUtil;
 import org.slf4j.impl.SimpleLogger;
+import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
+import java.io.IOException;
 
 public class Main {
     public static void main(String args[]) {
@@ -54,7 +56,7 @@ public class Main {
 
         CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
         try {
-            cdModel.setModelFromFile("src/main/resources/mtor.xml");
+            cdModel.setModelFromFile("src/main/resources/acsn_v1.1.xml");
             //System.out.println(cdModel.modelToString());
         } catch (ReadModelException e) {
             e.printStackTrace();
@@ -63,6 +65,17 @@ public class Main {
         try {
             SbgnUtil.writeToFile(new CD2SBGNML().toSbgn(cdModel.getModel()), new File("src/main/resources/out.sbgnml"));
         } catch (JAXBException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("VALIDATION");
+        try {
+            SbgnUtil.isValid(new File("src/main/resources/out.sbgnml"));
+        } catch (JAXBException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
