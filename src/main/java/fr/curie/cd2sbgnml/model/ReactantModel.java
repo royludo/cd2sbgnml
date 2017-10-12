@@ -9,7 +9,7 @@ import java.util.List;
 public class ReactantModel extends GenericReactionElement{
 
     private GenericReactionModel reactionModel;
-    private ReactantWrapper reactantW;
+    private AnchorPoint anchorPoint;
 
     public ReactantModel(GenericReactionModel genericReactionModel, ReactantWrapper reactantW) {
         super(new Glyph(
@@ -21,7 +21,7 @@ public class ReactantModel extends GenericReactionElement{
                 reactantW.getAliasW().getSpeciesId()+"_"+reactantW.getAliasW().getId()
         );
         this.reactionModel = genericReactionModel;
-        this.reactantW = reactantW;
+        this.anchorPoint = reactantW.getAnchorPoint();
 
     }
 
@@ -140,7 +140,8 @@ public class ReactantModel extends GenericReactionElement{
         return reactionModel;
     }
 
-    public ReactantWrapper getReactantW() {
-        return reactantW;
+    public AnchorPoint getAnchorPoint() {
+        return anchorPoint;
     }
+
 }

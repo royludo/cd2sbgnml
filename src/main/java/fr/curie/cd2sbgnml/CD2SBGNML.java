@@ -18,6 +18,8 @@ import org.sbml.x2001.ns.celldesigner.CelldesignerPointDocument.CelldesignerPoin
 import org.sbml.x2001.ns.celldesigner.CompartmentDocument.Compartment;
 import org.sbml.x2001.ns.celldesigner.ReactionDocument.Reaction;
 import org.sbml.x2001.ns.celldesigner.SpeciesDocument.Species;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -28,6 +30,8 @@ import java.util.List;
 import static fr.curie.cd2sbgnml.model.ReactantModel.getSbgnClass;
 
 public class CD2SBGNML extends GeneralConverter {
+
+    final Logger logger = LoggerFactory.getLogger(CD2SBGNML.class);
 
     List<Glyph> glyphList;
     HashMap<String, Glyph> glyphMap;
@@ -259,6 +263,14 @@ public class CD2SBGNML extends GeneralConverter {
                     SpeciesWrapper includedSpecies = new SpeciesWrapper(modelW.getIncludedSpecies(includedAlias.getSpeciesId()), modelW);
                     Glyph includedGlyph = processSpeciesAlias(includedSpecies, includedAlias, modelW, map);
                     glyph.getGlyph().add(includedGlyph);
+
+                    /*
+                    In ACSN, we need to keep references to included species also because some have links. Which
+                    shouldn't happen.
+                     */
+                    // keep references
+                    glyphList.add(includedGlyph);
+                    glyphMap.put(includedGlyph.getId(), includedGlyph);
                 }
             }
         }
@@ -308,6 +320,18 @@ public class CD2SBGNML extends GeneralConverter {
     }
 
     public Arc getArc(LinkModel linkM) {
+
+        /*
+        In ACSN, some subunits of a complex have connections. They are not added to the global glyphMap index, so they
+        cannot be referenced here.
+         */
+        if(!this.glyphMap.containsKey(linkM.getStart().getId())) {
+            logger.error("No source for link: "+linkM.getId()+" missing glyph "+linkM.getStart().getId());
+        }
+        if(!this.glyphMap.containsKey(linkM.getEnd().getId())) {
+            logger.error("No taraget for link: "+linkM.getId()+" missing glyph "+linkM.getEnd().getId());
+        }
+
         return getArc(
                 linkM.getLink(),
                 this.glyphMap.get(linkM.getStart().getId()),

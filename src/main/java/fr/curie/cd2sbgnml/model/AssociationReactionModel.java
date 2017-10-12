@@ -2,13 +2,10 @@ package fr.curie.cd2sbgnml.model;
 
 import fr.curie.cd2sbgnml.graphics.AnchorPoint;
 import fr.curie.cd2sbgnml.graphics.GeometryUtils;
-import fr.curie.cd2sbgnml.LinkWrapper;
 import fr.curie.cd2sbgnml.graphics.Link;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
-import org.sbml.x2001.ns.celldesigner.CelldesignerLineDirectionDocument;
 
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.util.*;
@@ -49,7 +46,7 @@ public class AssociationReactionModel extends GenericReactionModel {
         // but we want the opposite, as a production arc it goes from reactant to process
 
         // branch 0
-        List<Point2D.Float> absoluteEditPoints0 = this.getBranchPoints(association.getGlyph().getCenter(), startR1coordPoint, 0);
+        List<Point2D.Float> absoluteEditPoints0 = getBranchPoints(reactionW, association.getGlyph().getCenter(), startR1coordPoint, 0);
         Collections.reverse(absoluteEditPoints0);
         LinkModel link0 = new LinkModel(startModel0, association, new Link(absoluteEditPoints0),
                 "cons_"+startModel0.getId()+"_"+association.getId(), "consumption");
@@ -58,7 +55,7 @@ public class AssociationReactionModel extends GenericReactionModel {
                         startR1.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
                 ));*/
 
-        List<Point2D.Float> absoluteEditPoints1 = this.getBranchPoints(association.getGlyph().getCenter(), startR2coordPoint, 1);
+        List<Point2D.Float> absoluteEditPoints1 = getBranchPoints(reactionW, association.getGlyph().getCenter(), startR2coordPoint, 1);
         Collections.reverse(absoluteEditPoints1);
         LinkModel link1 = new LinkModel(startModel1, association, new Link(absoluteEditPoints1),
                 "cons_"+startModel1.getId()+"_"+association.getId(), "consumption");
@@ -67,13 +64,13 @@ public class AssociationReactionModel extends GenericReactionModel {
                         startR2.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
                 ));*/
 
-        List<Point2D.Float> absoluteEditPoints2 = this.getBranchPoints(association.getGlyph().getCenter(), endRcoordPoint, 2);
+        List<Point2D.Float> absoluteEditPoints2 = getBranchPoints(reactionW, association.getGlyph().getCenter(), endRcoordPoint, 2);
         System.out.println("REACTION ID: "+reactionW.getId());
         absoluteEditPoints2 = GeometryUtils.getNormalizedEndPoints(absoluteEditPoints2,
                 association.getGlyph(),
                 endModel.getGlyph(),
                 AnchorPoint.CENTER,
-                endModel.getReactantW().getAnchorPoint());
+                endModel.getAnchorPoint());
         //LinkModel link2 = new LinkModel(association, endModel, new Link(absolutePoints2));
         /*link2.setSbgnSpacePointList(
                 link2.getNormalizedEndPoints(
@@ -139,9 +136,9 @@ public class AssociationReactionModel extends GenericReactionModel {
             this.getLinkModels().add(l21);
             this.getLinkModels().add(l22);
 
-            this.addModifiers(process);
-            this.addAdditionalReactants(process);
-            this.addAdditionalProducts(process);
+            this.addModifiers(reactionW, process);
+            this.addAdditionalReactants(reactionW, process);
+            this.addAdditionalProducts(reactionW, process);
         }
         else {
             throw new RuntimeException("Association has no process ! How is it even possible. Reaction id: "+reactionW.getId());

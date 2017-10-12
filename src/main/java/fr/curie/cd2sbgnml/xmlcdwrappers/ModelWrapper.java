@@ -9,6 +9,8 @@ import org.sbml.x2001.ns.celldesigner.CompartmentDocument.Compartment;
 import org.sbml.x2001.ns.celldesigner.ModelDocument.Model;
 import org.sbml.x2001.ns.celldesigner.ReactionDocument.Reaction;
 import org.sbml.x2001.ns.celldesigner.SpeciesDocument.Species;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +18,9 @@ import java.util.HashMap;
 import java.util.List;
 
 public class ModelWrapper {
+
+    final Logger logger = LoggerFactory.getLogger(ModelWrapper.class);
+
 
     private Model model;
 
@@ -82,7 +87,14 @@ public class ModelWrapper {
             this.listOfIncludedSpecies = new ArrayList<>();
         }
 
-        this.listOfReactions = Arrays.asList(model.getListOfReactions().getReactionArray());
+        // list reactions if present
+        if(model.getListOfReactions() == null || model.getListOfReactions().sizeOfReactionArray() == 0) {
+            logger.warn("No reaction found.");
+            this.listOfReactions = new ArrayList<>();
+        }
+        else {
+            this.listOfReactions = Arrays.asList(model.getListOfReactions().getReactionArray());
+        }
     }
 
     /**
@@ -133,6 +145,7 @@ public class ModelWrapper {
         this.mapOfSpeciesWrapper = new HashMap<>();
         this.mapOfAliasWrapper = new HashMap<>();
 
+        logger.info("Wrapping "+this.listOfSpecies.size()+" species");
         for(Species species: this.listOfSpecies) {
             SpeciesWrapper speciesW = new SpeciesWrapper(species, this);
             this.listOfSpeciesWrapper.add(speciesW);
@@ -142,7 +155,9 @@ public class ModelWrapper {
                 this.mapOfAliasWrapper.put(aliasW.getId(), aliasW);
             }
         }
+        logger.info(this.listofAliasWrapper.size()+" alias wrapper added");
 
+        logger.info("Wrapping "+this.listOfIncludedSpecies.size()+" included species");
         for(CelldesignerSpecies species: this.listOfIncludedSpecies) {
             SpeciesWrapper speciesW = new SpeciesWrapper(species, this);
             this.listOfSpeciesWrapper.add(speciesW);
@@ -152,6 +167,9 @@ public class ModelWrapper {
                 this.mapOfAliasWrapper.put(aliasW.getId(), aliasW);
             }
         }
+        logger.info(this.listOfSpeciesWrapper.size()+" species wrapper total");
+        logger.info(this.listofAliasWrapper.size()+" alias wrapper total");
+        //        logger.info(this.mapOfAliasWrapper.get("c_a157").toString());
     }
 
     private void addComplexNestingIndex() {
@@ -159,6 +177,7 @@ public class ModelWrapper {
         this.complexSpeciesAlias2speciesAliasWrapper = new HashMap<>();
         //this.globalAliasMap = new HashMap<>();
         for(CelldesignerComplexSpeciesAlias complexAlias: this.listOfComplexSpeciesAliases) {
+            //logger.info("Fetching wrapper for complex alias: "+complexAlias.getId());
             AliasWrapper aliasW = this.getAliasWrapperFor(complexAlias.getId());
             if(aliasW.getComplexAlias() != null) {
                 if(!this.complexSpeciesAlias2speciesAliasWrapper.containsKey(aliasW.getComplexAlias())) {
@@ -169,6 +188,7 @@ public class ModelWrapper {
             //globalAliasMap.put(complexAlias.getId(), aliasW);
         }
         for(CelldesignerSpeciesAlias alias: this.listOfSpeciesAliases) {
+            //logger.info("Fetching wrapper for alias: "+alias.getId());
             AliasWrapper aliasW = this.getAliasWrapperFor(alias.getId());
             if(aliasW.getComplexAlias() != null) {
                 if(!this.complexSpeciesAlias2speciesAliasWrapper.containsKey(aliasW.getComplexAlias())) {
@@ -186,6 +206,7 @@ public class ModelWrapper {
         this.alias2reactantWrapper = new HashMap<>();
 
         for(Reaction reaction: this.listOfReactions) {
+            logger.info("Parse reaction "+reaction.getId());
             ReactionWrapper reactionW = new ReactionWrapper(reaction, this);
             this.listOfReactionWrapper.add(reactionW);
             this.mapOfReactionWrapper.put(reactionW.getId(), reactionW);

@@ -15,31 +15,32 @@ import java.util.*;
 
 public class GenericReactionModel {
 
-    private ReactionWrapper reactionW;
-    //private Process process;
     private List<ReactionNodeModel> reactionNodeModels;
     private List<ReactantModel> reactantModels;
     private List<LinkModel> linkModels;
 
     private String cdReactionType;
+    private boolean hasProcess;
+    private String id;
 
     public GenericReactionModel(ReactionWrapper reactionW) {
-        this.reactionW = reactionW;
         this.reactionNodeModels = new ArrayList<>();
         this.reactantModels = new ArrayList<>();
         this.linkModels = new ArrayList<>();
         this.cdReactionType = reactionW.getReactionType();
+        this.hasProcess = reactionW.hasProcess();
+        this.id = reactionW.getId();
 
     }
 
-    public void addModifiers(Process process) {
-        for(ReactantWrapper reactantW: this.getReactionW().getModifiers()) {
+    public void addModifiers(ReactionWrapper reactionW, Process process) {
+        for(ReactantWrapper reactantW: reactionW.getModifiers()) {
             // simple case, no logic gate
             System.out.println("modifier: "+reactantW.getAliasW().getId());
 
             ReactantModel modifModel = new ReactantModel(this, reactantW);
 
-            Reaction reaction = this.getReactionW().getReaction();
+            Reaction reaction = reactionW.getReaction();
             int modifIndex = reactantW.getPositionIndex();
             List<Point2D.Float> editPoints = ReactionWrapper.getEditPointsForModifier(reaction, modifIndex);
             CelldesignerModification modif = reaction.getAnnotation().
@@ -61,7 +62,7 @@ public class GenericReactionModel {
             absoluteEditPoints = GeometryUtils.getNormalizedEndPoints(absoluteEditPoints,
                     modifModel.getGlyph(),
                     process.getGlyph(),
-                    modifModel.getReactantW().getAnchorPoint(),
+                    modifModel.getAnchorPoint(),
                     AnchorPoint.E);
 
             String linkCdClass = reaction.getAnnotation().getCelldesignerListOfModification().
@@ -84,8 +85,8 @@ public class GenericReactionModel {
         }
     }
 
-    public void addAdditionalReactants(Process process) {
-        for(ReactantWrapper reactantW: this.getReactionW().getAdditionalReactants()) {
+    public void addAdditionalReactants(ReactionWrapper reactionW, Process process) {
+        for(ReactantWrapper reactantW: reactionW.getAdditionalReactants()) {
             ReactantModel reactantModel = new ReactantModel(this, reactantW);
 
             List<AffineTransform> transformList =
@@ -96,7 +97,7 @@ public class GenericReactionModel {
 
             int positionIndex = reactantW.getPositionIndex();
             System.out.println("POSITION INDEX "+positionIndex);
-            Reaction reaction = this.getReactionW().getReaction();
+            Reaction reaction = reactionW.getReaction();
             List<Point2D.Float> editPoints = ReactionWrapper.getEditPointsForAdditionalReactant(reaction, positionIndex);
             System.out.println("ADDITIONAL REACT EDIT POINTS "+editPoints);
 
@@ -109,7 +110,7 @@ public class GenericReactionModel {
             Point2D.Float normalizedStart = GeometryUtils.normalizePoint(absoluteEditPoints.get(0),
                     absoluteEditPoints.get(1),
                     reactantModel.getGlyph(),
-                    reactantModel.getReactantW().getAnchorPoint());
+                    reactantModel.getAnchorPoint());
 
             List<Point2D.Float> normalizedEditPoints = new ArrayList<>();
             normalizedEditPoints.add(normalizedStart);
@@ -126,8 +127,8 @@ public class GenericReactionModel {
         }
     }
 
-    public void addAdditionalProducts(Process process) {
-        for(ReactantWrapper reactantW: this.getReactionW().getAdditionalProducts()) {
+    public void addAdditionalProducts(ReactionWrapper reactionW, Process process) {
+        for(ReactantWrapper reactantW: reactionW.getAdditionalProducts()) {
             ReactantModel reactantModel = new ReactantModel(this, reactantW);
 
             List<AffineTransform> transformList =
@@ -138,7 +139,7 @@ public class GenericReactionModel {
 
             int positionIndex = reactantW.getPositionIndex();
             System.out.println("POSITION INDEX "+positionIndex);
-            Reaction reaction = this.getReactionW().getReaction();
+            Reaction reaction = reactionW.getReaction();
             List<Point2D.Float> editPoints = ReactionWrapper.getEditPointsForAdditionalProduct(reaction, positionIndex);
             System.out.println("ADDITIONAL REACT EDIT POINTS "+editPoints);
 
@@ -151,7 +152,7 @@ public class GenericReactionModel {
             Point2D.Float normalizedEnd = GeometryUtils.normalizePoint(absoluteEditPoints.get(absoluteEditPoints.size() - 1),
                     absoluteEditPoints.get(absoluteEditPoints.size() - 2),
                     reactantModel.getGlyph(),
-                    reactantModel.getReactantW().getAnchorPoint());
+                    reactantModel.getAnchorPoint());
 
             List<Point2D.Float> normalizedEditPoints = new ArrayList<>();
             normalizedEditPoints.add(process.getAbsoluteAnchorCoords(1));
@@ -267,14 +268,14 @@ public class GenericReactionModel {
      * @param branch
      * @return
      */
-    public List<Point2D.Float> getBranchPoints(Point2D.Float origin, Point2D.Float pX, int branch) {
+    public static List<Point2D.Float> getBranchPoints(ReactionWrapper reactionW, Point2D.Float origin, Point2D.Float pX, int branch) {
 
         List<Point2D.Float> absoluteEditPoints = new ArrayList<>();
         absoluteEditPoints.add(origin);
         System.out.println("local system: "+origin+" "+pX);
-        System.out.println("points for BRANCH "+branch+" "+ ReactionWrapper.getEditPointsForBranch(this.getReactionW().getReaction(), branch));
+        System.out.println("points for BRANCH "+branch+" "+ ReactionWrapper.getEditPointsForBranch(reactionW.getReaction(), branch));
 
-        for (Point2D editP : ReactionWrapper.getEditPointsForBranch(this.getReactionW().getReaction(), branch)) {
+        for (Point2D editP : ReactionWrapper.getEditPointsForBranch(reactionW.getReaction(), branch)) {
             Point2D p = new Point2D.Double(editP.getX(), editP.getY());
 
             for(AffineTransform t: GeometryUtils.getTransformsToGlobalCoords(origin, pX)) {
@@ -297,7 +298,7 @@ public class GenericReactionModel {
                 return (Process) node;
             }
         }
-        throw new RuntimeException("Reaction has no process "+this.reactionW.getId());
+        throw new RuntimeException("Reaction has no process "+this.getId());
     }
 
     public AssocDissoc getAssocDissoc() {
@@ -306,15 +307,7 @@ public class GenericReactionModel {
                 return (AssocDissoc) node;
             }
         }
-        throw new RuntimeException("Reaction has no association or dissociation glyph "+this.reactionW.getId());
-    }
-
-    public boolean hasProcess() {
-        return this.getReactionW().hasProcess();
-    }
-
-    public ReactionWrapper getReactionW() {
-        return reactionW;
+        throw new RuntimeException("Reaction has no association or dissociation glyph "+this.getId());
     }
 
     public List<ReactionNodeModel> getReactionNodeModels() {
@@ -331,5 +324,13 @@ public class GenericReactionModel {
 
     public String getCdReactionType() {
         return cdReactionType;
+    }
+
+    public boolean hasProcess() {
+        return hasProcess;
+    }
+
+    public String getId() {
+        return id;
     }
 }

@@ -46,7 +46,14 @@ public class SpeciesWrapper {
                 this.aliases.add(new AliasWrapper(complexAlias, this));
             }
         }
-        else {
+        //else {
+        /**
+         * here we shouldn't have to check normal aliases after complex aliases.
+         * normally complex species should only have complex aliases, and not additional normal aliases
+         * this only happens in ACSN
+         */
+        if(modelW.getSpeciesAliasFor(this.id) != null) {
+            System.out.println("weird");
             for(CelldesignerSpeciesAlias alias : modelW.getSpeciesAliasFor(this.id)) {
                 if (alias == null) {
                     continue;
@@ -76,7 +83,14 @@ public class SpeciesWrapper {
                 this.aliases.add(new AliasWrapper(complexAlias, this));
             }
         }
-        else {
+        //else {
+        /**
+         * here we shouldn't have to check normal aliases after complex aliases.
+         * normally complex species should only have complex aliases, and not additional normal aliases
+         * this only happens in ACSN
+         */
+        if(modelW.getSpeciesAliasFor(this.id) != null) {
+            System.out.println("weird included");
             for(CelldesignerSpeciesAlias alias : modelW.getSpeciesAliasFor(this.id)) {
                 if (alias == null) {
                     continue;
@@ -84,7 +98,6 @@ public class SpeciesWrapper {
                 this.aliases.add(new AliasWrapper(alias, this));
             }
         }
-        ;
     }
 
     public boolean isIncludedSpecies() {

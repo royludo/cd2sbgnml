@@ -86,6 +86,14 @@ public class ReactionWrapper {
      */
     public static int getProcessSegment(Reaction reaction) {
         CelldesignerConnectScheme connectScheme = reaction.getAnnotation().getCelldesignerConnectScheme();
+
+        /*
+         * in ACSN, connectScheme element is missing in some places (apoptosis)
+         */
+        if(connectScheme == null) {
+            return 0;
+        }
+
         if(connectScheme.getDomNode().
                 getAttributes().getNamedItem("rectangleIndex") != null) {
             return Integer.parseInt(connectScheme.getDomNode().
@@ -105,6 +113,14 @@ public class ReactionWrapper {
 
     public static boolean hasProcess(Reaction reaction) {
         CelldesignerConnectScheme connectScheme = reaction.getAnnotation().getCelldesignerConnectScheme();
+
+        /*
+         * in ACSN, connectScheme element is missing in some places (apoptosis)
+         */
+        if(connectScheme == null) {
+            return true;
+        }
+
         if(connectScheme.getDomNode().
                 getAttributes().getNamedItem("rectangleIndex") != null) {
             return true;
@@ -194,8 +210,17 @@ public class ReactionWrapper {
             return new ArrayList<>();
         }
 
-        String editPointString = modif.getEditPoints().getStringValue();
-        return parseEditPointsString(editPointString);
+        /*
+        In ACSN some isseteditPoints can return true without having any editpoints, and then return empty string
+         */
+        if(modif.isSetEditPoints() && !modif.getEditPoints().getStringValue().equals("")) {
+            String editPointString = modif.getEditPoints().getStringValue();
+            return parseEditPointsString(editPointString);
+        }
+        else {
+            return new ArrayList<>();
+        }
+
     }
 
     /**

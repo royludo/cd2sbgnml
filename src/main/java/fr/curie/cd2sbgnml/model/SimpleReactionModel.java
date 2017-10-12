@@ -40,8 +40,8 @@ public class SimpleReactionModel extends GenericReactionModel{
         absoluteEditPoints = GeometryUtils.getNormalizedEndPoints(absoluteEditPoints,
                 startModel.getGlyph(),
                 endModel.getGlyph(),
-                startModel.getReactantW().getAnchorPoint(),
-                endModel.getReactantW().getAnchorPoint());
+                startModel.getAnchorPoint(),
+                endModel.getAnchorPoint());
         System.out.println("AFTER NOMRALIZE "+absoluteEditPoints);
 
         if(this.hasProcess()) {
@@ -63,14 +63,14 @@ public class SimpleReactionModel extends GenericReactionModel{
             List<Point2D.Float> subLinesTuple1 = GeometryUtils.getNormalizedEndPoints(subLinesTuple.getKey(),
                     startModel.getGlyph(),
                     process.getGlyph(),
-                    startModel.getReactantW().getAnchorPoint(),
+                    startModel.getAnchorPoint(),
                     AnchorPoint.CENTER);
 
             List<Point2D.Float> subLinesTuple2 = GeometryUtils.getNormalizedEndPoints(subLinesTuple.getValue(),
                     process.getGlyph(),
                     endModel.getGlyph(),
                     AnchorPoint.CENTER,
-                    endModel.getReactantW().getAnchorPoint());
+                    endModel.getAnchorPoint());
 
             LinkModel l1 = new LinkModel(startModel, process, new Link(subLinesTuple1),
                     "cons_"+startModel.getId()+"_"+process.getId(), "consumption");
@@ -89,9 +89,9 @@ public class SimpleReactionModel extends GenericReactionModel{
             this.getLinkModels().add(l1);
             this.getLinkModels().add(l2);
 
-            this.addModifiers(process);
-            this.addAdditionalReactants(process);
-            this.addAdditionalProducts(process);
+            this.addModifiers(reactionW, process);
+            this.addAdditionalReactants(reactionW, process);
+            this.addAdditionalProducts(reactionW, process);
         }
         else {
             LinkModel l1 = new LinkModel(startModel, endModel, new Link(absoluteEditPoints),
