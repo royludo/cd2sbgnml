@@ -54,7 +54,7 @@ public class Main {
 
         CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
         try {
-            cdModel.setModelFromFile("src/main/resources/acsn_v1.1.xml");
+            cdModel.setModelFromFile("src/main/resources/mtor.xml");
             //System.out.println(cdModel.modelToString());
         } catch (ReadModelException e) {
             e.printStackTrace();

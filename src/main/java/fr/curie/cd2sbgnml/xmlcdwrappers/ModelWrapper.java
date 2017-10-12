@@ -19,7 +19,7 @@ import java.util.List;
 
 public class ModelWrapper {
 
-    final Logger logger = LoggerFactory.getLogger(ModelWrapper.class);
+    private final Logger logger = LoggerFactory.getLogger(ModelWrapper.class);
 
 
     private Model model;

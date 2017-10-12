@@ -26,6 +26,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 import static fr.curie.cd2sbgnml.model.ReactantModel.getSbgnClass;
 
@@ -268,7 +269,6 @@ public class CD2SBGNML extends GeneralConverter {
                     In ACSN, we need to keep references to included species also because some have links. Which
                     shouldn't happen.
                      */
-                    // keep references
                     glyphList.add(includedGlyph);
                     glyphMap.put(includedGlyph.getId(), includedGlyph);
                 }
@@ -293,11 +293,16 @@ public class CD2SBGNML extends GeneralConverter {
     public Glyph getGlyph(SpeciesWrapper species, CelldesignerBounds bounds, String id) {
         System.out.println(species.getId()+" "+species.getName()+" "+species.getCompartment());
         //System.out.println(bounds);
+        Rectangle2D.Float bboxRect = new Rectangle2D.Float(
+                Float.parseFloat(bounds.getX()),
+                Float.parseFloat(bounds.getY()),
+                Float.parseFloat(bounds.getW()),
+                Float.parseFloat(bounds.getH() )
+        );
 
         Glyph glyph = new Glyph();
 
         // basic info
-        glyph.setClazz(getSbgnClass(species.getCdClass()));
         glyph.setId(id);
         if (! species.isIncludedSpecies() && !species.getCompartment().equals("default")) {
             glyph.setCompartmentRef(this.glyphMap.get(species.getCompartment()));
@@ -310,11 +315,70 @@ public class CD2SBGNML extends GeneralConverter {
 
         // bbox
         Bbox bbox = new Bbox();
-        bbox.setX(Float.parseFloat(bounds.getX()));
-        bbox.setY(Float.parseFloat(bounds.getY()));
-        bbox.setH(Float.parseFloat(bounds.getH()));
-        bbox.setW(Float.parseFloat(bounds.getW()));
+        bbox.setX((float) bboxRect.getX());
+        bbox.setY((float) bboxRect.getY());
+        bbox.setH((float) bboxRect.getHeight());
+        bbox.setW((float) bboxRect.getWidth());
         glyph.setBbox(bbox);
+
+        // unit of info if there
+        if(species.getUnitOfInformation() != null) {
+            Glyph unitOfInfo = new Glyph();
+            Label infoLabel = new Label();
+            infoLabel.setText(species.getUnitOfInformation());
+            unitOfInfo.setLabel(infoLabel);
+
+            Rectangle2D.Float infoRect = GeometryUtils.getAuxUnitBbox(bboxRect, species.getUnitOfInformation(), 90);
+            Bbox infoBbox = new Bbox();
+            infoBbox.setX((float) infoRect.getX());
+            infoBbox.setY((float) infoRect.getY());
+            infoBbox.setW((float) infoRect.getWidth());
+            infoBbox.setH((float) infoRect.getHeight());
+            unitOfInfo.setBbox(infoBbox);
+
+            unitOfInfo.setClazz("unit of information");
+            unitOfInfo.setId("_"+UUID.randomUUID());
+
+            glyph.getGlyph().add(unitOfInfo);
+
+        }
+
+        // multimerize
+        String sbgnClass = getSbgnClass(species.getCdClass());
+        if(species.getMultimer() > 1) {
+            sbgnClass += " multimer";
+
+            float angle = 90;
+            if(species.getUnitOfInformation() != null) {
+                // if a unit of info is there already, top position is taken.
+                // put multimer info on bottom
+                angle = -90;
+            }
+
+            Glyph unitOfInfoMultimer = new Glyph();
+            Label infoLabel = new Label();
+            String text = "N:"+species.getMultimer();
+            infoLabel.setText(text);
+            unitOfInfoMultimer.setLabel(infoLabel);
+
+            Rectangle2D.Float infoRect = GeometryUtils.getAuxUnitBbox(bboxRect, text, angle);
+            Bbox infoBbox = new Bbox();
+            infoBbox.setX((float) infoRect.getX());
+            infoBbox.setY((float) infoRect.getY());
+            infoBbox.setW((float) infoRect.getWidth());
+            infoBbox.setH((float) infoRect.getHeight());
+            unitOfInfoMultimer.setBbox(infoBbox);
+
+            unitOfInfoMultimer.setClazz("unit of information");
+            unitOfInfoMultimer.setId("_"+UUID.randomUUID());
+
+            glyph.getGlyph().add(unitOfInfoMultimer);
+
+        }
+
+        // class
+        glyph.setClazz(sbgnClass);
+
 
         return glyph;
     }
@@ -329,7 +393,7 @@ public class CD2SBGNML extends GeneralConverter {
             logger.error("No source for link: "+linkM.getId()+" missing glyph "+linkM.getStart().getId());
         }
         if(!this.glyphMap.containsKey(linkM.getEnd().getId())) {
-            logger.error("No taraget for link: "+linkM.getId()+" missing glyph "+linkM.getEnd().getId());
+            logger.error("No target for link: "+linkM.getId()+" missing glyph "+linkM.getEnd().getId());
         }
 
         return getArc(

@@ -5,12 +5,16 @@ import fr.curie.cd2sbgnml.graphics.GeometryUtils;
 import fr.curie.cd2sbgnml.graphics.Link;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.util.*;
 
 public class DissociationReactionModel extends GenericReactionModel{
+
+    private final Logger logger = LoggerFactory.getLogger(DissociationReactionModel.class);
 
     public DissociationReactionModel(ReactionWrapper reactionW) {
         super(reactionW);

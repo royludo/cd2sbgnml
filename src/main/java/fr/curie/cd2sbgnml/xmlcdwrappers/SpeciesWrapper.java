@@ -6,7 +6,11 @@ import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesAliasDocument.Ce
 import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesDocument.CelldesignerComplexSpecies;
 import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesAliasDocument.CelldesignerSpeciesAlias;
 import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesDocument.CelldesignerSpecies;
+import org.sbml.x2001.ns.celldesigner.CelldesignerStateDocument;
+import org.sbml.x2001.ns.celldesigner.CelldesignerStateDocument.CelldesignerState;
 import org.sbml.x2001.ns.celldesigner.SpeciesDocument.Species;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +20,8 @@ import java.util.List;
  */
 public class SpeciesWrapper {
 
+    private final Logger logger = LoggerFactory.getLogger(SpeciesWrapper.class);
+
     private boolean isIncludedSpecies;
     private boolean isComplex;
 
@@ -24,6 +30,8 @@ public class SpeciesWrapper {
     private String compartment;
     private String complex;
     private String cdClass;
+    private int multimer;
+    private String unitOfInformation;
 
     private List<AliasWrapper> aliases;
 
@@ -53,7 +61,10 @@ public class SpeciesWrapper {
          * this only happens in ACSN
          */
         if(modelW.getSpeciesAliasFor(this.id) != null) {
-            System.out.println("weird");
+            if(this.isComplex) {
+                logger.warn("Complex species: "+this.id+" shouldn't have non-complex aliases");
+            }
+
             for(CelldesignerSpeciesAlias alias : modelW.getSpeciesAliasFor(this.id)) {
                 if (alias == null) {
                     continue;
@@ -61,6 +72,23 @@ public class SpeciesWrapper {
                 this.aliases.add(new AliasWrapper(alias, this));
             }
         }
+
+        // parse multimer and infounit
+        this.multimer = 1; // default to 1 if nothing else found
+        if(species.getAnnotation().getCelldesignerSpeciesIdentity().isSetCelldesignerState()) {
+            CelldesignerState state = species.getAnnotation().getCelldesignerSpeciesIdentity().getCelldesignerState();
+            if(state.isSetCelldesignerHomodimer()) {
+                this.multimer = Integer.parseInt(state.getCelldesignerHomodimer().
+                        getDomNode().getChildNodes().item(0).getNodeValue());
+            }
+
+            if(state.isSetCelldesignerListOfStructuralStates()) {
+                // assume that there is only 1 state per species
+                this.unitOfInformation = state.getCelldesignerListOfStructuralStates().
+                        getCelldesignerStructuralStateArray(0).getStructuralState().getStringValue();
+            }
+        }
+
     }
 
     public SpeciesWrapper(CelldesignerSpecies species, ModelWrapper modelW) {
@@ -90,7 +118,10 @@ public class SpeciesWrapper {
          * this only happens in ACSN
          */
         if(modelW.getSpeciesAliasFor(this.id) != null) {
-            System.out.println("weird included");
+            if(this.isComplex) {
+                logger.warn("Included complex species: "+this.id+" shouldn't have non-complex aliases");
+            }
+
             for(CelldesignerSpeciesAlias alias : modelW.getSpeciesAliasFor(this.id)) {
                 if (alias == null) {
                     continue;
@@ -130,6 +161,14 @@ public class SpeciesWrapper {
 
     public List<AliasWrapper> getAliases() {
         return aliases;
+    }
+
+    public int getMultimer() {
+        return multimer;
+    }
+
+    public String getUnitOfInformation() {
+        return unitOfInformation;
     }
 
 }

@@ -5,12 +5,16 @@ import fr.curie.cd2sbgnml.graphics.GeometryUtils;
 import fr.curie.cd2sbgnml.graphics.Link;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.util.*;
 
 public class AssociationReactionModel extends GenericReactionModel {
+
+    private final Logger logger = LoggerFactory.getLogger(AssociationReactionModel.class);
 
     public AssociationReactionModel(ReactionWrapper reactionW) {
         super(reactionW);
@@ -35,6 +39,10 @@ public class AssociationReactionModel extends GenericReactionModel {
         System.out.println("result: " + assocGlyphLocalCoords + " -> " + assocGlyphGlobalCoords);
 
         String assocId = "assoc_"+startModel0.getId()+"_"+startModel1.getId()+"_"+endModel.getId();
+        /*if(assocId.equals("assoc_d_s763_d_sa115_d_s760_d_csa5_d_s760_d_csa5")) {
+            logger.warn("PROBLEM glyph for reaction "+reactionW.getId()+" global coords "+assocGlyphGlobalCoords+" "+assocGlyphLocalCoords+" "+startR1.getCenterPoint()
+            +" "+startR2.getCenterPoint()+" "+endR.getCenterPoint()+" "+editPoints+" "+reactionW.getReaction().getAnnotation().getCelldesignerEditPoints());
+        }*/
         AssocDissoc association = new AssocDissoc(this, assocGlyphGlobalCoords, assocId);
 
         // get the relevant points

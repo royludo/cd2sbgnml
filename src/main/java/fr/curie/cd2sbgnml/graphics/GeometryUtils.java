@@ -859,4 +859,107 @@ public class GeometryUtils {
 
         return new Rectangle2D.Float(resX, resY, resW, resH);
     }
+
+    /**
+     * Return an estimation of a pixel width taken by a string s
+     *
+     * usdfs dfsdf sdfsd f -> fill a width of 80 in CellDesigner -> 5 / letter
+     *
+     * @param s
+     * @return
+     */
+    public static float getLengthForString(String s) {
+        return s.length() * 5;
+    }
+
+    /**
+     *
+     * @param parentBbox
+     * @param s
+     * @param angle
+     * @return
+     */
+    public static Rectangle2D.Float getAuxUnitBbox(Rectangle2D.Float parentBbox, String s, float angle) {
+
+        Point2D.Float unitCenter = rectanglePerimeterPointFromAngle(parentBbox, angle);
+        System.out.println("unitcenter "+unitCenter);
+        float unitWidth = getLengthForString(s);
+        // limit size of infobox to parent glyph width
+        unitWidth = unitWidth > parentBbox.width ? parentBbox.width : unitWidth;
+        float unitHeight = 10;
+        Rectangle2D.Float res = new Rectangle2D.Float(
+                (float) (unitCenter.getX() + parentBbox.getX() + parentBbox.getWidth() / 2 - unitWidth / 2),
+                (float) (unitCenter.getY() + parentBbox.getY() + parentBbox.getHeight() / 2 - unitHeight / 2),
+                unitWidth,
+                unitHeight);
+
+        return res;
+    }
+
+    /**
+     *
+     * @param rect
+     * @param deg
+     * @return intersection point relative to rectangle center
+     */
+    public static Point2D.Float rectanglePerimeterPointFromAngle(Rectangle2D.Float rect, float deg) {
+        //System.out.println("width: "+rectWidth+" height: "+rectHeight);
+        float rectWidth = rect.width;
+        float rectHeight = rect.height;
+        double twoPI = Math.PI*2;
+        double theta = deg * Math.PI / 180;
+        //System.out.println(theta);
+
+        /*while (theta < -Math.PI) {
+            theta += twoPI;
+        }
+
+        while (theta > Math.PI) {
+            theta -= twoPI;
+        }*/
+        //System.out.println(theta);
+
+        double rectAtan = Math.atan2(rectHeight, rectWidth);
+        double tanTheta = Math.tan(theta);
+        //System.out.println(rectAtan+" "+tanTheta);
+        int region;
+
+        if ((theta > -rectAtan) && (theta <= rectAtan)) {
+            region = 1;
+        } else if ((theta > rectAtan) && (theta <= (Math.PI - rectAtan))) {
+            region = 2;
+        } else if ((theta > (Math.PI - rectAtan)) || (theta <= -(Math.PI - rectAtan))) {
+            region = 3;
+        } else {
+            region = 4;
+        }
+        //System.out.println("region: "+region);
+
+        Point2D edgePoint;
+        //System.out.println("edgepoint1 "+edgePoint);
+        int xFactor = 1;
+        int yFactor = 1;
+
+        switch (region) {
+            case 1: yFactor = -1; break;
+            case 2: yFactor = -1; break;
+            case 3: xFactor = -1; break;
+            case 4: xFactor = -1; break;
+        }
+        //System.out.println(xFactor+" "+yFactor);
+
+        if ((region == 1) || (region == 3)) {
+            edgePoint = new Point2D.Float(
+                    xFactor * (rectWidth / 2),
+                    (float) (yFactor * (rectHeight / 2) * tanTheta));
+        } else {
+            edgePoint = new Point2D.Float(
+                    (float) (xFactor * (rectWidth / (2 * tanTheta))),
+                    yFactor * (rectHeight /  2));
+        }
+        //System.out.println("edgepoint "+edgePoint);
+        return new Point2D.Float(
+                (float) (edgePoint.getX()),
+                (float) (edgePoint.getY()));
+    }
 }

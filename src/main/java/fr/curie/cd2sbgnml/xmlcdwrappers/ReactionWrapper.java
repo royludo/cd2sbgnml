@@ -9,12 +9,16 @@ import org.sbml.x2001.ns.celldesigner.CelldesignerProductLinkDocument.Celldesign
 import org.sbml.x2001.ns.celldesigner.CelldesignerReactantLinkDocument;
 import org.sbml.x2001.ns.celldesigner.CelldesignerReactantLinkDocument.CelldesignerReactantLink;
 import org.sbml.x2001.ns.celldesigner.ReactionDocument.Reaction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Node;
 
 import java.awt.geom.Point2D;
 import java.util.*;
 
 public class ReactionWrapper {
+
+    private static final Logger logger = LoggerFactory.getLogger(ReactionWrapper.class);
 
     private String id;
     private List<ReactantWrapper> baseReactants;
@@ -91,6 +95,7 @@ public class ReactionWrapper {
          * in ACSN, connectScheme element is missing in some places (apoptosis)
          */
         if(connectScheme == null) {
+            logger.warn("ConnectScheme element missing for reaction: "+reaction.getId());
             return 0;
         }
 
