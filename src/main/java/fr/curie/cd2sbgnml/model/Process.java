@@ -1,17 +1,13 @@
 package fr.curie.cd2sbgnml.model;
 
-import fr.curie.cd2sbgnml.AbstractLinkableCDEntity;
 import fr.curie.cd2sbgnml.graphics.CdShape;
 import fr.curie.cd2sbgnml.graphics.GeometryUtils;
 import fr.curie.cd2sbgnml.graphics.Glyph;
 import fr.curie.cd2sbgnml.graphics.SbgnShape;
-import fr.curie.cd2sbgnml.xmlcdwrappers.SpeciesWrapper;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
-import java.util.Arrays;
-import java.util.List;
 
 public class Process extends ReactionNodeModel {
 

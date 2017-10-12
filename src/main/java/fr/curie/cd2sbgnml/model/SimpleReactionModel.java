@@ -1,7 +1,6 @@
 package fr.curie.cd2sbgnml.model;
 
 import fr.curie.cd2sbgnml.graphics.*;
-import fr.curie.cd2sbgnml.LinkWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
 
