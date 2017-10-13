@@ -2,6 +2,8 @@ package fr.curie.cd2sbgnml.model;
 
 import fr.curie.cd2sbgnml.graphics.*;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
+import fr.curie.cd2sbgnml.xmlcdwrappers.SpeciesWrapper;
+import fr.curie.cd2sbgnml.xmlcdwrappers.SpeciesWrapper.ReferenceType;
 
 import java.awt.geom.Point2D;
 import java.util.List;
@@ -16,7 +18,8 @@ public class ReactantModel extends GenericReactionElement{
                 reactantW.getCenterPoint(),
                 reactantW.getWidth(),
                 reactantW.getHeight(),
-                getCdShape(reactantW.getAliasW().getSpeciesW().getCdClass()),
+                getCdShape(reactantW.getAliasW().getSpeciesW().getCdClass(),
+                        reactantW.getAliasW().getSpeciesW().getType()),
                 getSbgnShape(getSbgnClass(reactantW.getAliasW().getSpeciesW().getCdClass()))),
                 reactantW.getAliasW().getSpeciesId()+"_"+reactantW.getAliasW().getId()
         );
@@ -25,9 +28,17 @@ public class ReactantModel extends GenericReactionElement{
 
     }
 
-    public static CdShape getCdShape(String cdClass) {
+    public static CdShape getCdShape(String cdClass, ReferenceType type) {
         switch(cdClass) {
-            case "PROTEIN": return CdShape.RECTANGLE;
+            case "PROTEIN":
+                switch(type) {
+                    case GENERIC: return CdShape.RECTANGLE;
+                    case RECEPTOR: return CdShape.RECEPTOR;
+                    case TRUNCATED: return CdShape.TRUNCATED;
+                    case ION_CHANNEL: return CdShape.RECTANGLE;
+                }
+                break;
+
             case "GENE": return CdShape.RECTANGLE;
             case "RNA": return CdShape.RIGHT_PARALLELOGRAM;
             case "ANTISENSE_RNA": return CdShape.LEFT_PARALLELOGRAM;
@@ -114,6 +125,10 @@ public class ReactantModel extends GenericReactionElement{
                     break;
                 case RIGHT_PARALLELOGRAM:
                     relativeAnchorPoint = GeometryUtils.getRelativeRightParallelogramAnchorPosition(
+                            anchorPoint, this.getGlyph().getWidth(), this.getGlyph().getHeight());
+                    break;
+                case RECEPTOR:
+                    relativeAnchorPoint = GeometryUtils.getRelativeReceptorAnchorPosition(
                             anchorPoint, this.getGlyph().getWidth(), this.getGlyph().getHeight());
                     break;
                 case TRUNCATED:

@@ -484,6 +484,86 @@ public class GeometryUtils {
         return new Point2D.Float((float)pl.getX(), (float)-pl.getY());
     }
 
+    public static Point2D.Float getRelativeReceptorAnchorPosition(AnchorPoint anchorPoint, float width, float height){
+
+        float halfW = 0.5f * width;
+        float quartW = 0.25f * width;
+        float halfH = 0.5f * height;
+        float fifthH = 0.2f * height;
+        float tenthH = 0.1f * height;
+
+        Point.Float pl = new Point.Float();
+        switch(anchorPoint) {
+            case E:
+                pl.x = halfW;
+                pl.y = tenthH;
+                break;
+            case ENE:
+                pl.x = halfW;
+                pl.y = halfH - fifthH;
+                break;
+            case NE:
+                pl.x = halfW;
+                pl.y = halfH;
+                break;
+            case ESE:
+                pl.x = halfW;
+                pl.y = -tenthH;
+                break;
+            case SE:
+                pl.x = halfW;
+                pl.y = -halfH + fifthH;
+                break;
+            case W:
+                pl.x = -halfW;
+                pl.y = tenthH;
+                break;
+            case WNW:
+                pl.x = -halfW;
+                pl.y = halfH - fifthH;
+                break;
+            case NW:
+                pl.x = -halfW;
+                pl.y = halfH;
+                break;
+            case WSW:
+                pl.x = -halfW;
+                pl.y = -tenthH;
+                break;
+            case SW:
+                pl.x = -halfW;
+                pl.y = -halfH + fifthH;
+                break;
+            case N:
+                pl.x = 0;
+                pl.y = halfH - fifthH;
+                break;
+            case NNW:
+                pl.x = -quartW;
+                pl.y = halfH - tenthH;
+                break;
+            case NNE:
+                pl.x = quartW;
+                pl.y = halfH - tenthH;
+                break;
+            case S:
+                pl.x = 0;
+                pl.y = -halfH;
+                break;
+            case SSW:
+                pl.x = -quartW;
+                pl.y = -halfH + tenthH;
+                break;
+            case SSE:
+                pl.x = quartW;
+                pl.y = -halfH + tenthH;
+                break;
+        }
+        // all that is given in a coordinate system where Y points up.
+        // but it always points down for us.
+        return new Point2D.Float((float)pl.getX(), (float)-pl.getY());
+    }
+
     /**
      * Assuming the ellipse is aligned to axis and center of ellipse is 0,0
      * @param bboxWidth
@@ -704,6 +784,7 @@ public class GeometryUtils {
         // normalize if needed (shape wants it, or links points at center
         if(glyph.getCdShape() == CdShape.LEFT_PARALLELOGRAM
                 || glyph.getCdShape() == CdShape.RIGHT_PARALLELOGRAM
+                || glyph.getCdShape() == CdShape.RECEPTOR
                 || anchorPoint == AnchorPoint.CENTER) {
             // normalize start
             Rectangle2D.Float rect = new Rectangle2D.Float(

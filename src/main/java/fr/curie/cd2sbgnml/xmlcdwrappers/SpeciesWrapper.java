@@ -1,11 +1,17 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
+import org.sbml.x2001.ns.celldesigner.CelldesignerAntisenseRNADocument;
+import org.sbml.x2001.ns.celldesigner.CelldesignerAntisenseRNADocument.CelldesignerAntisenseRNA;
 import org.sbml.x2001.ns.celldesigner.CelldesignerClassDocument.CelldesignerClass;
 import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesAliasDocument.CelldesignerComplexSpeciesAlias;
 import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesDocument.CelldesignerComplexSpecies;
+import org.sbml.x2001.ns.celldesigner.CelldesignerGeneDocument;
+import org.sbml.x2001.ns.celldesigner.CelldesignerGeneDocument.CelldesignerGene;
 import org.sbml.x2001.ns.celldesigner.CelldesignerModificationDocument.CelldesignerModification;
 import org.sbml.x2001.ns.celldesigner.CelldesignerModificationResidueDocument.CelldesignerModificationResidue;
 import org.sbml.x2001.ns.celldesigner.CelldesignerProteinDocument.CelldesignerProtein;
+import org.sbml.x2001.ns.celldesigner.CelldesignerRNADocument;
+import org.sbml.x2001.ns.celldesigner.CelldesignerRNADocument.CelldesignerRNA;
 import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesAliasDocument.CelldesignerSpeciesAlias;
 import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesDocument.CelldesignerSpecies;
 import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesIdentityDocument.CelldesignerSpeciesIdentity;
@@ -26,6 +32,12 @@ public class SpeciesWrapper {
 
     private final Logger logger = LoggerFactory.getLogger(SpeciesWrapper.class);
 
+    public enum ReferenceType {
+        // protein types
+        GENERIC, ION_CHANNEL, RECEPTOR, TRUNCATED,
+        // for the 3 others, just 1 type possible
+        GENE, RNA, ANTISENSE_RNA}
+
     private boolean isIncludedSpecies;
     private boolean isComplex;
 
@@ -36,6 +48,7 @@ public class SpeciesWrapper {
     private String cdClass;
     private int multimer;
     private String unitOfInformation;
+    private ReferenceType type;
 
     private List<AliasWrapper> aliases;
     private List<ResidueWrapper> residues;
@@ -129,6 +142,25 @@ public class SpeciesWrapper {
                 System.out.println(mapOfReferenceModif.size()+" res for protein "+protId);
                 logger.debug(mapOfReferenceModif.size()+" res for protein "+protId);
             }
+
+            this.type = getTypeFromString(prot.getType().toString());
+        }
+        else if(identity.isSetCelldesignerRnaReference()) {
+            String rnaId = identity.getCelldesignerRnaReference().getDomNode().getChildNodes().item(0).getNodeValue();
+            CelldesignerRNA rna = modelW.getRNA(rnaId);
+            this.type = getTypeFromString(rna.getType());
+
+        }
+        else if(identity.isSetCelldesignerAntisensernaReference()) {
+            String asrnaId = identity.getCelldesignerAntisensernaReference().getDomNode().getChildNodes().item(0).getNodeValue();
+            CelldesignerAntisenseRNA asrna = modelW.getAntisenseRNA(asrnaId);
+            this.type = getTypeFromString(asrna.getType());
+
+        }
+        else if(identity.isSetCelldesignerGeneReference()) {
+            String geneId = identity.getCelldesignerGeneReference().getDomNode().getChildNodes().item(0).getNodeValue();
+            CelldesignerGene gene = modelW.getGene(geneId);
+            this.type = getTypeFromString(gene.getType());
         }
 
 
@@ -172,25 +204,6 @@ public class SpeciesWrapper {
                             logger.error("Residue "+residueId+" doesn't exist in referenced protein.");
                         }
                     }
-
-
-
-
-                /*else if(identity.isSetCelldesignerRnaReference()) {
-                    String rnaId = identity.getCelldesignerRnaReference().getDomNode().getChildNodes().item(0).getNodeValue();
-                    CelldesignerRNA rna = modelW.getRNA(rnaId);
-
-                }
-                else if(identity.isSetCelldesignerAntisensernaReference()) {
-                    String asrnaId = identity.getCelldesignerAntisensernaReference().getDomNode().getChildNodes().item(0).getNodeValue();
-                    CelldesignerAntisenseRNA asrna = modelW.getAntisenseRNA(asrnaId);
-
-                }
-                else if(identity.isSetCelldesignerGeneReference()) {
-                    String geneId = identity.getCelldesignerGeneReference().getDomNode().getChildNodes().item(0).getNodeValue();
-                    CelldesignerGeneDocument.CelldesignerGene gene = modelW.getGene(geneId);
-                }*/
-
 
             }
 
@@ -243,6 +256,24 @@ public class SpeciesWrapper {
 
     public List<ResidueWrapper> getResidues() {
         return residues;
+    }
+
+    public static ReferenceType getTypeFromString(String t){
+        switch(t) {
+            case "GENERIC": return ReferenceType.GENERIC;
+            case "ION_CHANNEL": return ReferenceType.ION_CHANNEL;
+            case "RECEPTOR": return ReferenceType.RECEPTOR;
+            case "TRUNCATED": return ReferenceType.TRUNCATED;
+            case "GENE": return ReferenceType.GENE;
+            case "RNA": return ReferenceType.RNA;
+            case "ANTISENSE_RNA": return ReferenceType.ANTISENSE_RNA;
+            default: throw new IllegalArgumentException("Value: "+t+" is not a valid type. Should be one of" +
+                    Arrays.toString(ReferenceType.values()));
+        }
+    }
+
+    public ReferenceType getType() {
+        return type;
     }
 
 }
