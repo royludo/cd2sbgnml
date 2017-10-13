@@ -13,6 +13,8 @@ public class Main {
     public static void main(String args[]) {
         System.out.println("test");
         System.setProperty(SimpleLogger.LOG_FILE_KEY, "src/main/resources/report.log");
+        System.setProperty(SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "DEBUG");
+
         /*fr.curie.cd2sbgnml.xmlcdwrappers.ModelWrapper model = null;
         try {
             model = ObjectFactory.unmarshalSBML("src/main/resources/components44.xml");
@@ -56,7 +58,7 @@ public class Main {
 
         CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
         try {
-            cdModel.setModelFromFile("src/main/resources/acsn_v1.1.xml");
+            cdModel.setModelFromFile("src/main/resources/components44.xml");
             //System.out.println(cdModel.modelToString());
         } catch (ReadModelException e) {
             e.printStackTrace();

@@ -38,7 +38,7 @@ public class AssociationReactionModel extends GenericReactionModel {
                 endR.getCenterPoint(), assocGlyphLocalCoords);
         System.out.println("result: " + assocGlyphLocalCoords + " -> " + assocGlyphGlobalCoords);
 
-        String assocId = "assoc_"+startModel0.getId()+"_"+startModel1.getId()+"_"+endModel.getId();
+        String assocId = "assoc_" + UUID.randomUUID();
         /*if(assocId.equals("assoc_d_s763_d_sa115_d_s760_d_csa5_d_s760_d_csa5")) {
             logger.warn("PROBLEM glyph for reaction "+reactionW.getId()+" global coords "+assocGlyphGlobalCoords+" "+assocGlyphLocalCoords+" "+startR1.getCenterPoint()
             +" "+startR2.getCenterPoint()+" "+endR.getCenterPoint()+" "+editPoints+" "+reactionW.getReaction().getAnnotation().getCelldesignerEditPoints());
@@ -57,7 +57,7 @@ public class AssociationReactionModel extends GenericReactionModel {
         List<Point2D.Float> absoluteEditPoints0 = getBranchPoints(reactionW, association.getGlyph().getCenter(), startR1coordPoint, 0);
         Collections.reverse(absoluteEditPoints0);
         LinkModel link0 = new LinkModel(startModel0, association, new Link(absoluteEditPoints0),
-                "cons_"+startModel0.getId()+"_"+association.getId(), "consumption");
+                "cons_" + UUID.randomUUID(), "consumption");
         /*link0.setSbgnSpacePointList(
                 link0.getNormalizedEndPoints(
                         startR1.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
@@ -66,7 +66,7 @@ public class AssociationReactionModel extends GenericReactionModel {
         List<Point2D.Float> absoluteEditPoints1 = getBranchPoints(reactionW, association.getGlyph().getCenter(), startR2coordPoint, 1);
         Collections.reverse(absoluteEditPoints1);
         LinkModel link1 = new LinkModel(startModel1, association, new Link(absoluteEditPoints1),
-                "cons_"+startModel1.getId()+"_"+association.getId(), "consumption");
+                "cons_" + UUID.randomUUID(), "consumption");
         /*link1.setSbgnSpacePointList(
                 link1.getNormalizedEndPoints(
                         startR2.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
@@ -103,7 +103,7 @@ public class AssociationReactionModel extends GenericReactionModel {
             Process process = new Process(
                     this,
                     GeometryUtils.getMiddleOfPolylineSegment(absoluteEditPoints2, reactionW.getProcessSegmentIndex()),
-                    "_"+UUID.randomUUID().toString(),
+                    "pr_"+UUID.randomUUID().toString(),
                     processAxis,
                     isPolyline);
 
@@ -128,9 +128,9 @@ public class AssociationReactionModel extends GenericReactionModel {
                     AnchorPoint.CENTER);
 
             LinkModel l21 = new LinkModel(association, process, new Link(normalizedSubLinesTuple1),
-                    "cons_"+association.getId()+"_"+process.getId(), "consumption");
+                    "cons_" + UUID.randomUUID(), "consumption");
             LinkModel l22 = new LinkModel(process, endModel, new Link(normalizedSubLinesTuple2),
-                    "prod_"+process.getId()+"_"+endModel.getId(), "production");
+                    "prod_" + UUID.randomUUID(), "production");
             System.out.println("link edit points: "+link0.getLink().getEditPoints()+" "+l21.getLink().getStart()+" "+l21.getLink().getEditPoints());
 
             // add everything to the reaction lists

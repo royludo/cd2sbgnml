@@ -1,16 +1,11 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
-import fr.curie.cd2sbgnml.graphics.CdShape;
-import org.sbml.x2001.ns.celldesigner.*;
-import org.sbml.x2001.ns.celldesigner.CelldesignerAntisenseRNADocument.CelldesignerAntisenseRNA;
 import org.sbml.x2001.ns.celldesigner.CelldesignerClassDocument.CelldesignerClass;
 import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesAliasDocument.CelldesignerComplexSpeciesAlias;
 import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesDocument.CelldesignerComplexSpecies;
-import org.sbml.x2001.ns.celldesigner.CelldesignerListOfModificationsDocument.CelldesignerListOfModifications;
 import org.sbml.x2001.ns.celldesigner.CelldesignerModificationDocument.CelldesignerModification;
 import org.sbml.x2001.ns.celldesigner.CelldesignerModificationResidueDocument.CelldesignerModificationResidue;
 import org.sbml.x2001.ns.celldesigner.CelldesignerProteinDocument.CelldesignerProtein;
-import org.sbml.x2001.ns.celldesigner.CelldesignerRNADocument.CelldesignerRNA;
 import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesAliasDocument.CelldesignerSpeciesAlias;
 import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesDocument.CelldesignerSpecies;
 import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesIdentityDocument.CelldesignerSpeciesIdentity;
@@ -49,39 +44,10 @@ public class SpeciesWrapper {
         this.isIncludedSpecies = false;
         CelldesignerClass cdClassClass = species.getAnnotation().getCelldesignerSpeciesIdentity().getCelldesignerClass();
         this.cdClass = cdClassClass.getDomNode().getChildNodes().item(0).getNodeValue();
-        this.isComplex = this.cdClass.equals("COMPLEX");
         this.id = species.getId();
         this.name = species.getName().getStringValue();
         this.compartment = species.getCompartment();
         this.complex = null;
-        this.aliases = new ArrayList<>();
-
-        if(this.isComplex) {
-            for(CelldesignerComplexSpeciesAlias complexAlias : modelW.getComplexSpeciesAliasFor(this.id)) {
-                if (complexAlias == null) {
-                    continue;
-                }
-                this.aliases.add(new AliasWrapper(complexAlias, this));
-            }
-        }
-        //else {
-        /**
-         * here we shouldn't have to check normal aliases after complex aliases.
-         * normally complex species should only have complex aliases, and not additional normal aliases
-         * this only happens in ACSN
-         */
-        if(modelW.getSpeciesAliasFor(this.id) != null) {
-            if(this.isComplex) {
-                logger.warn("Complex species: "+this.id+" shouldn't have non-complex aliases");
-            }
-
-            for(CelldesignerSpeciesAlias alias : modelW.getSpeciesAliasFor(this.id)) {
-                if (alias == null) {
-                    continue;
-                }
-                this.aliases.add(new AliasWrapper(alias, this));
-            }
-        }
 
         this.commonConstructor(species.getAnnotation().getCelldesignerSpeciesIdentity(), modelW);
 
@@ -91,50 +57,55 @@ public class SpeciesWrapper {
         this.isIncludedSpecies = true;
         CelldesignerClass cdClassClass = species.getCelldesignerAnnotation().getCelldesignerSpeciesIdentity().getCelldesignerClass();
         this.cdClass = cdClassClass.getDomNode().getChildNodes().item(0).getNodeValue();
-        this.isComplex = this.cdClass.equals("COMPLEX");
         this.id = species.getId();
         this.name = species.getName().getStringValue();
         CelldesignerComplexSpecies complexSpecies = species.getCelldesignerAnnotation().getCelldesignerComplexSpecies();
         this.complex = complexSpecies.getDomNode().getChildNodes().item(0).getNodeValue();
         this.compartment = null;
+
+        this.commonConstructor(species.getCelldesignerAnnotation().getCelldesignerSpeciesIdentity(), modelW);
+    }
+
+    private void commonConstructor(CelldesignerSpeciesIdentity identity, ModelWrapper modelW) {
+        this.multimer = 1; // default to 1 if nothing else found
+        this.residues = new ArrayList<>();
         this.aliases = new ArrayList<>();
+        this.isComplex = this.cdClass.equals("COMPLEX");
+
 
         if(this.isComplex) {
+            logger.debug("Species has "+modelW.getComplexSpeciesAliasFor(this.id).size()+" complexSpeciesAliases");
             for(CelldesignerComplexSpeciesAlias complexAlias : modelW.getComplexSpeciesAliasFor(this.id)) {
                 if (complexAlias == null) {
                     continue;
                 }
+                logger.debug("Parse complex alias: " + complexAlias.getId());
                 this.aliases.add(new AliasWrapper(complexAlias, this));
             }
         }
         //else {
-        /**
+        /*
          * here we shouldn't have to check normal aliases after complex aliases.
          * normally complex species should only have complex aliases, and not additional normal aliases
          * this only happens in ACSN
          */
         if(modelW.getSpeciesAliasFor(this.id) != null) {
             if(this.isComplex) {
-                logger.warn("Included complex species: "+this.id+" shouldn't have non-complex aliases");
+                logger.warn("Complex species: "+this.id+" shouldn't have non-complex aliases");
             }
 
+            logger.debug("Species has "+modelW.getSpeciesAliasFor(this.id).size()+" speciesAliases");
             for(CelldesignerSpeciesAlias alias : modelW.getSpeciesAliasFor(this.id)) {
                 if (alias == null) {
                     continue;
                 }
+                logger.debug("Parse alias: " + alias.getId());
                 this.aliases.add(new AliasWrapper(alias, this));
             }
         }
 
-        this.commonConstructor(species.getCelldesignerAnnotation().getCelldesignerSpeciesIdentity(), modelW);
-    }
-
-    public void commonConstructor(CelldesignerSpeciesIdentity identity, ModelWrapper modelW) {
-        this.multimer = 1; // default to 1 if nothing else found
-        this.residues = new ArrayList<>();
-
         // get information from the species' reference
-        List<CelldesignerModificationResidue> listOfReferenceModif = new ArrayList<>();
+        List<CelldesignerModificationResidue> listOfReferenceModif;
         HashMap<String, ResidueWrapper> mapOfReferenceModif = new HashMap<>();
         if(identity.isSetCelldesignerProteinReference()) {
             String protId = identity.getCelldesignerProteinReference().getDomNode().getChildNodes().item(0).getNodeValue();
@@ -156,6 +127,7 @@ public class SpeciesWrapper {
                     mapOfReferenceModif.put(residueWrapper.id, residueWrapper);
                 }
                 System.out.println(mapOfReferenceModif.size()+" res for protein "+protId);
+                logger.debug(mapOfReferenceModif.size()+" res for protein "+protId);
             }
         }
 

@@ -262,7 +262,7 @@ public class CD2SBGNML extends GeneralConverter {
             }
             else {
                 for(AliasWrapper includedAlias: modelW.getIncludedAliasWrapperFor(alias.getId())) {
-                    SpeciesWrapper includedSpecies = new SpeciesWrapper(modelW.getIncludedSpecies(includedAlias.getSpeciesId()), modelW);
+                    SpeciesWrapper includedSpecies = modelW.getSpeciesWrapperFor(includedAlias.getSpeciesId());
                     Glyph includedGlyph = processSpeciesAlias(includedSpecies, includedAlias, modelW, map);
                     glyph.getGlyph().add(includedGlyph);
 
@@ -281,13 +281,16 @@ public class CD2SBGNML extends GeneralConverter {
 
     public void processSpecies(SpeciesWrapper species, ModelWrapper modelW, Map map) {
         for(AliasWrapper alias : species.getAliases()) {
-            Glyph glyph = processSpeciesAlias(species, alias, modelW, map);
+            // included species is already added inside its complex when complex is processed
+            if(!species.isIncludedSpecies()) {
+                Glyph glyph = processSpeciesAlias(species, alias, modelW, map);
 
-            // keep references
-            glyphList.add(glyph);
-            glyphMap.put(glyph.getId(), glyph);
-            // add to map
-            map.getGlyph().add(glyph);
+                // keep references
+                glyphList.add(glyph);
+                glyphMap.put(glyph.getId(), glyph);
+                // add to map
+                map.getGlyph().add(glyph);
+            }
         }
     }
 

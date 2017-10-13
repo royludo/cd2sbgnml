@@ -52,7 +52,7 @@ public class SimpleReactionModel extends GenericReactionModel{
             Process process = new Process(
                     this,
                     GeometryUtils.getMiddleOfPolylineSegment(absoluteEditPoints, reactionW.getProcessSegmentIndex()),
-                    "_"+UUID.randomUUID().toString(),
+                    "pr_"+UUID.randomUUID().toString(),
                     processAxis,
                     isPolyline);
 
@@ -72,9 +72,9 @@ public class SimpleReactionModel extends GenericReactionModel{
                     endModel.getAnchorPoint());
 
             LinkModel l1 = new LinkModel(startModel, process, new Link(subLinesTuple1),
-                    "cons_"+startModel.getId()+"_"+process.getId(), "consumption");
+                    "cons_" + UUID.randomUUID(), "consumption");
             LinkModel l2 = new LinkModel(process, endModel, new Link(subLinesTuple2),
-                    "prod_"+process.getId()+"_"+endModel.getId(), LinkModel.getSbgnClass(reactionW.getReactionType()));
+                    "prod_" + UUID.randomUUID(), LinkModel.getSbgnClass(reactionW.getReactionType()));
             /*System.out.println("process coords "+process.getGlyph().getCenter());
             System.out.println("original edit points "+absoluteEditPoints);
             System.out.println("subline1 "+subLinesTuple.getKey());
@@ -94,7 +94,7 @@ public class SimpleReactionModel extends GenericReactionModel{
         }
         else {
             LinkModel l1 = new LinkModel(startModel, endModel, new Link(absoluteEditPoints),
-                    "prod_"+startModel.getId()+"_"+endModel.getId(), LinkModel.getSbgnClass(reactionW.getReactionType()));
+                    "prod_" + UUID.randomUUID(), LinkModel.getSbgnClass(reactionW.getReactionType()));
 
             // add everything to the reaction lists
             this.getReactantModels().add(startModel);

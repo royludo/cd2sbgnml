@@ -189,6 +189,7 @@ public class ModelWrapper {
 
         logger.info("Wrapping "+this.listOfSpecies.size()+" species");
         for(Species species: this.listOfSpecies) {
+            logger.debug("Parse species: "+species.getId());
             SpeciesWrapper speciesW = new SpeciesWrapper(species, this);
             this.listOfSpeciesWrapper.add(speciesW);
             this.mapOfSpeciesWrapper.put(speciesW.getId(), speciesW);
@@ -201,6 +202,7 @@ public class ModelWrapper {
 
         logger.info("Wrapping "+this.listOfIncludedSpecies.size()+" included species");
         for(CelldesignerSpecies species: this.listOfIncludedSpecies) {
+            logger.debug("Parse included species: "+species.getId());
             SpeciesWrapper speciesW = new SpeciesWrapper(species, this);
             this.listOfSpeciesWrapper.add(speciesW);
             this.mapOfSpeciesWrapper.put(speciesW.getId(), speciesW);

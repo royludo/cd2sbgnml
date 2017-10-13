@@ -38,7 +38,7 @@ public class DissociationReactionModel extends GenericReactionModel{
                 endR2.getCenterPoint(), assocGlyphLocalCoords);
         System.out.println("result: " + assocGlyphLocalCoords + " -> " + assocGlyphGlobalCoords);
 
-        String dissocId = "dissoc_"+startModel.getId()+"_"+endModel1.getId()+"_"+endModel2.getId();
+        String dissocId = "dissoc_" + UUID.randomUUID();
         AssocDissoc dissociation = new AssocDissoc(this, assocGlyphGlobalCoords, dissocId);
 
         // get the relevant points
@@ -70,7 +70,7 @@ public class DissociationReactionModel extends GenericReactionModel{
                 endModel1.getAnchorPoint());
         System.out.println("dissoc BUUUUG: "+absoluteEditPoints1);
         LinkModel link1 = new LinkModel(dissociation, endModel1, new Link(absoluteEditPoints1),
-                "prod_"+dissociation.getId()+"_"+endModel1.getId(), "production");
+                "prod_" + UUID.randomUUID(), "production");
         /*link1.setSbgnSpacePointList(
                 link1.getNormalizedEndPoints(
                         startR2.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
@@ -83,7 +83,7 @@ public class DissociationReactionModel extends GenericReactionModel{
                 AnchorPoint.CENTER,
                 endModel2.getAnchorPoint());
         LinkModel link2 = new LinkModel(dissociation, endModel2, new Link(absoluteEditPoints2),
-                "prod_"+dissociation.getId()+"_"+endModel2.getId(), "production");
+                "prod_" + UUID.randomUUID(), "production");
         /*link2.setSbgnSpacePointList(
                 link2.getNormalizedEndPoints(
                         GeometryUtils.AnchorPoint.CENTER, endR.getAnchorPoint()
@@ -134,9 +134,9 @@ public class DissociationReactionModel extends GenericReactionModel{
                     AnchorPoint.CENTER);
 
             LinkModel l21 = new LinkModel(startModel, process, new Link(normalizedSubLinesTuple1),
-                    "cons_"+startModel.getId()+"_"+process.getId(), "consumption");
+                    "cons_" + UUID.randomUUID(), "consumption");
             LinkModel l22 = new LinkModel(process, dissociation, new Link(normalizedSubLinesTuple2),
-                    "cons_"+process.getId()+"_"+dissociation.getId(), "consumption");
+                    "cons_" + UUID.randomUUID(), "consumption");
             System.out.println("link edit points: "+l21.getLink().getStart()+" "+l21.getLink().getEditPoints());
 
             // add everything to the reaction lists

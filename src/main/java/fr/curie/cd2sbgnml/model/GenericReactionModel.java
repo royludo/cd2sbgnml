@@ -69,7 +69,7 @@ public class GenericReactionModel {
                     getCelldesignerModificationArray(modifIndex).getType();
 
             LinkModel modifLink = new LinkModel(modifModel, process, new Link(absoluteEditPoints),
-                    "modif_"+modifModel.getId()+"_"+process.getId()+"_"+modifIndex,
+                    "modif_" + UUID.randomUUID(),
                     LinkModel.getSbgnClass(modif.getType()));
 
             /*LinkWrapper link = new LinkWrapper(reactantW, process, absoluteEditPoints,
@@ -118,7 +118,7 @@ public class GenericReactionModel {
             normalizedEditPoints.add(process.getAbsoluteAnchorCoords(0));
 
             LinkModel reactLink = new LinkModel(reactantModel, process, new Link(normalizedEditPoints),
-                    "modif_"+reactantModel.getId()+"_"+process.getId()+"_"+positionIndex,
+                    "modif_"+ UUID.randomUUID(),
                     "consumption");
 
             // add everything to the reaction lists
@@ -160,7 +160,7 @@ public class GenericReactionModel {
             normalizedEditPoints.add(normalizedEnd);
 
             LinkModel reactLink = new LinkModel(process, reactantModel, new Link(normalizedEditPoints),
-                    "modif_"+process.getId()+"_"+reactantModel.getId()+"_"+positionIndex, "production");
+                    "modif_" + UUID.randomUUID(), "production");
 
             // add everything to the reaction lists
             this.getReactantModels().add(reactantModel);
