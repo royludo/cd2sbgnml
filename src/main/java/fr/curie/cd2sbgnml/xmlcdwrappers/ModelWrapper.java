@@ -5,6 +5,8 @@ import org.sbml.x2001.ns.celldesigner.CelldesignerAntisenseRNADocument.Celldesig
 import org.sbml.x2001.ns.celldesigner.CelldesignerCompartmentAliasDocument.CelldesignerCompartmentAlias;
 import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesAliasDocument.CelldesignerComplexSpeciesAlias;
 import org.sbml.x2001.ns.celldesigner.CelldesignerGeneDocument.CelldesignerGene;
+import org.sbml.x2001.ns.celldesigner.CelldesignerLayerDocument.CelldesignerLayer;
+import org.sbml.x2001.ns.celldesigner.CelldesignerLayerSpeciesAliasDocument.CelldesignerLayerSpeciesAlias;
 import org.sbml.x2001.ns.celldesigner.CelldesignerProteinDocument.CelldesignerProtein;
 import org.sbml.x2001.ns.celldesigner.CelldesignerRNADocument.CelldesignerRNA;
 import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesAliasDocument.CelldesignerSpeciesAlias;
@@ -40,6 +42,7 @@ public class ModelWrapper {
     private List<CelldesignerRNA> listOfRna;
     private List<CelldesignerAntisenseRNA> listOfAntisenseRna;
     private List<CelldesignerGene> listOfGene;
+    private List<CelldesignerLayer> listOfLayers;
 
     private HashMap<String, Species> mapOfSpecies;
     private HashMap<String, CelldesignerSpecies> mapOfIncludedSpecies;
@@ -54,6 +57,7 @@ public class ModelWrapper {
 
     private List<SpeciesWrapper> listOfSpeciesWrapper; // doesn't contain included species!
     private List<AliasWrapper> listofAliasWrapper;
+    private List<TextWrapper> listofTextWrapper;
     private HashMap<String, SpeciesWrapper> mapOfSpeciesWrapper;
     private HashMap<String, AliasWrapper> mapOfAliasWrapper;
 
@@ -116,6 +120,19 @@ public class ModelWrapper {
                 Arrays.asList(model.getAnnotation().getCelldesignerListOfAntisenseRNAs().getCelldesignerAntisenseRNAArray());
         this.listOfGene =
                 Arrays.asList(model.getAnnotation().getCelldesignerListOfGenes().getCelldesignerGeneArray());
+        this.listOfLayers =
+                Arrays.asList(model.getAnnotation().getCelldesignerListOfLayers().getCelldesignerLayerArray());
+
+        this.listofTextWrapper = new ArrayList<>();
+        for(CelldesignerLayer layer: this.listOfLayers) {
+            // loop through the texts of the layer, if texts are defined
+            if(layer.isSetCelldesignerListOfTexts()) {
+                for(int i=0; i < layer.getCelldesignerListOfTexts().sizeOfCelldesignerLayerSpeciesAliasArray(); i++) {
+                    CelldesignerLayerSpeciesAlias text = layer.getCelldesignerListOfTexts().getCelldesignerLayerSpeciesAliasArray(i);
+                    this.listofTextWrapper.add(new TextWrapper(text, Boolean.parseBoolean(layer.getVisible().getStringValue())));
+                }
+            }
+        }
     }
 
     /**
@@ -377,6 +394,14 @@ public class ModelWrapper {
 
     public List<ReactantWrapper> getReactionWrappersForAlias(String aliasId) {
         return this.alias2reactantWrapper.get(aliasId);
+    }
+
+    public List<CelldesignerLayer> getListOfLayers() {
+        return listOfLayers;
+    }
+
+    public List<TextWrapper> getListofTextWrapper() {
+        return listofTextWrapper;
     }
 
 

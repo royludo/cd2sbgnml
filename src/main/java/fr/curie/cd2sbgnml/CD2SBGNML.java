@@ -65,17 +65,6 @@ public class CD2SBGNML extends GeneralConverter {
             processSpecies(speciesW, modelW, map);
         }
 
-        // included species section
-        /*for(CelldesignerSpecies includedSpecies: modelW.getListOfIncludedSpecies()) {
-            System.out.println("included");
-            System.out.println(includedSpecies.getId()+" "+includedSpecies.getName().getStringValue());
-            System.out.println("is in: "+includedSpecies.getCelldesignerAnnotation().getCelldesignerComplexSpecies().getDomNode().getChildNodes().item(0).getNodeValue());
-
-            fr.curie.cd2sbgnml.xmlcdwrappers.SpeciesWrapper includedW = new fr.curie.cd2sbgnml.xmlcdwrappers.SpeciesWrapper(includedSpecies, modelW);
-            processSpecies(includedW, modelW, map);
-
-        }*/
-
         // reactions
         for(ReactionWrapper reactionW: modelW.getListOfReactionWrapper()) {
             //ReactionWrapper reactionW = modelW.getReactionWrapperFor(reaction.getId());
@@ -172,15 +161,39 @@ public class CD2SBGNML extends GeneralConverter {
                 }
 
             }
+        }
 
-            /*for(ReactantWrapper reactantW: reactionW.getModifiers()) {
-                System.out.println("MODIFIER "+reactantW.getAliasW().getId());
+        // text notes on the map
+        for(TextWrapper textW: modelW.getListofTextWrapper()) {
+            if(!textW.isVisible()) {
+                continue;
+            }
 
-                Glyph source = glyphMap.get(reactantW.getAliasW().getSpeciesId()+"_"+reactantW.getAliasW().getId());
-                Glyph target = glyphMap.get(processId);
+            Glyph textGlyph = new Glyph();
 
-                map.getArc().add(getArc(reactantW.getLink(), source, target, reactantW.getLink().getSbgnClass()));
-            }*/
+            Bbox textBbox = new Bbox();
+            textBbox.setX((float) textW.getBbox().getX());
+            textBbox.setY((float) textW.getBbox().getY());
+            textBbox.setW((float) textW.getBbox().getWidth());
+            textBbox.setH((float) textW.getBbox().getHeight());
+            textGlyph.setBbox(textBbox);
+
+            Label textLabel = new Label();
+            textLabel.setText(textW.getText());
+            textGlyph.setLabel(textLabel);
+
+            textGlyph.setClazz("annotation");
+            textGlyph.setId("text_"+UUID.randomUUID());
+
+            // set reference point
+            Glyph.Callout callout = new Glyph.Callout();
+            Point calloutPoint = new Point();
+            calloutPoint.setX((float) textW.getRefPoint().getX());
+            calloutPoint.setY((float) textW.getRefPoint().getY());
+            callout.setPoint(calloutPoint);
+            textGlyph.setCallout(callout);
+
+            map.getGlyph().add(textGlyph);
         }
 
         return sbgn;
