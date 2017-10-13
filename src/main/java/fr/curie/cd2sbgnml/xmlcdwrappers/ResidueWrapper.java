@@ -42,12 +42,12 @@ public class ResidueWrapper {
     }
 
     public String getSbgnText() {
-        if(this.name.equals("") || this.state.equals("")) {
+        if(!this.state.equals("")) {
+            if(!this.name.equals("")) {
+                return ResidueWrapper.getShortState(this.state)+"@"+this.name;
+            }
             return ResidueWrapper.getShortState(this.state);
         }
-        else {
-            return ResidueWrapper.getShortState(this.state)+"@"+this.name;
-        }
-
+        return "";
     }
 }

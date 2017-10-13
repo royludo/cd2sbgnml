@@ -1,16 +1,13 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
-import org.sbml.x2001.ns.celldesigner.CelldesignerAntisenseRNADocument;
 import org.sbml.x2001.ns.celldesigner.CelldesignerAntisenseRNADocument.CelldesignerAntisenseRNA;
 import org.sbml.x2001.ns.celldesigner.CelldesignerClassDocument.CelldesignerClass;
 import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesAliasDocument.CelldesignerComplexSpeciesAlias;
 import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesDocument.CelldesignerComplexSpecies;
-import org.sbml.x2001.ns.celldesigner.CelldesignerGeneDocument;
 import org.sbml.x2001.ns.celldesigner.CelldesignerGeneDocument.CelldesignerGene;
 import org.sbml.x2001.ns.celldesigner.CelldesignerModificationDocument.CelldesignerModification;
 import org.sbml.x2001.ns.celldesigner.CelldesignerModificationResidueDocument.CelldesignerModificationResidue;
 import org.sbml.x2001.ns.celldesigner.CelldesignerProteinDocument.CelldesignerProtein;
-import org.sbml.x2001.ns.celldesigner.CelldesignerRNADocument;
 import org.sbml.x2001.ns.celldesigner.CelldesignerRNADocument.CelldesignerRNA;
 import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesAliasDocument.CelldesignerSpeciesAlias;
 import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesDocument.CelldesignerSpecies;
@@ -47,7 +44,7 @@ public class SpeciesWrapper {
     private String complex;
     private String cdClass;
     private int multimer;
-    private String unitOfInformation;
+    private String structuralState;
     private ReferenceType type;
 
     private List<AliasWrapper> aliases;
@@ -175,7 +172,7 @@ public class SpeciesWrapper {
 
             if(state.isSetCelldesignerListOfStructuralStates()) {
                 // assume that there is only 1 state per species
-                this.unitOfInformation = state.getCelldesignerListOfStructuralStates().
+                this.structuralState = state.getCelldesignerListOfStructuralStates().
                         getCelldesignerStructuralStateArray(0).getStructuralState().getStringValue();
             }
 
@@ -250,8 +247,8 @@ public class SpeciesWrapper {
         return multimer;
     }
 
-    public String getUnitOfInformation() {
-        return unitOfInformation;
+    public String getStructuralState() {
+        return structuralState;
     }
 
     public List<ResidueWrapper> getResidues() {

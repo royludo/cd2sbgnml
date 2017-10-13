@@ -4,6 +4,7 @@ import org.sbml.x2001.ns.celldesigner.CelldesignerBoundsDocument.CelldesignerBou
 import org.sbml.x2001.ns.celldesigner.CelldesignerCompartmentAliasDocument.CelldesignerCompartmentAlias;
 import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesAliasDocument.CelldesignerComplexSpeciesAlias;
 import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesAliasDocument.CelldesignerSpeciesAlias;
+import org.w3c.dom.Node;
 
 import java.awt.geom.Point2D;
 
@@ -22,6 +23,7 @@ public class AliasWrapper {
     private String speciesId;
     private SpeciesWrapper speciesW;
     private boolean isActive;
+    private AliasInfoWrapper info;
 
     public AliasWrapper(CelldesignerSpeciesAlias alias, SpeciesWrapper speciesW) {
         this.aliasType = AliasType.BASIC;
@@ -39,6 +41,8 @@ public class AliasWrapper {
             this.compartmentAlias = null;
         }
         this.isActive = alias.getCelldesignerActivity().getDomNode().getChildNodes().item(0).getNodeValue().equals("active");
+        this.addAliasInfo(alias.getDomNode());
+
     }
 
     public AliasWrapper(CelldesignerComplexSpeciesAlias alias, SpeciesWrapper speciesW) {
@@ -60,6 +64,7 @@ public class AliasWrapper {
          //alias.getDomNode().getAttributes().getNamedItem("complexSpeciesAlias").getNodeValue();
         this.compartmentAlias = alias.getCompartmentAlias();
         this.isActive = alias.getCelldesignerActivity().getDomNode().getChildNodes().item(0).getNodeValue().equals("active");
+        this.addAliasInfo(alias.getDomNode());
     }
 
     public AliasWrapper(CelldesignerCompartmentAlias alias, SpeciesWrapper speciesW) {
@@ -69,6 +74,22 @@ public class AliasWrapper {
         this.complexAlias = null;
         this.compartmentAlias = null;
         this.speciesW = speciesW;
+    }
+
+    private void addAliasInfo(Node aliasDomNode) {
+        for(int i=0; i < aliasDomNode.getChildNodes().getLength(); i++) {
+            Node child = aliasDomNode.getChildNodes().item(i);
+            if(child.getNodeName().equals("celldesigner_info")) {
+                String state = child.getAttributes().getNamedItem("state").getNodeValue();
+                if(!state.equals("empty")) {
+                    // interesting info to keep
+                    String prefix = child.getAttributes().getNamedItem("prefix").getNodeValue();
+                    String label = child.getAttributes().getNamedItem("label").getNodeValue();
+                    Float angle = Float.parseFloat(child.getAttributes().getNamedItem("angle").getNodeValue());
+                    this.info = new AliasInfoWrapper(angle, prefix, label);
+                }
+            }
+        }
     }
 
     public Point2D.Float getCenterPoint() {
@@ -108,6 +129,10 @@ public class AliasWrapper {
 
     public boolean isActive() {
         return isActive;
+    }
+
+    public AliasInfoWrapper getInfo() {
+        return info;
     }
 
 }

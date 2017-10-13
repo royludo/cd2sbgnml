@@ -945,12 +945,16 @@ public class GeometryUtils {
      * Return an estimation of a pixel width taken by a string s
      *
      * usdfs dfsdf sdfsd f -> fill a width of 80 in CellDesigner -> 5 / letter
+     * with a minimum margin of 5.
      *
      * @param s
      * @return
      */
     public static float getLengthForString(String s) {
-        return s.length() * 5;
+        if(s.trim().isEmpty()) {
+            return 0;
+        }
+        return s.length() * 5 + 5;
     }
 
     /**

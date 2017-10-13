@@ -11,13 +11,12 @@ import org.sbfc.converter.exceptions.ReadModelException;
 import org.sbfc.converter.models.GeneralModel;
 import org.sbfc.converter.models.SBGNModel;
 import org.sbgn.bindings.*;
+import org.sbgn.bindings.Glyph.State;
 import org.sbml.x2001.ns.celldesigner.CelldesignerBoundsDocument.CelldesignerBounds;
 import org.sbml.x2001.ns.celldesigner.CelldesignerCompartmentAliasDocument.CelldesignerCompartmentAlias;
 import org.sbml.x2001.ns.celldesigner.*;
 import org.sbml.x2001.ns.celldesigner.CelldesignerPointDocument.CelldesignerPoint;
 import org.sbml.x2001.ns.celldesigner.CompartmentDocument.Compartment;
-import org.sbml.x2001.ns.celldesigner.ReactionDocument.Reaction;
-import org.sbml.x2001.ns.celldesigner.SpeciesDocument.Species;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -263,7 +262,7 @@ public class CD2SBGNML extends GeneralConverter {
 
     public Glyph processSpeciesAlias(SpeciesWrapper species, AliasWrapper alias, ModelWrapper modelW, Map map) {
         CelldesignerBounds bounds = alias.getBounds();
-        Glyph glyph = getGlyph(species, bounds, species.getId()+"_"+alias.getId());
+        Glyph glyph = getGlyph(alias);
 
         if(species.isComplex()) {
             System.out.println("COMPLEX species: "+species.getId()+" alias: "+alias.getId());
@@ -307,14 +306,17 @@ public class CD2SBGNML extends GeneralConverter {
         }
     }
 
-    public Glyph getGlyph(SpeciesWrapper species, CelldesignerBounds bounds, String id) {
+    public Glyph getGlyph(AliasWrapper aliasW) {
+        String id = aliasW.getSpeciesW().getId()+"_"+aliasW.getId();
+        SpeciesWrapper species = aliasW.getSpeciesW();
+
         System.out.println(species.getId()+" "+species.getName()+" "+species.getCompartment());
         //System.out.println(bounds);
         Rectangle2D.Float bboxRect = new Rectangle2D.Float(
-                Float.parseFloat(bounds.getX()),
-                Float.parseFloat(bounds.getY()),
-                Float.parseFloat(bounds.getW()),
-                Float.parseFloat(bounds.getH() )
+                Float.parseFloat(aliasW.getBounds().getX()),
+                Float.parseFloat(aliasW.getBounds().getY()),
+                Float.parseFloat(aliasW.getBounds().getW()),
+                Float.parseFloat(aliasW.getBounds().getH() )
         );
 
         Glyph glyph = new Glyph();
@@ -338,24 +340,21 @@ public class CD2SBGNML extends GeneralConverter {
         bbox.setW((float) bboxRect.getWidth());
         glyph.setBbox(bbox);
 
-        // unit of info if there
-        if(species.getUnitOfInformation() != null) {
-            Glyph unitOfInfo = new Glyph();
-            Label infoLabel = new Label();
-            infoLabel.setText(species.getUnitOfInformation());
-            unitOfInfo.setLabel(infoLabel);
+        // structural state
+        if(species.getStructuralState() != null) {
 
-            Rectangle2D.Float infoRect = GeometryUtils.getAuxUnitBbox(bboxRect, species.getUnitOfInformation(), 90);
-            Bbox infoBbox = new Bbox();
-            infoBbox.setX((float) infoRect.getX());
-            infoBbox.setY((float) infoRect.getY());
-            infoBbox.setW((float) infoRect.getWidth());
-            infoBbox.setH((float) infoRect.getHeight());
-            unitOfInfo.setBbox(infoBbox);
+            Glyph statevar = getStateVariable("", species.getStructuralState(), bboxRect, 90);
+            glyph.getGlyph().add(statevar);
 
-            unitOfInfo.setClazz("unit of information");
-            unitOfInfo.setId("_"+UUID.randomUUID());
+        }
 
+        // alias info unit
+        if(aliasW.getInfo() != null) {
+
+            Glyph unitOfInfo = getUnitOfInfo(aliasW.getInfo().getSbgnText(),
+                    bboxRect,
+                    // clockwork here !!!
+                    - GeometryUtils.unsignedRadianToSignedDegree(aliasW.getInfo().angle));
             glyph.getGlyph().add(unitOfInfo);
 
         }
@@ -365,64 +364,112 @@ public class CD2SBGNML extends GeneralConverter {
         if(species.getMultimer() > 1) {
             sbgnClass += " multimer";
 
-            float angle = 90;
-            if(species.getUnitOfInformation() != null) {
-                // if a unit of info is there already, top position is taken.
-                // put multimer info on bottom
-                angle = -90;
+            // add another unit of info only if info with prefix N isn't there (from Aliasinfo),
+            // else adding another unit of info would be redundant
+            if(!(aliasW.getInfo() != null && aliasW.getInfo().prefix.equals("N"))) {
+
+                float angle = 90;
+                if (species.getStructuralState() != null) {
+                    // if a unit of info is there already, top position is taken.
+                    // put multimer info on bottom
+                    angle = -90;
+                }
+
+                Glyph unitOfInfoMultimer = getUnitOfInfo("N:" + species.getMultimer(),
+                        bboxRect,
+                        angle);
+                glyph.getGlyph().add(unitOfInfoMultimer);
             }
-
-            Glyph unitOfInfoMultimer = new Glyph();
-            Label infoLabel = new Label();
-            String text = "N:"+species.getMultimer();
-            infoLabel.setText(text);
-            unitOfInfoMultimer.setLabel(infoLabel);
-
-            Rectangle2D.Float infoRect = GeometryUtils.getAuxUnitBbox(bboxRect, text, angle);
-            Bbox infoBbox = new Bbox();
-            infoBbox.setX((float) infoRect.getX());
-            infoBbox.setY((float) infoRect.getY());
-            infoBbox.setW((float) infoRect.getWidth());
-            infoBbox.setH((float) infoRect.getHeight());
-            unitOfInfoMultimer.setBbox(infoBbox);
-
-            unitOfInfoMultimer.setClazz("unit of information");
-            unitOfInfoMultimer.setId("_"+UUID.randomUUID());
-
-            glyph.getGlyph().add(unitOfInfoMultimer);
 
         }
 
         // state variables
         System.out.println("Create residues for "+species.getId()+" size: "+species.getResidues().size());
         for(ResidueWrapper residueW: species.getResidues()) {
-            Glyph residue = new Glyph();
-            Label infoLabel = new Label();
-            String text = residueW.getSbgnText();
-            infoLabel.setText(text);
-            residue.setLabel(infoLabel);
 
-            System.out.println("Get residue bbox: "+residueW.angle+" -> deg "+(float) (residueW.angle / Math.PI * 180));
-            Rectangle2D.Float infoRect = GeometryUtils.getAuxUnitBbox(bboxRect, text,
+            Glyph residue = getStateVariable(
+                    residueW.name,
+                    ResidueWrapper.getShortState(residueW.state),
+                    bboxRect,
                     GeometryUtils.unsignedRadianToSignedDegree(residueW.angle));
-            Bbox infoBbox = new Bbox();
-            infoBbox.setX((float) infoRect.getX());
-            infoBbox.setY((float) infoRect.getY());
-            infoBbox.setW((float) infoRect.getWidth());
-            infoBbox.setH((float) infoRect.getHeight());
-            residue.setBbox(infoBbox);
-
-            residue.setClazz("state variable");
-            residue.setId("_"+UUID.randomUUID());
 
             glyph.getGlyph().add(residue);
         }
+
+        // add additional units of info depending on the situation
+        // eg for receptors, ion channels, truncated, genes...
+        if(species.getType() == SpeciesWrapper.ReferenceType.RECEPTOR) {
+            Glyph receptorUnitOfInfo = getUnitOfInfo("receptor", bboxRect, 90);
+            glyph.getGlyph().add(receptorUnitOfInfo);
+        }
+        else if(species.getType() == SpeciesWrapper.ReferenceType.ION_CHANNEL) {
+            Glyph receptorUnitOfInfo = getUnitOfInfo("ion channel", bboxRect, 90);
+            glyph.getGlyph().add(receptorUnitOfInfo);
+
+            Glyph activeStateVar;
+            if(aliasW.isActive()) {
+                activeStateVar = getStateVariable("", "open", bboxRect, -90);
+            }
+            else {
+                activeStateVar = getStateVariable("", "closed", bboxRect, -90);
+            }
+            glyph.getGlyph().add(activeStateVar);
+        }
+        else if(species.getType() == SpeciesWrapper.ReferenceType.TRUNCATED) {
+            Glyph receptorUnitOfInfo = getUnitOfInfo("truncated", bboxRect, 90);
+            glyph.getGlyph().add(receptorUnitOfInfo);
+        }
+
 
         // class
         glyph.setClazz(sbgnClass);
 
 
         return glyph;
+    }
+
+    public Glyph getStateVariable(String prefix, String value, Rectangle2D.Float parentBbox, float angle) {
+
+        Glyph unitOfInfo = new Glyph();
+
+        State state = new State();
+        state.setValue(value);
+        state.setVariable(prefix);
+        unitOfInfo.setState(state);
+
+        Rectangle2D.Float infoRect = GeometryUtils.getAuxUnitBbox(parentBbox, prefix+":"+value, angle);
+        Bbox infoBbox = new Bbox();
+        infoBbox.setX((float) infoRect.getX());
+        infoBbox.setY((float) infoRect.getY());
+        infoBbox.setW((float) infoRect.getWidth());
+        infoBbox.setH((float) infoRect.getHeight());
+        unitOfInfo.setBbox(infoBbox);
+
+        unitOfInfo.setClazz("state variable");
+        unitOfInfo.setId("_" + UUID.randomUUID());
+
+        return unitOfInfo;
+    }
+
+    public Glyph getUnitOfInfo(String text, Rectangle2D.Float parentBbox, float angle) {
+
+        Glyph unitOfInfo = new Glyph();
+        Label infoLabel = new Label();
+        infoLabel.setText(text);
+        unitOfInfo.setLabel(infoLabel);
+
+        Rectangle2D.Float infoRect = GeometryUtils.getAuxUnitBbox(parentBbox, text, angle);
+        Bbox infoBbox = new Bbox();
+        infoBbox.setX((float) infoRect.getX());
+        infoBbox.setY((float) infoRect.getY());
+        infoBbox.setW((float) infoRect.getWidth());
+        infoBbox.setH((float) infoRect.getHeight());
+        unitOfInfo.setBbox(infoBbox);
+
+        unitOfInfo.setClazz("unit of information");
+        unitOfInfo.setId("_" + UUID.randomUUID());
+
+        return unitOfInfo;
     }
 
     public Arc getArc(LinkModel linkM) {
