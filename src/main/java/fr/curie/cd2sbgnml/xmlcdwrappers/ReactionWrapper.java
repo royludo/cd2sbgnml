@@ -1,6 +1,7 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
 import fr.curie.cd2sbgnml.graphics.AnchorPoint;
+import fr.curie.cd2sbgnml.model.LogicGate;
 import org.sbml.x2001.ns.celldesigner.CelldesignerConnectSchemeDocument.CelldesignerConnectScheme;
 import org.sbml.x2001.ns.celldesigner.CelldesignerModificationDocument;
 import org.sbml.x2001.ns.celldesigner.CelldesignerModificationDocument.CelldesignerModification;
@@ -15,6 +16,7 @@ import org.w3c.dom.Node;
 
 import java.awt.geom.Point2D;
 import java.util.*;
+import java.util.AbstractMap.SimpleEntry;
 
 public class ReactionWrapper {
 
@@ -26,6 +28,7 @@ public class ReactionWrapper {
     private List<ReactantWrapper> additionalReactants;
     private List<ReactantWrapper> additionalProducts;
     private List<ReactantWrapper> modifiers;
+    private List<LogicGateWrapper> logicGates;
     private Reaction reaction;
     private int processSegmentIndex;
     private String reactionType;
@@ -40,13 +43,19 @@ public class ReactionWrapper {
         this.additionalReactants = new ArrayList<>();
         this.additionalProducts = new ArrayList<>();
         this.modifiers = new ArrayList<>();
+        this.logicGates = new ArrayList<>();
         this.processSegmentIndex = getProcessSegment(reaction);
         this.reactionType = reaction.getAnnotation().getCelldesignerReactionType().
                 getDomNode().getChildNodes().item(0).getNodeValue();
         this.hasProcess = hasProcess(reaction);
 
         // fill the corresponding lists
-        for(ReactantWrapper reactW: ReactantWrapper.fromReaction(reaction, modelW)) {
+        SimpleEntry<List<ReactantWrapper>, List<LogicGateWrapper>> wrapperListTuple = ReactantWrapper.fromReaction(reaction, modelW);
+        List<ReactantWrapper> reactantWrapperList = wrapperListTuple.getKey();
+        List<LogicGateWrapper> logicGateWrapperList = wrapperListTuple.getValue();
+        this.logicGates.addAll(logicGateWrapperList);
+
+        for(ReactantWrapper reactW: reactantWrapperList) {
             switch(reactW.getReactantType()){
                 case BASE_REACTANT: this.baseReactants.add(reactW); break;
                 case BASE_PRODUCT:this.baseProducts.add(reactW); break;
@@ -317,8 +326,8 @@ public class ReactionWrapper {
         return reactionType;
     }
 
-
-
-
+    public List<LogicGateWrapper> getLogicGates() {
+        return logicGates;
+    }
 
 }

@@ -3,6 +3,7 @@ package fr.curie.cd2sbgnml.model;
 import fr.curie.cd2sbgnml.graphics.AnchorPoint;
 import fr.curie.cd2sbgnml.graphics.GeometryUtils;
 import fr.curie.cd2sbgnml.graphics.Link;
+import fr.curie.cd2sbgnml.xmlcdwrappers.LogicGateWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
 import org.sbml.x2001.ns.celldesigner.CelldesignerModificationDocument.CelldesignerModification;
@@ -33,7 +34,73 @@ public class GenericReactionModel {
 
     }
 
+    /**
+     * return a map of reactants to a logic gate, can be used to reassign reactants to correct gate.
+     * @param reactionW
+     * @param process
+     * @return
+     */
+    private HashMap<ReactantWrapper, String> addLogicGates(ReactionWrapper reactionW, Process process) {
+        HashMap<ReactantWrapper, String> reactantToLogicGateMap = new HashMap<>();
+
+        for(LogicGateWrapper logicW: reactionW.getLogicGates()) {
+            System.out.println("logic gate: "+logicW.getModificationType()+" "+logicW.getType());
+
+
+            CelldesignerModification modif = reactionW.getReaction().getAnnotation().
+                    getCelldesignerListOfModification().getCelldesignerModificationArray(logicW.getPositionIndex());
+            Point2D.Float processAnchorPoint = process.getAbsoluteAnchorCoords(ReactantWrapper.getProcessAnchorIndex(modif));
+            // list edit points
+            List<Point2D.Float> editPoints = ReactionWrapper.getEditPointsForModifier(reactionW.getReaction(), logicW.getPositionIndex());
+            System.out.println("gate edit points "+editPoints);
+
+            // process logic gate point
+            Point2D.Float logicGateGlobalCoord = editPoints.get(editPoints.size() - 1); // last point listed in xml
+            editPoints = editPoints.subList(0, editPoints.size() - 1);
+            System.out.println("Rest of edit points: "+editPoints);
+
+
+            String logicId = "logicglyph_" + UUID.randomUUID();
+            LogicGate logicGate = new LogicGate(this, logicGateGlobalCoord, logicId, logicW.getType());
+            for(ReactantWrapper reactantW: reactionW.getModifiers()) {
+                if(reactantW.getLogicGate() != null && reactantW.getLogicGate().equals(logicW)) {
+                    reactantToLogicGateMap.put(reactantW, logicId);
+                }
+            }
+
+            List<AffineTransform> transformList =
+                    GeometryUtils.getTransformsToGlobalCoords(
+                            logicGateGlobalCoord,
+                            processAnchorPoint);
+            List<Point2D.Float> absoluteEditPoints = new ArrayList<>();
+            absoluteEditPoints.add(logicGateGlobalCoord);
+            absoluteEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
+            absoluteEditPoints.add(processAnchorPoint);
+
+            absoluteEditPoints = GeometryUtils.getNormalizedEndPoints(absoluteEditPoints,
+                    logicGate.getGlyph(),
+                    process.getGlyph(),
+                    AnchorPoint.E,
+                    AnchorPoint.E);
+
+            System.out.println("FINAL logic gate edit points "+absoluteEditPoints);
+
+            LinkModel logicLink = new LinkModel(logicGate, process, new Link(absoluteEditPoints),
+                    "logicarc_" + UUID.randomUUID(),
+                    LinkModel.getSbgnClass(logicW.getModificationType()));
+            this.getReactionNodeModels().add(logicGate);
+            this.getLinkModels().add(logicLink);
+        }
+
+        return reactantToLogicGateMap;
+    }
+
+    //public void addModifiers(Reaction reaction, Process process, int modifIndex, AnchorPoint anchorPoint ) {}
+
     public void addModifiers(ReactionWrapper reactionW, Process process) {
+        // start with logic gates
+        HashMap<ReactantWrapper, String> reactantToLogicGateMap = this.addLogicGates(reactionW, process);
+
         for(ReactantWrapper reactantW: reactionW.getModifiers()) {
             // simple case, no logic gate
             System.out.println("modifier: "+reactantW.getAliasW().getId());
@@ -45,7 +112,28 @@ public class GenericReactionModel {
             List<Point2D.Float> editPoints = ReactionWrapper.getEditPointsForModifier(reaction, modifIndex);
             CelldesignerModification modif = reaction.getAnnotation().
                     getCelldesignerListOfModification().getCelldesignerModificationArray(modifIndex);
-            Point2D.Float processAnchorPoint = process.getAbsoluteAnchorCoords(ReactantWrapper.getProcessAnchorIndex(modif));
+
+            // treat modifier as linked to a reactionNodeModel, either a process or a logic gate
+            ReactionNodeModel genericNode = null;
+            Point2D.Float genericNodeAnchorPoint;
+            String linkType;
+            if(reactantW.getLogicGate() != null) { // linked to logic gate
+                String logicId = reactantToLogicGateMap.get(reactantW) ;
+                for(ReactionNodeModel nodeModel: this.getReactionNodeModels()) {
+                    if(nodeModel.getId().equals(logicId)) {
+                        genericNode = nodeModel;
+                    }
+                }
+                genericNodeAnchorPoint = genericNode.getGlyph().getCenter();
+                linkType = "logic arc";
+            }
+            else { // modifier is linked to process
+                genericNode = process;
+                genericNodeAnchorPoint = process.getAbsoluteAnchorCoords(ReactantWrapper.getProcessAnchorIndex(modif));
+                linkType = LinkModel.getSbgnClass(modif.getType());
+
+            }
+
 
             System.out.println("edit points: "+editPoints);
 
@@ -53,24 +141,24 @@ public class GenericReactionModel {
                     GeometryUtils.getTransformsToGlobalCoords(
                             modifModel.getAbsoluteAnchorCoordinate(
                                     reactantW.getAnchorPoint()),
-                            processAnchorPoint);
+                            genericNodeAnchorPoint);
             List<Point2D.Float> absoluteEditPoints = new ArrayList<>();
             absoluteEditPoints.add(modifModel.getAbsoluteAnchorCoordinate(reactantW.getAnchorPoint()));
             absoluteEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
-            absoluteEditPoints.add(processAnchorPoint);
+            absoluteEditPoints.add(genericNodeAnchorPoint);
 
             absoluteEditPoints = GeometryUtils.getNormalizedEndPoints(absoluteEditPoints,
                     modifModel.getGlyph(),
-                    process.getGlyph(),
+                    genericNode.getGlyph(),
                     modifModel.getAnchorPoint(),
                     AnchorPoint.E);
 
             String linkCdClass = reaction.getAnnotation().getCelldesignerListOfModification().
                     getCelldesignerModificationArray(modifIndex).getType();
 
-            LinkModel modifLink = new LinkModel(modifModel, process, new Link(absoluteEditPoints),
+            LinkModel modifLink = new LinkModel(modifModel, genericNode, new Link(absoluteEditPoints),
                     "modif_" + UUID.randomUUID(),
-                    LinkModel.getSbgnClass(modif.getType()));
+                    linkType);
 
             /*LinkWrapper link = new LinkWrapper(reactantW, process, absoluteEditPoints,
                     modifIndex, linkCdClass);

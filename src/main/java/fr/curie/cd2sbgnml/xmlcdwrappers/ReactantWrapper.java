@@ -11,6 +11,8 @@ import org.sbml.x2001.ns.celldesigner.ReactionDocument.Reaction;
 import org.w3c.dom.Node;
 
 import java.awt.geom.Point2D;
+import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,7 +30,16 @@ public class ReactantWrapper {
     private AliasWrapper aliasW;
     //private LinkWrapper link;
     private AnchorPoint anchorPoint;
+    /**
+     * The index of the reactant in the corresponding list (modification,  additional product...) in the
+     * xml file
+     */
     private int positionIndex;
+
+    /**
+     * If the reactantWrapper is connected to a logic gate, store the reference of the gate.
+     */
+    private LogicGateWrapper logicGate;
 
     private ReactantWrapper (CelldesignerBaseReactant baseReactant, AliasWrapper aliasW) {
         this.reactantType = ReactantType.BASE_REACTANT;
@@ -144,8 +155,15 @@ public class ReactantWrapper {
         }
     }
 
-    public static List<ReactantWrapper> fromReaction (Reaction reaction, ModelWrapper modelW) {
+    // used for modifiers linked to a logic gate
+    private ReactantWrapper (CelldesignerModification modification, AliasWrapper aliasW, int index, LogicGateWrapper gateRef) {
+        this(modification, aliasW, index);
+        this.logicGate = gateRef;
+    }
+
+    public static SimpleEntry<List<ReactantWrapper>, List<LogicGateWrapper>> fromReaction (Reaction reaction, ModelWrapper modelW) {
         List<ReactantWrapper> reactantList = new ArrayList<>();
+        List<LogicGateWrapper> logicGateWrapperList = new ArrayList<>();
 
         // add all types of reactant species/alias
         Arrays.asList(reaction.getAnnotation().getCelldesignerBaseReactants().getCelldesignerBaseReactantArray())
@@ -173,19 +191,43 @@ public class ReactantWrapper {
         }
 
         if(reaction.getAnnotation().getCelldesignerListOfModification() != null) {
-            reactantList.addAll(ReactantWrapper.fromListOfModifications(reaction.getAnnotation().getCelldesignerListOfModification(), modelW));
+            SimpleEntry<List<ReactantWrapper>, List<LogicGateWrapper>> result =
+                    ReactantWrapper.fromListOfModifications(reaction.getAnnotation().getCelldesignerListOfModification(), modelW);
+            reactantList.addAll(result.getKey());
+            logicGateWrapperList.addAll(result.getValue());
         }
 
-        return reactantList;
+        return new SimpleEntry<>(reactantList, logicGateWrapperList);
     }
 
-    public static List<ReactantWrapper> fromListOfModifications(CelldesignerListOfModification listOfModification, ModelWrapper modelW) {
+    public static SimpleEntry<List<ReactantWrapper>, List<LogicGateWrapper>> fromListOfModifications(CelldesignerListOfModification listOfModification, ModelWrapper modelW) {
         List<ReactantWrapper> reactantList = new ArrayList<>();
+        List<LogicGateWrapper> logicGateWrapperList = new ArrayList<>();
+
+        /*
+            If we encounter a logic gate, store a reference so we can link subsequent reactant to it.
+            If several logic gate for the same reaction, they will be reached sequentially after their linked
+            reactants are processed, so we only need to keep 1 reference that can be overwritten.
+         */
+        LogicGateWrapper logicGateRef = null;
 
         int i=0;
         for(CelldesignerModification modif: listOfModification.getCelldesignerModificationArray()) {
-            if(isLogicGate(modif) || modif.getTargetLineIndex().getStringValue().endsWith("0")){
+            if(isLogicGate(modif)){ // logic gate case
                 // TODO logic gate management
+                // arbitrary number of node can be connected to a logic gate
+                logicGateRef = new LogicGateWrapper(modif, i);
+                logicGateWrapperList.add(logicGateRef);
+
+            }
+            // targetLineIndex may not be present, when additional glyphs are added to an already existing logic gate
+            else if(!modif.isSetTargetLineIndex() ||
+                    modif.getTargetLineIndex().getStringValue().endsWith("0")){ // glyph connected to logic gate case
+                if(logicGateRef == null) {
+                    throw new RuntimeException("Modification is supposed to be linked " +
+                            "to a logic gate, but no logic gate reference has been defined");
+                }
+                reactantList.add(new ReactantWrapper(modif, modelW.getAliasWrapperFor(modif.getAliases()), i, logicGateRef));
             }
             else {
                 reactantList.add(new ReactantWrapper(modif, modelW.getAliasWrapperFor(modif.getAliases()), i));
@@ -193,7 +235,7 @@ public class ReactantWrapper {
             i++;
         }
 
-        return reactantList;
+        return new SimpleEntry<>(reactantList, logicGateWrapperList);
     }
 
 
@@ -203,6 +245,10 @@ public class ReactantWrapper {
     }
 
     public static int getProcessAnchorIndex(CelldesignerModification modif) {
+        // in some cases targetLineIndex may not be present (see logic gates modifiers)
+        if(!modif.isSetTargetLineIndex()) {
+            return 0;
+        }
         String targetLineIndex = modif.getTargetLineIndex().getStringValue();
         return Integer.parseInt(targetLineIndex.split(",")[1]);
     }
@@ -248,4 +294,7 @@ public class ReactantWrapper {
         return positionIndex;
     }
 
+    public LogicGateWrapper getLogicGate() {
+        return logicGate;
+    }
 }

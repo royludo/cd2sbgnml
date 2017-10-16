@@ -19,6 +19,7 @@ import org.sbml.x2001.ns.celldesigner.CelldesignerPointDocument.CelldesignerPoin
 import org.sbml.x2001.ns.celldesigner.CompartmentDocument.Compartment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.rmi.runtime.Log;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -98,6 +99,33 @@ public class CD2SBGNML extends GeneralConverter {
                 map.getGlyph().add(processGlyph);
             }
 
+            // Possible logic gates
+            for(ReactionNodeModel nodeModel: genericReactionModel.getReactionNodeModels()) {
+                if(nodeModel instanceof LogicGate) {
+                    LogicGate logicGate = (LogicGate) nodeModel;
+
+                    Point2D logicCoord = logicGate.getGlyph().getCenter();
+                    System.out.println("process coord " + logicCoord);
+
+
+                    Glyph logicGlyph = new Glyph();
+                    logicGlyph.setClazz(LogicGate.getSbgnClass(logicGate.getType()));
+                    String logicId = logicGate.getId();
+                    logicGlyph.setId(logicId);
+
+                    Bbox logicBbox = new Bbox();
+                    logicBbox.setX((float) logicCoord.getX() - LogicGate.LOGICGATE_SIZE / 2);
+                    logicBbox.setY((float) logicCoord.getY() - LogicGate.LOGICGATE_SIZE / 2);
+                    logicBbox.setH(LogicGate.LOGICGATE_SIZE);
+                    logicBbox.setW(LogicGate.LOGICGATE_SIZE);
+                    logicGlyph.setBbox(logicBbox);
+
+                    glyphList.add(logicGlyph);
+                    glyphMap.put(logicId, logicGlyph);
+                    map.getGlyph().add(logicGlyph);
+
+                }
+            }
 
 
             ReactantWrapper baseReactant = reactionW.getBaseReactants().get(0);
