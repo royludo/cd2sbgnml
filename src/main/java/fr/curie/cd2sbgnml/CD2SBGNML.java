@@ -12,6 +12,7 @@ import org.sbfc.converter.models.GeneralModel;
 import org.sbfc.converter.models.SBGNModel;
 import org.sbgn.bindings.*;
 import org.sbgn.bindings.Glyph.State;
+import org.sbgn.bindings.Map;
 import org.sbml.x2001.ns.celldesigner.CelldesignerBoundsDocument.CelldesignerBounds;
 import org.sbml.x2001.ns.celldesigner.CelldesignerCompartmentAliasDocument.CelldesignerCompartmentAlias;
 import org.sbml.x2001.ns.celldesigner.*;
@@ -23,10 +24,7 @@ import sun.rmi.runtime.Log;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static fr.curie.cd2sbgnml.model.ReactantModel.getSbgnClass;
 
@@ -109,7 +107,27 @@ public class CD2SBGNML extends GeneralConverter {
 
 
                     Glyph logicGlyph = new Glyph();
-                    logicGlyph.setClazz(LogicGate.getSbgnClass(logicGate.getType()));
+                    try {
+                        logicGlyph.setClazz(LogicGate.getSbgnClass(logicGate.getType()));
+                    } catch(RuntimeException e) {
+                        // we need to remove links pointing to this gate
+                        System.out.println("DELETE link to gate");
+                        logger.error("BOOLEAN_LOGIC_GATE_UNKNOWN was found in reaction " + reactionW.getId() +
+                                " and cannot be translated properly. It will be removed.");
+                        for (Iterator<LinkModel> iter = genericReactionModel.getLinkModels().listIterator(); iter.hasNext(); ) {
+                            LinkModel lm = iter.next();
+                            if(lm.getEnd().equals(logicGate) || lm.getStart().equals(logicGate)) {
+                                logger.error("Removing "+lm.getSbgnClass()+" link with id "+lm.getId()+" to or from unknown " +
+                                        "logic gate");
+                                System.out.println("FOUND LINK TO DELETE");
+                                iter.remove();
+                                System.out.println(genericReactionModel.getLinkModels().size());
+                            }
+
+                        }
+
+                        continue;
+                    }
                     String logicId = logicGate.getId();
                     logicGlyph.setId(logicId);
 

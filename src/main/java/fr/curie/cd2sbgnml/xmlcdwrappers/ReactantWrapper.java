@@ -8,6 +8,8 @@ import org.sbml.x2001.ns.celldesigner.CelldesignerModificationDocument.Celldesig
 import org.sbml.x2001.ns.celldesigner.CelldesignerProductLinkDocument.CelldesignerProductLink;
 import org.sbml.x2001.ns.celldesigner.CelldesignerReactantLinkDocument.CelldesignerReactantLink;
 import org.sbml.x2001.ns.celldesigner.ReactionDocument.Reaction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Node;
 
 import java.awt.geom.Point2D;
@@ -22,6 +24,8 @@ import java.util.List;
  *  = baseReactant, baseProduct, reactantLink and productLink
  */
 public class ReactantWrapper {
+
+    private static final Logger logger = LoggerFactory.getLogger(ReactantWrapper.class);
 
     public enum ReactantType {BASE_REACTANT, BASE_PRODUCT, ADDITIONAL_REACTANT, ADDITIONAL_PRODUCT, MODIFICATION}
 
@@ -213,20 +217,17 @@ public class ReactantWrapper {
 
         int i=0;
         for(CelldesignerModification modif: listOfModification.getCelldesignerModificationArray()) {
+            logger.debug("Parsing modification "+modif.getModifiers()+" "+modif.getType());
             if(isLogicGate(modif)){ // logic gate case
-                // TODO logic gate management
-                // arbitrary number of node can be connected to a logic gate
                 logicGateRef = new LogicGateWrapper(modif, i);
                 logicGateWrapperList.add(logicGateRef);
 
             }
+            // we assume that the logic gate will always be defined before it's linked reactants
             // targetLineIndex may not be present, when additional glyphs are added to an already existing logic gate
-            else if(!modif.isSetTargetLineIndex() ||
-                    modif.getTargetLineIndex().getStringValue().endsWith("0")){ // glyph connected to logic gate case
-                if(logicGateRef == null) {
-                    throw new RuntimeException("Modification is supposed to be linked " +
-                            "to a logic gate, but no logic gate reference has been defined");
-                }
+            // TODO make this clean using the ids defined in the logic gate
+            else if(logicGateRef != null && ( !modif.isSetTargetLineIndex() ||
+                    modif.getTargetLineIndex().getStringValue().endsWith("0"))){ // glyph connected to logic gate case
                 reactantList.add(new ReactantWrapper(modif, modelW.getAliasWrapperFor(modif.getAliases()), i, logicGateRef));
             }
             else {
