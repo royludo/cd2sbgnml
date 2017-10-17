@@ -45,6 +45,24 @@
                         </goals>
                     </execution>
 
+                    <!-- cellDesignerParser funasoul -->
+                    <execution>
+                        <id>install-celldesigner-parser-funasoul</id>
+                        <phase>clean</phase>
+                        <configuration>
+                            <file>${project.basedir}/lib/layoutconverter-1.0.0-jar-with-dependencies.jar</file>
+                            <repositoryLayout>default</repositoryLayout>
+                            <groupId>org.sbml</groupId>
+                            <artifactId>cellDesigner-parser</artifactId>
+                            <version>1.0</version>
+                            <packaging>jar</packaging>
+                            <generatePom>true</generatePom>
+                        </configuration>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                    </execution>
+
                     <!-- libsbgn -->
                     <execution>
                         <id>install-external-libsbgn</id>
@@ -107,6 +125,18 @@
             <groupId>fr.curie</groupId>
             <artifactId>cellDesignerParser</artifactId>
             <version>1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.sbml</groupId>
+            <artifactId>cellDesigner-parser</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.sbml.jsbml</groupId>
+            <artifactId>jsbml</artifactId>
+            <version>1.2</version>
         </dependency>
 
         <dependency>

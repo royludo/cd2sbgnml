@@ -1,12 +1,23 @@
 package fr.curie.cd2sbgnml;
 
+import org.sbfc.converter.exceptions.ConversionException;
 import org.sbfc.converter.exceptions.ReadModelException;
+import org.sbfc.converter.exceptions.WriteModelException;
 import org.sbgn.SbgnUtil;
+import org.sbml.jsbml.SBMLDocument;
+import org.sbml.jsbml.SBMLReader;
+import org.sbml.jsbml.SBMLWriter;
+import org.sbml.jsbml.TidySBMLWriter;
+import org.sbml.sbml.level2.version4.Sbml;
+import org.sbml.wrapper.ModelWrapper;
+import org.sbml.wrapper.ObjectFactory;
 import org.slf4j.impl.SimpleLogger;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.stream.XMLStreamException;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class Main {
@@ -58,7 +69,7 @@ public class Main {
 
         CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
         try {
-            cdModel.setModelFromFile("src/main/resources/acsn_v1.1.xml");
+            cdModel.setModelFromFile("src/main/resources/reaction.xml");
             //System.out.println(cdModel.modelToString());
         } catch (ReadModelException e) {
             e.printStackTrace();
@@ -80,6 +91,49 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        System.out.println("CONVERT BACK TO CD");
+        SBGNSBFCModel sbgnModel = new SBGNSBFCModel();
+        try {
+            sbgnModel.setModelFromFile("src/main/resources/out.sbgnml");
+        } catch (ReadModelException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            //SbgnUtil.writeToFile(new CD2SBGNML().toSbgn(cdModel.getModel()), new File("src/main/resources/out.sbgnml"));
+            CellDesignerSBFCModel backCdModel = (CellDesignerSBFCModel) new SBGNML2CD().convert(sbgnModel);
+            //backCdModel.modelToFile("src/main/resources/newCD.sbgnml");
+            System.out.println(backCdModel.getBaseSbml());
+
+            ModelWrapper mw = new ModelWrapper(backCdModel.getBaseSbml().getModel(), backCdModel.getBaseSbml());
+            SBMLWriter sw = new SBMLWriter();
+
+
+            try {
+                SBMLDocument doc = SBMLReader.read(ObjectFactory.generateXMLString(mw));
+                System.out.println(sw.writeSBMLToString(doc));
+                sw.writeSBMLToFile(doc, "src/main/resources/newCD.xml");
+            } catch (JAXBException e) {
+                e.printStackTrace();
+            } catch (XMLStreamException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+
+        } catch (ConversionException e) {
+            e.printStackTrace();
+        } catch (ReadModelException e) {
+            e.printStackTrace();
+        } /*catch (WriteModelException e) {
+            e.printStackTrace();
+        }*/ /*catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }*/ /*catch (XMLStreamException e) {
+            e.printStackTrace();
+        }*/
+
 
         //SbmlDocument doc = CellDesigner.loadCellDesigner("src/main/resources/components44.xml");
         //System.out.println(doc);
