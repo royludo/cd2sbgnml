@@ -1,13 +1,8 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
-import fr.curie.cd2sbgnml.graphics.AnchorPoint;
-import fr.curie.cd2sbgnml.model.LogicGate;
 import org.sbml.x2001.ns.celldesigner.CelldesignerConnectSchemeDocument.CelldesignerConnectScheme;
-import org.sbml.x2001.ns.celldesigner.CelldesignerModificationDocument;
 import org.sbml.x2001.ns.celldesigner.CelldesignerModificationDocument.CelldesignerModification;
-import org.sbml.x2001.ns.celldesigner.CelldesignerProductLinkDocument;
 import org.sbml.x2001.ns.celldesigner.CelldesignerProductLinkDocument.CelldesignerProductLink;
-import org.sbml.x2001.ns.celldesigner.CelldesignerReactantLinkDocument;
 import org.sbml.x2001.ns.celldesigner.CelldesignerReactantLinkDocument.CelldesignerReactantLink;
 import org.sbml.x2001.ns.celldesigner.ReactionDocument.Reaction;
 import org.slf4j.Logger;

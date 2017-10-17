@@ -20,7 +20,6 @@ import org.sbml.x2001.ns.celldesigner.CelldesignerPointDocument.CelldesignerPoin
 import org.sbml.x2001.ns.celldesigner.CompartmentDocument.Compartment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.rmi.runtime.Log;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;

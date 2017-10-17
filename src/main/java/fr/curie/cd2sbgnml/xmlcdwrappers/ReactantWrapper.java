@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Node;
 
 import java.awt.geom.Point2D;
-import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;

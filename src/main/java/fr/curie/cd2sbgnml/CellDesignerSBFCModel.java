@@ -6,12 +6,15 @@ import org.sbfc.converter.exceptions.WriteModelException;
 import org.sbfc.converter.models.GeneralModel;
 import org.sbml.x2001.ns.celldesigner.SbmlDocument;
 
-import javax.xml.bind.JAXBException;
 import java.io.File;
 
 public class CellDesignerSBFCModel implements GeneralModel {
 
     private SbmlDocument sbml;
+
+    public CellDesignerSBFCModel(SbmlDocument sbml) {
+        this.sbml = sbml;
+    }
 
 
     public SbmlDocument getModel() {
