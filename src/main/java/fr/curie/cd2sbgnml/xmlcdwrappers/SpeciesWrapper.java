@@ -1,5 +1,6 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
+import org.sbgn.bindings.Glyph;
 import org.sbml.x2001.ns.celldesigner.CelldesignerAntisenseRNADocument.CelldesignerAntisenseRNA;
 import org.sbml.x2001.ns.celldesigner.CelldesignerClassDocument.CelldesignerClass;
 import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesAliasDocument.CelldesignerComplexSpeciesAlias;
@@ -74,6 +75,41 @@ public class SpeciesWrapper {
         this.compartment = null;
 
         this.commonConstructor(species.getCelldesignerAnnotation().getCelldesignerSpeciesIdentity(), modelW);
+    }
+
+
+    public SpeciesWrapper(Glyph sbgnGlyph) {
+        this(sbgnGlyph, null);
+    }
+
+    public SpeciesWrapper(Glyph sbgnGlyph, Glyph parentGlyph) {
+        this.id = "s"+sbgnGlyph.getId();
+
+        if(sbgnGlyph.getLabel() != null) {
+            this.name = sbgnGlyph.getLabel().getText();
+        }
+        else {
+            this.name = this.id;
+        }
+
+        if(sbgnGlyph.getCompartmentRef() != null) {
+            this.compartment = ((Glyph) sbgnGlyph.getCompartmentRef()).getId();
+        }
+        else {
+            this.compartment = "default";
+        }
+
+        if(parentGlyph != null) {
+            this.isIncludedSpecies = true;
+            this.complex = "cs"+parentGlyph.getId();
+        }
+        else {
+            this.isIncludedSpecies = false;
+            this.complex = null;
+        }
+
+
+
     }
 
     private void commonConstructor(CelldesignerSpeciesIdentity identity, ModelWrapper modelW) {

@@ -92,7 +92,7 @@ public class ReactantModel extends GenericReactionElement{
             case "UNKNOWN": return "unspecified entity";
             case "COMPLEX": return "complex";
 
-            case "DEGRADED": return "source and sink"; // TODO check if it is ok
+            case "DEGRADED": return "source and sink";
         }
         throw new IllegalArgumentException("Could not infer SBGN class from species class: "+cdClass);
     }
