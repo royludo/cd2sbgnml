@@ -251,4 +251,63 @@ public class GeometryUtilsTest {
     //    <<<<< END getLineRectangleIntersection >>>>>
 
 
+
+    //    <<<<< START rectanglePerimeterPointFromAngle >>>>>
+    @Test
+    public void rectanglePerimeterPointFromAngleRectOrigin90(){
+        Point2D.Float res = GeometryUtils.rectanglePerimeterPointFromAngle(rectAtOrigin,  90);
+        assertEquals(5, res.getX(),1E-6);
+        assertEquals(0, res.getY(), 1E-6);
+    }
+
+    @Test
+    public void rectanglePerimeterPointFromAngleRectOrigin180(){
+        Point2D.Float res = GeometryUtils.rectanglePerimeterPointFromAngle(rectAtOrigin, 180);
+        assertEquals(0, res.getX(),1E-6);
+        assertEquals(5, res.getY(), 1E-6);
+    }
+
+    @Test
+    public void rectanglePerimeterPointFromAngleRectOriginNeg180(){
+        Point2D.Float res = GeometryUtils.rectanglePerimeterPointFromAngle(rectAtOrigin,  -180);
+        assertEquals(0, res.getX(),1E-6);
+        assertEquals(5, res.getY(), 1E-6);
+    }
+
+    @Test
+    public void rectanglePerimeterPointFromAngleRectOrigin360(){
+        Point2D.Float res = GeometryUtils.rectanglePerimeterPointFromAngle(rectAtOrigin, 360);
+        assertEquals(10, res.getX(),1E-6);
+        assertEquals(5, res.getY(), 1E-6);
+    }
+
+    @Test
+    public void rectanglePerimeterPointFromAngleRectOrigin32PI(){
+        Point2D.Float res = GeometryUtils.rectanglePerimeterPointFromAngle(rectAtOrigin, -90);
+        assertEquals(5, res.getX(),1E-6);
+        assertEquals(10, res.getY(), 1E-6);
+    }
+
+    @Test
+    public void rectanglePerimeterPointFromAngleRectOriginBottomLeft(){
+        Point2D.Float res = GeometryUtils.rectanglePerimeterPointFromAngle(rectAtOrigin, 225);
+        assertEquals(0, res.getX(),1E-6);
+        assertEquals(10, res.getY(), 1E-6);
+    }
+
+    @Test
+    public void rectanglePerimeterPointFromAngleRectOriginTopLeft(){
+        Point2D.Float res = GeometryUtils.rectanglePerimeterPointFromAngle(rectAtOrigin, 135);
+        assertEquals(0, res.getX(),1E-6);
+        assertEquals(0, res.getY(), 1E-6);
+    }
+
+    @Test
+    public void rectanglePerimeterPointFromAngleRectOriginTopRight(){
+        Point2D.Float res = GeometryUtils.rectanglePerimeterPointFromAngle(rectAtOrigin, 45);
+        assertEquals(10, res.getX(),1E-6);
+        assertEquals(0, res.getY(), 1E-6);
+    }
+
+    //    <<<<< END rectanglePerimeterPointFromAngle >>>>>
 }

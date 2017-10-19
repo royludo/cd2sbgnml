@@ -69,7 +69,7 @@ public class Main {
 
         CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
         try {
-            cdModel.setModelFromFile("src/main/resources/reaction.xml");
+            cdModel.setModelFromFile("src/main/resources/mtor.xml");
             //System.out.println(cdModel.modelToString());
         } catch (ReadModelException e) {
             e.printStackTrace();
@@ -91,6 +91,8 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        /*
 
         System.out.println("CONVERT BACK TO CD");
         SBGNSBFCModel sbgnModel = new SBGNSBFCModel();
@@ -126,17 +128,8 @@ public class Main {
             e.printStackTrace();
         } catch (ReadModelException e) {
             e.printStackTrace();
-        } /*catch (WriteModelException e) {
-            e.printStackTrace();
-        }*/ /*catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }*/ /*catch (XMLStreamException e) {
-            e.printStackTrace();
-        }*/
+        }
 
-
-        //SbmlDocument doc = CellDesigner.loadCellDesigner("src/main/resources/components44.xml");
-        //System.out.println(doc);
-
+        */
     }
 }

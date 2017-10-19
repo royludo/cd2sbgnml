@@ -432,6 +432,7 @@ public class CD2SBGNML extends GeneralConverter {
         System.out.println("Create residues for "+species.getId()+" size: "+species.getResidues().size());
         for(ResidueWrapper residueW: species.getResidues()) {
 
+            System.out.println("statevar: received: "+residueW.angle+" passed: "+GeometryUtils.unsignedRadianToSignedDegree(residueW.angle));
             Glyph residue = getStateVariable(
                     residueW.name,
                     ResidueWrapper.getShortState(residueW.state),

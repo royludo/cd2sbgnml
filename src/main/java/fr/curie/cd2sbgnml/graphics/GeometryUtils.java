@@ -966,7 +966,9 @@ public class GeometryUtils {
      */
     public static Rectangle2D.Float getAuxUnitBbox(Rectangle2D.Float parentBbox, String s, float angle) {
 
-        Point2D.Float unitCenter = rectanglePerimeterPointFromAngleDegree(parentBbox, angle);
+        System.out.println("Aux unit bbox with parent: " + parentBbox+" at angle "+angle);
+        System.out.println("received: "+angle+" passed: "+angle);
+        Point2D.Float unitCenter = getPositionFromAngle(parentBbox, angle);
         System.out.println("unitcenter "+unitCenter);
         float unitWidth = getLengthForString(s);
         float unitHeight = 10;
@@ -985,30 +987,53 @@ public class GeometryUtils {
 
     /**
      *
-     * @param rect
-     * @param radian
-     * @return intersection point relative to rectangle center
+     * @param angle in radian, signed or unsigned
+     * @return signed angle in radian between -PI and PI
      */
-    public static Point2D.Float rectanglePerimeterPointFromAngle(Rectangle2D.Float rect, float radian) {
-        //System.out.println("width: "+rectWidth+" height: "+rectHeight);
-        float rectWidth = rect.width;
-        float rectHeight = rect.height;
+    public static double normalizeAngle(double angle) {
         double twoPI = Math.PI*2;
-        double theta = radian;
+        double theta = angle;
         //System.out.println(theta);
 
-        /*while (theta < -Math.PI) {
+        while (theta <= -Math.PI) {
             theta += twoPI;
         }
 
         while (theta > Math.PI) {
             theta -= twoPI;
-        }*/
-        //System.out.println(theta);
+        }
+        return theta;
+    }
 
-        double rectAtan = Math.atan2(rectHeight, rectWidth);
+
+    /**
+     * taken from: https://stackoverflow.com/a/31886696
+     *
+     * Angle is signed in degree, ranges from -180 to 180 (can go further but is corrected at the beginning
+     * of the function), 0 at east of x axis,
+     * Coordinate system has Y axis pointing down.
+     * Result is given as relative coordinates starting on top left corner of the rectangle.
+     *
+     * !! The result does not correspond to how celldesigner places things around a shape. !!
+     *
+     * @param rect
+     * @param deg
+     * @return
+     */
+    public static Point2D.Float rectanglePerimeterPointFromAngle(Rectangle2D.Float rect, double deg) {
+        double twoPI = Math.PI*2;
+        double theta = deg * Math.PI / 180;
+
+        while (theta < -Math.PI) {
+            theta += twoPI;
+        }
+
+        while (theta > Math.PI) {
+            theta -= twoPI;
+        }
+
+        double rectAtan = Math.atan2(rect.height, rect.width);
         double tanTheta = Math.tan(theta);
-        //System.out.println(rectAtan+" "+tanTheta);
         int region;
 
         if ((theta > -rectAtan) && (theta <= rectAtan)) {
@@ -1020,10 +1045,8 @@ public class GeometryUtils {
         } else {
             region = 4;
         }
-        //System.out.println("region: "+region);
 
-        Point2D edgePoint;
-        //System.out.println("edgepoint1 "+edgePoint);
+        Point2D.Float edgePoint = new Point2D.Float(rect.width/2, rect.height/2);
         int xFactor = 1;
         int yFactor = 1;
 
@@ -1033,33 +1056,60 @@ public class GeometryUtils {
             case 3: xFactor = -1; break;
             case 4: xFactor = -1; break;
         }
-        //System.out.println(xFactor+" "+yFactor);
 
         if ((region == 1) || (region == 3)) {
-            edgePoint = new Point2D.Float(
-                    xFactor * (rectWidth / 2),
-                    (float) (yFactor * (rectHeight / 2) * tanTheta));
+            edgePoint.x += xFactor * (rect.width / 2.);                                     // "Z0"
+            edgePoint.y += yFactor * (rect.width / 2.) * tanTheta;
         } else {
-            edgePoint = new Point2D.Float(
-                    (float) (xFactor * (rectWidth / (2 * tanTheta))),
-                    yFactor * (rectHeight /  2));
+            edgePoint.x += xFactor * (rect.height / (2. * tanTheta));                        // "Z1"
+            edgePoint.y += yFactor * (rect.height / 2.);
         }
-        //System.out.println("edgepoint "+edgePoint);
-        return new Point2D.Float(
-                (float) (edgePoint.getX()),
-                (float) (edgePoint.getY()));
+
+        return edgePoint;
     }
 
-    public static Point2D.Float rectanglePerimeterPointFromAngleDegree(Rectangle2D.Float rect, float deg) {
-        float theta = (float) (deg * Math.PI / 180);
-        return rectanglePerimeterPointFromAngle(rect, theta);
+    /**
+     *
+     * result returned in relative coordinates from rectangle center
+     * @param rect
+     * @param deg signed angle [-180, 180]
+     * @return
+     */
+    public static Point2D.Float getPositionFromAngle(Rectangle2D.Float rect, float deg) {
+
+        // first get the position of the point on a square
+        float fictionalSquareSize = 10;
+        Point2D.Float localCoordFromTopLeft = rectanglePerimeterPointFromAngle(
+                new Rectangle2D.Float(0, 0, fictionalSquareSize, fictionalSquareSize), deg);
+
+        // convert result (relative to top left corner) to relative to center
+        Point2D.Float localCoordFromCenter = new Point2D.Float(
+                (float) (localCoordFromTopLeft.getX() - fictionalSquareSize/2 ),
+                (float) (localCoordFromTopLeft.getY() - fictionalSquareSize/2 ));
+
+        // get ratios of position / length
+        double xRatio = localCoordFromCenter.getX() / fictionalSquareSize;
+        double yRatio = localCoordFromCenter.getY() / fictionalSquareSize;
+        System.out.println("coordFromCenter: "+localCoordFromCenter+" xratio: "+xRatio+" yratio: "+yRatio);
+
+        // convert to relative coordinates from input rectangle's center
+        double resultX = rect.width * xRatio;
+        double resultY = rect.height * yRatio;
+
+
+        return new Point2D.Float((float) resultX,(float) resultY);
     }
 
     public static float unsignedRadianToSignedDegree(float radian) {
         float unsignedDegree = (float) (radian / Math.PI * 180);
         if(unsignedDegree > 180) {
-            return unsignedDegree - 360;
+            unsignedDegree -= 360;
         }
+        System.out.println("radian: "+radian+" degree: "+unsignedDegree);
         return unsignedDegree;
+    }
+
+    public static float unsignedRadianToUnsignedDegree(float radian) {
+        return (float) (radian / Math.PI * 180);
     }
 }
