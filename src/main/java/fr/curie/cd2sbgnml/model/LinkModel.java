@@ -6,6 +6,7 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class LinkModel {
@@ -67,6 +68,39 @@ public class LinkModel {
 
         }
         throw new IllegalArgumentException("Could not infer SBGN class from reaction type: "+reactionType);
+    }
+
+    /**
+     * Modify in place the LinkModel, set it as production if it was consumption, and vice versa.
+     * Used for reversible reactions.
+     */
+    public void reverse() {
+
+        // reverse linked elements
+        GenericReactionElement orig_start = this.getStart();
+        this.start = this.end;
+        this.end = orig_start;
+
+        // reverse link direction and edit points
+        Point2D.Float newStart = this.getLink().getEnd();
+        Point2D.Float newEnd = this.getLink().getStart();
+        List<Point2D.Float> shallowCopy = this.getLink().getEditPoints().subList(
+                0, this.getLink().getEditPoints().size());
+        Collections.reverse(shallowCopy);
+        List<Point2D.Float> newEditPoints = new ArrayList<>();
+        newEditPoints.add(newStart);
+        newEditPoints.addAll(shallowCopy);
+        newEditPoints.add(newEnd);
+
+        this.link = new Link(newEditPoints);
+
+        if(this.getSbgnClass().equals("production")) {
+            this.sbgnClass = "consumption";
+        }
+        else if(this.getSbgnClass().equals("consumption")) {
+            this.sbgnClass = "production";
+        }
+
     }
 
     public GenericReactionElement getStart() {

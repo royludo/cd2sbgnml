@@ -139,6 +139,10 @@ public class DissociationReactionModel extends GenericReactionModel{
                     "cons_" + UUID.randomUUID(), "consumption");
             System.out.println("link edit points: "+l21.getLink().getStart()+" "+l21.getLink().getEditPoints());
 
+            if(reactionW.isReversible()) {
+                l21.reverse();
+            }
+
             // add everything to the reaction lists
             this.getReactantModels().add(startModel);
             this.getReactantModels().add(endModel1);

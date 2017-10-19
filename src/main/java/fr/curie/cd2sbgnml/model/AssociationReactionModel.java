@@ -133,6 +133,11 @@ public class AssociationReactionModel extends GenericReactionModel {
                     "prod_" + UUID.randomUUID(), "production");
             System.out.println("link edit points: "+link0.getLink().getEditPoints()+" "+l21.getLink().getStart()+" "+l21.getLink().getEditPoints());
 
+            if(reactionW.isReversible()) {
+                link0.reverse();
+                link1.reverse();
+            }
+
             // add everything to the reaction lists
             this.getReactantModels().add(startModel0);
             this.getReactantModels().add(startModel1);

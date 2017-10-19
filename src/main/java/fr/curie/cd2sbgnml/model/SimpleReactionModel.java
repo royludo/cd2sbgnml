@@ -81,6 +81,10 @@ public class SimpleReactionModel extends GenericReactionModel{
             System.out.println("subline2 "+subLinesTuple.getValue());
             System.out.println("in simpel reaction "+l1.getLink().getStart()+" "+l1.getLink().getEditPoints()+" "+l1.getLink().getEnd());*/
 
+            if(reactionW.isReversible()) {
+                l1.reverse();
+            }
+
             // add everything to the reaction lists
             this.getReactantModels().add(startModel);
             this.getReactantModels().add(endModel);

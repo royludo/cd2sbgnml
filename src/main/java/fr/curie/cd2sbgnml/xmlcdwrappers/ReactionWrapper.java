@@ -28,6 +28,7 @@ public class ReactionWrapper {
     private int processSegmentIndex;
     private String reactionType;
     private boolean hasProcess;
+    private boolean isReversible;
 
     public ReactionWrapper (Reaction reaction, ModelWrapper modelW) {
         this.id = reaction.getId();
@@ -43,6 +44,7 @@ public class ReactionWrapper {
         this.reactionType = reaction.getAnnotation().getCelldesignerReactionType().
                 getDomNode().getChildNodes().item(0).getNodeValue();
         this.hasProcess = hasProcess(reaction);
+        this.isReversible = reaction.isSetReversible() ? Boolean.parseBoolean(reaction.getReversible()) : true;
 
         // fill the corresponding lists
         SimpleEntry<List<ReactantWrapper>, List<LogicGateWrapper>> wrapperListTuple = ReactantWrapper.fromReaction(reaction, modelW);
@@ -325,4 +327,7 @@ public class ReactionWrapper {
         return logicGates;
     }
 
+    public boolean isReversible() {
+        return isReversible;
+    }
 }
