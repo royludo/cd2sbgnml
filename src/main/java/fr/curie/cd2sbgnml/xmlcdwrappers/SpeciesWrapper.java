@@ -17,6 +17,7 @@ import org.sbml.x2001.ns.celldesigner.CelldesignerStateDocument.CelldesignerStat
 import org.sbml.x2001.ns.celldesigner.SpeciesDocument.Species;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,6 +48,8 @@ public class SpeciesWrapper {
     private int multimer;
     private String structuralState;
     private ReferenceType type;
+    private Element notes;
+    private Element referenceNotes;
 
     private List<AliasWrapper> aliases;
     private List<ResidueWrapper> residues;
@@ -59,6 +62,7 @@ public class SpeciesWrapper {
         this.name = species.getName().getStringValue();
         this.compartment = species.getCompartment();
         this.complex = null;
+        this.notes = Utils.getNotes(species);
 
         this.commonConstructor(species.getAnnotation().getCelldesignerSpeciesIdentity(), modelW);
 
@@ -73,6 +77,7 @@ public class SpeciesWrapper {
         CelldesignerComplexSpecies complexSpecies = species.getCelldesignerAnnotation().getCelldesignerComplexSpecies();
         this.complex = complexSpecies.getDomNode().getChildNodes().item(0).getNodeValue();
         this.compartment = null;
+        this.notes = Utils.getNotes(species);
 
         this.commonConstructor(species.getCelldesignerAnnotation().getCelldesignerSpeciesIdentity(), modelW);
     }
@@ -177,11 +182,17 @@ public class SpeciesWrapper {
             }
 
             this.type = getTypeFromString(prot.getType().toString());
+
+            // manage protein reference notes
+            this.referenceNotes = Utils.getNotes(prot);
         }
         else if(identity.isSetCelldesignerRnaReference()) {
             String rnaId = identity.getCelldesignerRnaReference().getDomNode().getChildNodes().item(0).getNodeValue();
             CelldesignerRNA rna = modelW.getRNA(rnaId);
             this.type = getTypeFromString(rna.getType());
+
+            // manage reference notes
+            this.referenceNotes = Utils.getNotes(rna);
 
         }
         else if(identity.isSetCelldesignerAntisensernaReference()) {
@@ -189,11 +200,17 @@ public class SpeciesWrapper {
             CelldesignerAntisenseRNA asrna = modelW.getAntisenseRNA(asrnaId);
             this.type = getTypeFromString(asrna.getType());
 
+            // manage reference notes
+            this.referenceNotes = Utils.getNotes(asrna);
+
         }
         else if(identity.isSetCelldesignerGeneReference()) {
             String geneId = identity.getCelldesignerGeneReference().getDomNode().getChildNodes().item(0).getNodeValue();
             CelldesignerGene gene = modelW.getGene(geneId);
             this.type = getTypeFromString(gene.getType());
+
+            // manage reference notes
+            this.referenceNotes = Utils.getNotes(gene);
         }
 
 
@@ -308,5 +325,15 @@ public class SpeciesWrapper {
     public ReferenceType getType() {
         return type;
     }
+
+
+    public Element getNotes() {
+        return notes;
+    }
+
+    public Element getReferenceNotes() {
+        return referenceNotes;
+    }
+
 
 }

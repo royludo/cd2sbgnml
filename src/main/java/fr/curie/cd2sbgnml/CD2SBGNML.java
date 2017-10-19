@@ -5,6 +5,7 @@ import fr.curie.cd2sbgnml.graphics.Link;
 import fr.curie.cd2sbgnml.model.*;
 import fr.curie.cd2sbgnml.model.Process;
 import fr.curie.cd2sbgnml.xmlcdwrappers.*;
+import org.apache.xmlbeans.XmlObject;
 import org.sbfc.converter.GeneralConverter;
 import org.sbfc.converter.exceptions.ConversionException;
 import org.sbfc.converter.exceptions.ReadModelException;
@@ -20,9 +21,12 @@ import org.sbml.x2001.ns.celldesigner.CelldesignerPointDocument.CelldesignerPoin
 import org.sbml.x2001.ns.celldesigner.CompartmentDocument.Compartment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.UTFDataFormatException;
 import java.util.*;
 
 import static fr.curie.cd2sbgnml.model.ReactantModel.getSbgnClass;
@@ -41,6 +45,12 @@ public class CD2SBGNML extends GeneralConverter {
         sbgn.getMap().add(map);
 
         ModelWrapper modelW = ModelWrapper.create(sbmlDoc);
+
+        // put model notes into map notes
+        if(modelW.getModel().getNotes() != null) {
+            map.setNotes(getSBGNNotes(Utils.getNotes(modelW.getModel())));
+        }
+        //System.exit(1);
 
         System.out.println(modelW.getListOfSpecies().size());
         System.out.println(modelW.getListOfIncludedSpecies().size());
@@ -90,6 +100,10 @@ public class CD2SBGNML extends GeneralConverter {
                 processBbox.setH(Process.PROCESS_SIZE);
                 processBbox.setW(Process.PROCESS_SIZE);
                 processGlyph.setBbox(processBbox);
+
+                // put reaction into process glyph
+                // TODO if no process, add notes into the arc
+                processGlyph.setNotes(getSBGNNotes(Utils.getNotes(reactionW.getReaction())));
 
                 glyphList.add(processGlyph);
                 glyphMap.put(processId, processGlyph);
@@ -295,6 +309,9 @@ public class CD2SBGNML extends GeneralConverter {
                 }
                 compGlyph.setBbox(compBbox);
 
+                // keep notes
+                compGlyph.setNotes(getSBGNNotes(Utils.getNotes(compartment)));
+
                 // keep references
                 glyphList.add(compGlyph);
                 glyphMap.put(compartment.getId(), compGlyph);
@@ -308,6 +325,12 @@ public class CD2SBGNML extends GeneralConverter {
     public Glyph processSpeciesAlias(SpeciesWrapper species, AliasWrapper alias, ModelWrapper modelW, Map map) {
         CelldesignerBounds bounds = alias.getBounds();
         Glyph glyph = getGlyph(alias);
+        glyph.setNotes(getSBGNNotes(species.getNotes()));
+        if(species.getReferenceNotes() != null) {
+            // TODO is piling up <html> elements in 1 note ok ?
+            glyph.getNotes().getAny().add(species.getReferenceNotes());
+            System.out.println("MULTIPLE NOTES "+glyph.getNotes().getAny());
+        }
 
         if(species.isComplex()) {
             System.out.println("COMPLEX species: "+species.getId()+" alias: "+alias.getId());
@@ -571,6 +594,18 @@ public class CD2SBGNML extends GeneralConverter {
         arc1.setEnd(e1);
 
         return arc1;
+    }
+
+    /**
+     * Convert html Element into an SBGN notes object
+     * @param notes
+     * @return
+     */
+    public SBGNBase.Notes getSBGNNotes(Element notes) {
+        SBGNBase.Notes newNotes = new SBGNBase.Notes();
+        //System.out.println((Element) modelW.getModel().getNotes().getDomNode());
+        newNotes.getAny().add(notes);
+        return newNotes;
     }
 
     public GeneralModel convert(GeneralModel generalModel) throws ConversionException, ReadModelException {
