@@ -206,8 +206,12 @@ public class GenericReactionModel {
             normalizedEditPoints.add(process.getAbsoluteAnchorCoords(0));
 
             LinkModel reactLink = new LinkModel(reactantModel, process, new Link(normalizedEditPoints),
-                    "modif_"+ UUID.randomUUID(),
+                    "addreact_"+ UUID.randomUUID(),
                     "consumption");
+
+            if(reactionW.isReversible()) {
+                reactLink.reverse();
+            }
 
             // add everything to the reaction lists
             this.getReactantModels().add(reactantModel);
@@ -248,7 +252,7 @@ public class GenericReactionModel {
             normalizedEditPoints.add(normalizedEnd);
 
             LinkModel reactLink = new LinkModel(process, reactantModel, new Link(normalizedEditPoints),
-                    "modif_" + UUID.randomUUID(), "production");
+                    "addprod_" + UUID.randomUUID(), "production");
 
             // add everything to the reaction lists
             this.getReactantModels().add(reactantModel);
