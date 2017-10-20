@@ -5,6 +5,7 @@ import fr.curie.cd2sbgnml.graphics.GeometryUtils;
 import fr.curie.cd2sbgnml.graphics.Link;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
+import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +40,7 @@ public class DissociationReactionModel extends GenericReactionModel{
         System.out.println("result: " + assocGlyphLocalCoords + " -> " + assocGlyphGlobalCoords);
 
         String dissocId = "dissoc_" + UUID.randomUUID();
-        AssocDissoc dissociation = new AssocDissoc(this, assocGlyphGlobalCoords, dissocId);
+        AssocDissoc dissociation = new AssocDissoc(this, assocGlyphGlobalCoords, dissocId, new StyleInfo(dissocId));
 
         // get the relevant points
         Point2D.Float startRcoordPoint = startModel.getAbsoluteAnchorCoordinate(startR.getAnchorPoint());
@@ -69,8 +70,10 @@ public class DissociationReactionModel extends GenericReactionModel{
                 AnchorPoint.CENTER,
                 endModel1.getAnchorPoint());
         System.out.println("dissoc BUUUUG: "+absoluteEditPoints1);
+
+        String link1Id = "prod_" + UUID.randomUUID();
         LinkModel link1 = new LinkModel(dissociation, endModel1, new Link(absoluteEditPoints1),
-                "prod_" + UUID.randomUUID(), "production");
+                link1Id, "production", new StyleInfo(reactionW.getReaction(), link1Id));
         /*link1.setSbgnSpacePointList(
                 link1.getNormalizedEndPoints(
                         startR2.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
@@ -82,8 +85,10 @@ public class DissociationReactionModel extends GenericReactionModel{
                 endModel2.getGlyph(),
                 AnchorPoint.CENTER,
                 endModel2.getAnchorPoint());
+
+        String link2Id = "prod_" + UUID.randomUUID();
         LinkModel link2 = new LinkModel(dissociation, endModel2, new Link(absoluteEditPoints2),
-                "prod_" + UUID.randomUUID(), "production");
+                link2Id, "production", new StyleInfo(reactionW.getReaction(), link2Id));
         /*link2.setSbgnSpacePointList(
                 link2.getNormalizedEndPoints(
                         GeometryUtils.AnchorPoint.CENTER, endR.getAnchorPoint()
@@ -105,13 +110,15 @@ public class DissociationReactionModel extends GenericReactionModel{
 
             also here the segment indexes are reversed, as the number starts from dissociation glyph
              */
+            String prId = "pr_"+UUID.randomUUID();
             Process process = new Process(
                     this,
                     GeometryUtils.getMiddleOfPolylineSegment(absoluteEditPoints0,
                             absoluteEditPoints0.size() - 2 - reactionW.getProcessSegmentIndex()),
-                    "_"+UUID.randomUUID().toString(),
+                    prId,
                     processAxis,
-                    isPolyline);
+                    isPolyline,
+                    new StyleInfo(prId));
 
             AbstractMap.SimpleEntry<List<Point2D.Float>, List<Point2D.Float>> subLinesTuple =
                     GeometryUtils.splitPolylineAtSegment(absoluteEditPoints0,
@@ -133,10 +140,13 @@ public class DissociationReactionModel extends GenericReactionModel{
                     AnchorPoint.CENTER,
                     AnchorPoint.CENTER);
 
+            String l21Id = "cons_" + UUID.randomUUID();
             LinkModel l21 = new LinkModel(startModel, process, new Link(normalizedSubLinesTuple1),
-                    "cons_" + UUID.randomUUID(), "consumption");
+                    l21Id, "consumption", new StyleInfo(reactionW.getReaction(), l21Id));
+
+            String l22Id = "cons_" + UUID.randomUUID();
             LinkModel l22 = new LinkModel(process, dissociation, new Link(normalizedSubLinesTuple2),
-                    "cons_" + UUID.randomUUID(), "consumption");
+                    l22Id, "consumption", new StyleInfo(reactionW.getReaction(), l22Id));
             System.out.println("link edit points: "+l21.getLink().getStart()+" "+l21.getLink().getEditPoints());
 
             if(reactionW.isReversible()) {

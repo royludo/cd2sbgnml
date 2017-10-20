@@ -5,6 +5,7 @@ import fr.curie.cd2sbgnml.graphics.Glyph;
 import fr.curie.cd2sbgnml.graphics.SbgnShape;
 import fr.curie.cd2sbgnml.xmlcdwrappers.LogicGateWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.LogicGateWrapper.LogicGateType;
+import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
 
 import java.awt.geom.Point2D;
 
@@ -14,19 +15,19 @@ public class LogicGate extends ReactionNodeModel{
 
     private LogicGateType type;
 
-    public LogicGate(GenericReactionModel genericReactionModel, Glyph glyph, String id, LogicGateType type) {
-        super(genericReactionModel, glyph, id);
+    public LogicGate(GenericReactionModel genericReactionModel, Glyph glyph, String id, LogicGateType type, StyleInfo styleInfo) {
+        super(genericReactionModel, glyph, id, styleInfo);
         this.type = type;
     }
 
-    public LogicGate(GenericReactionModel genericReactionModel, Point2D.Float centerCoords, String id, LogicGateType type) {
+    public LogicGate(GenericReactionModel genericReactionModel, Point2D.Float centerCoords, String id, LogicGateType type, StyleInfo styleInfo) {
         super(genericReactionModel, new Glyph(
                         centerCoords,
                         LOGICGATE_SIZE,
                         LOGICGATE_SIZE,
                         CdShape.CIRCLE,
                         SbgnShape.CIRCLE),
-                id);
+                id, styleInfo);
         this.type = type;
     }
 

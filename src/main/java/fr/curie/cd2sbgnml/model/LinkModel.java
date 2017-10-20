@@ -1,6 +1,7 @@
 package fr.curie.cd2sbgnml.model;
 
 import fr.curie.cd2sbgnml.graphics.*;
+import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
 
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
@@ -14,13 +15,15 @@ public class LinkModel {
     Link link;
     private String id;
     private String sbgnClass;
+    private StyleInfo styleInfo;
 
-    public LinkModel(GenericReactionElement start, GenericReactionElement end, Link link, String id, String clazz) {
+    public LinkModel(GenericReactionElement start, GenericReactionElement end, Link link, String id, String clazz, StyleInfo styleInfo) {
         this.start = start;
         this.end = end;
         this.link = link;
         this.id = id;
         this.sbgnClass = clazz;
+        this.styleInfo = styleInfo;
     }
 
     public static String getSbgnClass(String reactionType) {
@@ -123,6 +126,7 @@ public class LinkModel {
         return sbgnClass;
     }
 
-
-
+    public StyleInfo getStyleInfo() {
+        return styleInfo;
+    }
 }

@@ -51,8 +51,8 @@ public class Utils {
             System.out.println(">>>>>>>>>>>>>>>>");
         }*/
 
-        return title.getChildNodes().getLength() == 0
-                && body.getChildNodes().getLength() == 0;
+        return (title == null || title.getChildNodes().getLength() == 0)
+                && (body == null && body.getChildNodes().getLength() == 0);
     }
 
 }

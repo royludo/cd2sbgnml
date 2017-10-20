@@ -6,6 +6,7 @@ import fr.curie.cd2sbgnml.graphics.Link;
 import fr.curie.cd2sbgnml.xmlcdwrappers.LogicGateWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
+import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
 import org.sbml.x2001.ns.celldesigner.CelldesignerModificationDocument.CelldesignerModification;
 import org.sbml.x2001.ns.celldesigner.ReactionDocument.Reaction;
 
@@ -61,7 +62,8 @@ public class GenericReactionModel {
 
 
             String logicId = "logicglyph_" + UUID.randomUUID();
-            LogicGate logicGate = new LogicGate(this, logicGateGlobalCoord, logicId, logicW.getType());
+            LogicGate logicGate = new LogicGate(this, logicGateGlobalCoord, logicId,
+                    logicW.getType(), new StyleInfo(logicId));
             for(ReactantWrapper reactantW: reactionW.getModifiers()) {
                 if(reactantW.getLogicGate() != null && reactantW.getLogicGate().equals(logicW)) {
                     reactantToLogicGateMap.put(reactantW, logicId);
@@ -85,9 +87,11 @@ public class GenericReactionModel {
 
             System.out.println("FINAL logic gate edit points "+absoluteEditPoints);
 
+            String logicArcId = "logicarc_" + UUID.randomUUID();
             LinkModel logicLink = new LinkModel(logicGate, process, new Link(absoluteEditPoints),
-                    "logicarc_" + UUID.randomUUID(),
-                    LinkModel.getSbgnClass(logicW.getModificationType()));
+                    logicArcId,
+                    LinkModel.getSbgnClass(logicW.getModificationType()),
+                    new StyleInfo(logicW.getModification(), logicArcId));
             this.getReactionNodeModels().add(logicGate);
             this.getLinkModels().add(logicLink);
         }
@@ -156,9 +160,11 @@ public class GenericReactionModel {
             String linkCdClass = reaction.getAnnotation().getCelldesignerListOfModification().
                     getCelldesignerModificationArray(modifIndex).getType();
 
+            String modifId = "modif_" + UUID.randomUUID();
             LinkModel modifLink = new LinkModel(modifModel, genericNode, new Link(absoluteEditPoints),
-                    "modif_" + UUID.randomUUID(),
-                    linkType);
+                    modifId,
+                    linkType,
+                    new StyleInfo(modif, modifId));
 
             /*LinkWrapper link = new LinkWrapper(reactantW, process, absoluteEditPoints,
                     modifIndex, linkCdClass);
@@ -205,9 +211,13 @@ public class GenericReactionModel {
             normalizedEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
             normalizedEditPoints.add(process.getAbsoluteAnchorCoords(0));
 
+            String reactLinkId = "addreact_"+ UUID.randomUUID();
             LinkModel reactLink = new LinkModel(reactantModel, process, new Link(normalizedEditPoints),
-                    "addreact_"+ UUID.randomUUID(),
-                    "consumption");
+                    reactLinkId,
+                    "consumption",
+                    new StyleInfo(reactionW.getReaction().getAnnotation()
+                            .getCelldesignerListOfReactantLinks()
+                            .getCelldesignerReactantLinkArray(positionIndex), reactLinkId));
 
             if(reactionW.isReversible()) {
                 reactLink.reverse();
@@ -251,8 +261,12 @@ public class GenericReactionModel {
             normalizedEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
             normalizedEditPoints.add(normalizedEnd);
 
+            String reactLinkId = "addprod_" + UUID.randomUUID();
             LinkModel reactLink = new LinkModel(process, reactantModel, new Link(normalizedEditPoints),
-                    "addprod_" + UUID.randomUUID(), "production");
+                    reactLinkId, "production",
+                    new StyleInfo(reactionW.getReaction().getAnnotation()
+                            .getCelldesignerListOfProductLinks()
+                            .getCelldesignerProductLinkArray(positionIndex), reactLinkId));
 
             // add everything to the reaction lists
             this.getReactantModels().add(reactantModel);

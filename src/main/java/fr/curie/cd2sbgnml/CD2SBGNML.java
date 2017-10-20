@@ -21,6 +21,7 @@ import org.sbml.x2001.ns.celldesigner.CelldesignerPointDocument.CelldesignerPoin
 import org.sbml.x2001.ns.celldesigner.CompartmentDocument.Compartment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -28,6 +29,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.UTFDataFormatException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static fr.curie.cd2sbgnml.model.ReactantModel.getSbgnClass;
 
@@ -37,6 +39,7 @@ public class CD2SBGNML extends GeneralConverter {
 
     List<Glyph> glyphList;
     HashMap<String, Glyph> glyphMap;
+    List<StyleInfo> styleInfoList;
 
     public Sbgn toSbgn( SbmlDocument sbmlDoc) {
         Sbgn sbgn = new Sbgn();
@@ -60,6 +63,9 @@ public class CD2SBGNML extends GeneralConverter {
 
         this.glyphList = new ArrayList<>();
         this.glyphMap = new HashMap<>();
+        // store all StyleInfos to be aggregated and added later
+        this.styleInfoList = new ArrayList<>();
+
 
         // compartment section
         for(Compartment compartment: modelW.getListOfCompartments()) {
@@ -105,8 +111,11 @@ public class CD2SBGNML extends GeneralConverter {
                 // TODO if no process, add notes into the arc
                 processGlyph.setNotes(getSBGNNotes(Utils.getNotes(reactionW.getReaction())));
 
+                // TODO process style ?
+
                 glyphList.add(processGlyph);
                 glyphMap.put(processId, processGlyph);
+                styleInfoList.add(genericReactionModel.getProcess().getStyleInfo());
                 map.getGlyph().add(processGlyph);
             }
 
@@ -153,6 +162,7 @@ public class CD2SBGNML extends GeneralConverter {
 
                     glyphList.add(logicGlyph);
                     glyphMap.put(logicId, logicGlyph);
+                    styleInfoList.add(logicGate.getStyleInfo());
                     map.getGlyph().add(logicGlyph);
 
                 }
@@ -163,12 +173,7 @@ public class CD2SBGNML extends GeneralConverter {
             ReactantWrapper baseProduct = reactionW.getBaseProducts().get(0);
             // ARCS
 
-            if(!reactionW.isBranchType()){
-                for(LinkModel ln: genericReactionModel.getLinkModels()) {
-                    map.getArc().add(getArc(ln));
-                }
-            }
-            else if(reactionW.isBranchTypeLeft()) {
+            if(reactionW.isBranchTypeLeft()) {
                 System.out.println("REACTION: "+reactionW.getId());
 
                 // add association glyph
@@ -187,13 +192,11 @@ public class CD2SBGNML extends GeneralConverter {
 
                 glyphList.add(assocGlyph);
                 glyphMap.put(assocId, assocGlyph);
+                styleInfoList.add(genericReactionModel.getAssocDissoc().getStyleInfo());
                 map.getGlyph().add(assocGlyph);
 
-                for(LinkModel ln: genericReactionModel.getLinkModels()) {
-                    map.getArc().add(getArc(ln));
-                }
             }
-            else {
+            else if(reactionW.isBranchTypeRight()) {
                 System.out.println("REACTION: "+reactionW.getId());
 
                 // add association glyph
@@ -212,12 +215,14 @@ public class CD2SBGNML extends GeneralConverter {
 
                 glyphList.add(dissocGlyph);
                 glyphMap.put(dissocId, dissocGlyph);
+                styleInfoList.add(genericReactionModel.getAssocDissoc().getStyleInfo());
                 map.getGlyph().add(dissocGlyph);
 
-                for(LinkModel ln: genericReactionModel.getLinkModels()) {
-                    map.getArc().add(getArc(ln));
-                }
+            }
 
+            for(LinkModel ln: genericReactionModel.getLinkModels()) {
+                styleInfoList.add(ln.getStyleInfo());
+                map.getArc().add(getArc(ln));
             }
         }
 
@@ -254,6 +259,17 @@ public class CD2SBGNML extends GeneralConverter {
             map.getGlyph().add(textGlyph);
         }
 
+
+        // finally process style info objects
+        for(StyleInfo sinfo: styleInfoList) {
+            System.out.println(sinfo);
+        }
+        System.out.println(StyleInfo.getMapOfColorDefinitions(styleInfoList));
+        SBGNBase.Extension ext = new SBGNBase.Extension();
+        ext.getAny().add(getAllStyles(styleInfoList, sbmlDoc));
+        map.setExtension(ext);
+
+
         return sbgn;
     }
 
@@ -269,7 +285,8 @@ public class CD2SBGNML extends GeneralConverter {
 
                 // basic info
                 compGlyph.setClazz("compartment");
-                compGlyph.setId(compartment.getId()+"_"+alias.getId());
+                String compartmentId = compartment.getId()+"_"+alias.getId();
+                compGlyph.setId(compartmentId);
                 if (!compartment.getOutside().equals("default")) {
                     compGlyph.setCompartmentRef(glyphMap.get(compartment.getOutside()));
                 }
@@ -315,6 +332,7 @@ public class CD2SBGNML extends GeneralConverter {
                 // keep references
                 glyphList.add(compGlyph);
                 glyphMap.put(compartment.getId(), compGlyph);
+                styleInfoList.add(new StyleInfo(alias, compartmentId));
 
                 // add to output
                 map.getGlyph().add(compGlyph);
@@ -352,6 +370,7 @@ public class CD2SBGNML extends GeneralConverter {
                      */
                     glyphList.add(includedGlyph);
                     glyphMap.put(includedGlyph.getId(), includedGlyph);
+                    styleInfoList.add(includedAlias.getStyleInfo());
                 }
             }
         }
@@ -368,6 +387,7 @@ public class CD2SBGNML extends GeneralConverter {
                 // keep references
                 glyphList.add(glyph);
                 glyphMap.put(glyph.getId(), glyph);
+                styleInfoList.add(alias.getStyleInfo());
                 // add to map
                 map.getGlyph().add(glyph);
             }
@@ -594,6 +614,71 @@ public class CD2SBGNML extends GeneralConverter {
         arc1.setEnd(e1);
 
         return arc1;
+    }
+
+    public Element getAllStyles(List<StyleInfo> styleInfoList, SbmlDocument sbmldoc) {
+        Document baseDoc = sbmldoc.getSbml().getDomNode().getOwnerDocument();
+
+        java.util.Map<String, String> colorMap = StyleInfo.getMapOfColorDefinitions(styleInfoList);
+        Element renderInformation = baseDoc.createElement("renderInformation");
+        renderInformation.setAttribute("xmlns", "http://www.sbml.org/sbml/level3/version1/render/version1");
+        renderInformation.setAttribute("id", "renderInformation");
+        renderInformation.setAttribute("programName", "cd2sbgnml");
+        renderInformation.setAttribute("programVersion", "0.1"); // TODO fetch this properly, through maven
+        renderInformation.setAttribute("backgroundColor", "#ffffff");
+
+        Element listofcolors = baseDoc.createElement("listOfColorDefinitions");
+        renderInformation.appendChild(listofcolors);
+
+        for(String color: colorMap.keySet()){
+            Element colorDef = baseDoc.createElement("colorDefinition");
+            colorDef.setAttribute("id", colorMap.get(color));
+
+            // switch from argb to rgba
+            String alpha = color.substring(0,2);
+            color = "#"+color.substring(2) + alpha;
+
+            colorDef.setAttribute("value", color);
+
+            listofcolors.appendChild(colorDef);
+        }
+
+        Element listofstyles = baseDoc.createElement("listOfStyles");
+        renderInformation.appendChild(listofstyles);
+
+        // first pass to aggregate all styles
+        HashMap<String, StyleInfo> styleMap = new HashMap<>();
+        HashMap<String, List<String>> idListMap = new HashMap<>();
+        for(StyleInfo sinfo: styleInfoList) {
+            if(!styleMap.containsKey(sinfo.getId())) {
+                styleMap.put(sinfo.getId(), sinfo);
+                List<String> idList = new ArrayList<>();
+                idList.add(sinfo.getRefId());
+                idListMap.put(sinfo.getId(), idList);
+            }
+            else {
+                idListMap.get(sinfo.getId()).add(sinfo.getRefId());
+            }
+        }
+        System.out.println(idListMap);
+
+        for(String styleId: styleMap.keySet()) {
+            StyleInfo sinfo = styleMap.get(styleId);
+            Element styleE = baseDoc.createElement("style");
+            styleE.setAttribute("id", styleId);
+            styleE.setAttribute("idList", idListMap.get(styleId).stream ().collect (Collectors.joining (" ")));
+
+            Element g = baseDoc.createElement("g");
+            g.setAttribute("fontSize", String.valueOf(sinfo.getFontSize()));
+            g.setAttribute("stroke", colorMap.get(sinfo.getLineColor()));
+            g.setAttribute("strokeWidth", String.valueOf(sinfo.getLineWidth()));
+            g.setAttribute("fill", colorMap.get(sinfo.getBgColor()));
+
+            styleE.appendChild(g);
+            listofstyles.appendChild(styleE);
+        }
+
+        return renderInformation;
     }
 
     /**

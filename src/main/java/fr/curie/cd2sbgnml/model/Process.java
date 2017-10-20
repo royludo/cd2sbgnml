@@ -4,6 +4,7 @@ import fr.curie.cd2sbgnml.graphics.CdShape;
 import fr.curie.cd2sbgnml.graphics.GeometryUtils;
 import fr.curie.cd2sbgnml.graphics.Glyph;
 import fr.curie.cd2sbgnml.graphics.SbgnShape;
+import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
@@ -30,13 +31,15 @@ public class Process extends ReactionNodeModel {
      */
     private boolean onPolyline;
 
-    public Process(GenericReactionModel genericReactionModel, Glyph glyph, String id, Line2D.Float axis, boolean onPolyline) {
-        super(genericReactionModel, glyph, id);
+    public Process(GenericReactionModel genericReactionModel, Glyph glyph, String id,
+                   Line2D.Float axis, boolean onPolyline, StyleInfo styleInfo) {
+        super(genericReactionModel, glyph, id, styleInfo);
         this.axis = axis;
         this.onPolyline = onPolyline;
     }
 
-    public Process(GenericReactionModel genericReactionModel, Point2D.Float centerCoords, String id, Line2D.Float axis, boolean onPolyline) {
+    public Process(GenericReactionModel genericReactionModel, Point2D.Float centerCoords,
+                   String id, Line2D.Float axis, boolean onPolyline, StyleInfo styleInfo) {
         super(genericReactionModel,
                 new Glyph(
                     centerCoords,
@@ -44,7 +47,7 @@ public class Process extends ReactionNodeModel {
                     PROCESS_SIZE,
                     CdShape.RECTANGLE,
                     SbgnShape.RECTANGLE),
-                id);
+                id, styleInfo);
         this.axis = axis;
         this.onPolyline = onPolyline;
     }

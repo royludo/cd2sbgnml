@@ -24,6 +24,7 @@ public class AliasWrapper {
     private SpeciesWrapper speciesW;
     private boolean isActive;
     private AliasInfoWrapper info;
+    private StyleInfo styleInfo;
 
     public AliasWrapper(CelldesignerSpeciesAlias alias, SpeciesWrapper speciesW) {
         this.aliasType = AliasType.BASIC;
@@ -42,6 +43,7 @@ public class AliasWrapper {
         }
         this.isActive = alias.getCelldesignerActivity().getDomNode().getChildNodes().item(0).getNodeValue().equals("active");
         this.addAliasInfo(alias.getDomNode());
+        this.styleInfo = new StyleInfo(alias, speciesW.getId()+"_"+this.id);
 
     }
 
@@ -65,6 +67,7 @@ public class AliasWrapper {
         this.compartmentAlias = alias.getCompartmentAlias();
         this.isActive = alias.getCelldesignerActivity().getDomNode().getChildNodes().item(0).getNodeValue().equals("active");
         this.addAliasInfo(alias.getDomNode());
+        this.styleInfo = new StyleInfo(alias, speciesW.getId()+"_"+this.id);
     }
 
     public AliasWrapper(CelldesignerCompartmentAlias alias, SpeciesWrapper speciesW) {
@@ -135,4 +138,7 @@ public class AliasWrapper {
         return info;
     }
 
+    public StyleInfo getStyleInfo() {
+        return styleInfo;
+    }
 }

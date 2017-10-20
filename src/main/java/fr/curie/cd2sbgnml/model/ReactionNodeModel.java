@@ -1,6 +1,7 @@
 package fr.curie.cd2sbgnml.model;
 
 import fr.curie.cd2sbgnml.graphics.Glyph;
+import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
 
 /**
  * Abstraction of glyphs displayed for a reaction that don't have a concrete existence in celldesigner format,
@@ -9,7 +10,14 @@ import fr.curie.cd2sbgnml.graphics.Glyph;
  */
 public class ReactionNodeModel extends GenericReactionElement {
 
-    public ReactionNodeModel(GenericReactionModel genericReactionModel, Glyph glyph, String id) {
+    private StyleInfo styleInfo;
+
+    public ReactionNodeModel(GenericReactionModel genericReactionModel, Glyph glyph, String id, StyleInfo styleInfo) {
         super(glyph, id);
+        this.styleInfo = styleInfo;
+    }
+
+    public StyleInfo getStyleInfo() {
+        return styleInfo;
     }
 }

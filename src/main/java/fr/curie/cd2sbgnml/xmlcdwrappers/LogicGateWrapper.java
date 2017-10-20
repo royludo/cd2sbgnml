@@ -8,6 +8,8 @@ public class LogicGateWrapper {
 
     private LogicGateType type;
     private String modificationType;
+    private CelldesignerModification modification;
+
     /**
      * The index of the reactant in the corresponding list (modification,  additional product...) in the
      * xml file
@@ -25,6 +27,7 @@ public class LogicGateWrapper {
             default:
                 throw new IllegalArgumentException("Modification type: "+modif.getType()+" is not a logic gate type.");
         }
+        this.modification = modif;
     }
 
     public LogicGateType getType() {
@@ -37,5 +40,9 @@ public class LogicGateWrapper {
 
     public int getPositionIndex() {
         return positionIndex;
+    }
+
+    public CelldesignerModification getModification() {
+        return modification;
     }
 }

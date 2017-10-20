@@ -5,6 +5,7 @@ import fr.curie.cd2sbgnml.graphics.GeometryUtils;
 import fr.curie.cd2sbgnml.graphics.Link;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
+import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +44,7 @@ public class AssociationReactionModel extends GenericReactionModel {
             logger.warn("PROBLEM glyph for reaction "+reactionW.getId()+" global coords "+assocGlyphGlobalCoords+" "+assocGlyphLocalCoords+" "+startR1.getCenterPoint()
             +" "+startR2.getCenterPoint()+" "+endR.getCenterPoint()+" "+editPoints+" "+reactionW.getReaction().getAnnotation().getCelldesignerEditPoints());
         }*/
-        AssocDissoc association = new AssocDissoc(this, assocGlyphGlobalCoords, assocId);
+        AssocDissoc association = new AssocDissoc(this, assocGlyphGlobalCoords, assocId, new StyleInfo(assocId));
 
         // get the relevant points
         Point2D.Float startR1coordPoint = startModel0.getAbsoluteAnchorCoordinate(startR1.getAnchorPoint());
@@ -56,8 +57,9 @@ public class AssociationReactionModel extends GenericReactionModel {
         // branch 0
         List<Point2D.Float> absoluteEditPoints0 = getBranchPoints(reactionW, association.getGlyph().getCenter(), startR1coordPoint, 0);
         Collections.reverse(absoluteEditPoints0);
+        String link0Id = "cons_" + UUID.randomUUID();
         LinkModel link0 = new LinkModel(startModel0, association, new Link(absoluteEditPoints0),
-                "cons_" + UUID.randomUUID(), "consumption");
+                link0Id, "consumption", new StyleInfo(reactionW.getReaction(), link0Id));
         /*link0.setSbgnSpacePointList(
                 link0.getNormalizedEndPoints(
                         startR1.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
@@ -65,8 +67,9 @@ public class AssociationReactionModel extends GenericReactionModel {
 
         List<Point2D.Float> absoluteEditPoints1 = getBranchPoints(reactionW, association.getGlyph().getCenter(), startR2coordPoint, 1);
         Collections.reverse(absoluteEditPoints1);
+        String link1Id = "cons_" + UUID.randomUUID();
         LinkModel link1 = new LinkModel(startModel1, association, new Link(absoluteEditPoints1),
-                "cons_" + UUID.randomUUID(), "consumption");
+                link1Id, "consumption", new StyleInfo(reactionW.getReaction(), link1Id));
         /*link1.setSbgnSpacePointList(
                 link1.getNormalizedEndPoints(
                         startR2.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
@@ -100,12 +103,14 @@ public class AssociationReactionModel extends GenericReactionModel {
             else, if the link is pointing to the center and not the border of the glyph, process will get shifted
             as the link is longer than what it appears.
              */
+            String prId = "pr_"+UUID.randomUUID();
             Process process = new Process(
                     this,
                     GeometryUtils.getMiddleOfPolylineSegment(absoluteEditPoints2, reactionW.getProcessSegmentIndex()),
-                    "pr_"+UUID.randomUUID().toString(),
+                    prId,
                     processAxis,
-                    isPolyline);
+                    isPolyline,
+                    new StyleInfo(prId));
 
             AbstractMap.SimpleEntry<List<Point2D.Float>, List<Point2D.Float>> subLinesTuple =
                     GeometryUtils.splitPolylineAtSegment(absoluteEditPoints2, reactionW.getProcessSegmentIndex());
@@ -127,10 +132,13 @@ public class AssociationReactionModel extends GenericReactionModel {
                     AnchorPoint.CENTER,
                     AnchorPoint.CENTER);
 
+            String l21Id = "cons_" + UUID.randomUUID();
             LinkModel l21 = new LinkModel(association, process, new Link(normalizedSubLinesTuple1),
-                    "cons_" + UUID.randomUUID(), "consumption");
+                    l21Id, "consumption", new StyleInfo(reactionW.getReaction(), l21Id));
+
+            String l22Id = "prod_" + UUID.randomUUID();
             LinkModel l22 = new LinkModel(process, endModel, new Link(normalizedSubLinesTuple2),
-                    "prod_" + UUID.randomUUID(), "production");
+                    l22Id, "production", new StyleInfo(reactionW.getReaction(), l22Id));
             System.out.println("link edit points: "+link0.getLink().getEditPoints()+" "+l21.getLink().getStart()+" "+l21.getLink().getEditPoints());
 
             if(reactionW.isReversible()) {
