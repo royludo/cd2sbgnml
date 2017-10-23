@@ -56,7 +56,8 @@ public class SimpleReactionModel extends GenericReactionModel{
                     prId,
                     processAxis,
                     isPolyline,
-                    new StyleInfo(prId));
+                    // style info of the process should inherit from style of the line it's on
+                    new StyleInfo(reactionW.getReaction(), prId));
 
             AbstractMap.SimpleEntry<List<Point2D.Float>, List<Point2D.Float>> subLinesTuple =
                     GeometryUtils.splitPolylineAtSegment(absoluteEditPoints, reactionW.getProcessSegmentIndex());

@@ -117,7 +117,7 @@ public class DissociationReactionModel extends GenericReactionModel{
                     prId,
                     processAxis,
                     isPolyline,
-                    new StyleInfo(prId));
+                    new StyleInfo(reactionW.getReaction(), prId));
 
             AbstractMap.SimpleEntry<List<Point2D.Float>, List<Point2D.Float>> subLinesTuple =
                     GeometryUtils.splitPolylineAtSegment(absoluteEditPoints0,

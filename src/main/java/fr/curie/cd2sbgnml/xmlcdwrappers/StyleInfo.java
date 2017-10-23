@@ -27,6 +27,11 @@ import java.util.Map;
  */
 public class StyleInfo {
 
+    private static final String DEFAULT_BG_COLOR = "00ffffff"; // white transparent as default default
+    private static final String DEFAULT_LINE_COLOR = "ff000000"; // black opaque default
+    private static final float DEFAULT_FONT_SIZE = 12;
+    private static final float DEFAULT_LINE_WIDTH = 1;
+
     private float lineWidth;
     private String bgColor;
     private float fontSize;
@@ -38,16 +43,16 @@ public class StyleInfo {
      * Default value constructor
      */
     public StyleInfo(String refId) {
-        this.bgColor = "00ffffff";
-        this.fontSize = 12;
-        this.lineColor = "ff000000"; // black default
-        this.lineWidth = 1;
+        this.bgColor = DEFAULT_BG_COLOR;
+        this.fontSize = DEFAULT_FONT_SIZE;
+        this.lineColor = DEFAULT_LINE_COLOR;
+        this.lineWidth = DEFAULT_LINE_WIDTH;
         this.refId = refId;
         this.id = generateStyleId();
     }
 
     /**
-     * Create style info from other style info
+     * Create style info from other style info, changing the reference.
      */
     public StyleInfo(StyleInfo previousInfo, String refId) {
         this.bgColor = previousInfo.getBgColor();
@@ -59,8 +64,8 @@ public class StyleInfo {
     }
 
     public StyleInfo(CelldesignerCompartmentAlias compAlias, String refId) {
-        this.bgColor = "00ffffff";
-        this.fontSize = 12; // default
+        this.bgColor = DEFAULT_BG_COLOR;
+        this.fontSize = DEFAULT_FONT_SIZE; // default
         this.refId = refId;
 
         CelldesignerPaint paint = compAlias.getCelldesignerPaint();
@@ -76,7 +81,7 @@ public class StyleInfo {
     public StyleInfo(CelldesignerComplexSpeciesAlias complexAlias, String refId) {
         this.refId = refId;
         this.fontSize = Float.parseFloat(complexAlias.getCelldesignerFont().getSize().getStringValue());
-        this.lineColor = "ff000000"; // black default
+        this.lineColor = DEFAULT_LINE_COLOR;
         CelldesignerUsualView usualView = complexAlias.getCelldesignerUsualView();
         this.lineWidth = Float.parseFloat(usualView.getCelldesignerSingleLine().getWidth());
         this.bgColor = usualView.getCelldesignerPaint().getColor().getStringValue().toLowerCase();
@@ -86,7 +91,7 @@ public class StyleInfo {
     public StyleInfo(CelldesignerSpeciesAlias speciesAlias, String refId) {
         this.refId = refId;
         this.fontSize = Float.parseFloat(speciesAlias.getCelldesignerFont().getSize().getStringValue());
-        this.lineColor = "ff000000"; // black default
+        this.lineColor = DEFAULT_LINE_COLOR;
         CelldesignerUsualView usualView = speciesAlias.getCelldesignerUsualView();
         this.lineWidth = Float.parseFloat(usualView.getCelldesignerSingleLine().getWidth());
         this.bgColor = usualView.getCelldesignerPaint().getColor().getStringValue().toLowerCase();
@@ -103,8 +108,8 @@ public class StyleInfo {
         CelldesignerLine line = reaction.getAnnotation().getCelldesignerLine();
         this.lineWidth = Float.parseFloat(line.getWidth());
         this.lineColor = line.getColor().toLowerCase();
-        this.bgColor = "ff000000"; // black default
-        this.fontSize = 12;
+        this.bgColor = DEFAULT_BG_COLOR;
+        this.fontSize = DEFAULT_FONT_SIZE;
         this.id = generateStyleId();
     }
 
@@ -113,8 +118,8 @@ public class StyleInfo {
         CelldesignerLine line = modif.getCelldesignerLine();
         this.lineWidth = Float.parseFloat(line.getWidth());
         this.lineColor = line.getColor().toLowerCase();
-        this.bgColor = "ff000000"; // black default
-        this.fontSize = 12;
+        this.bgColor = DEFAULT_BG_COLOR;
+        this.fontSize = DEFAULT_FONT_SIZE;
         this.id = generateStyleId();
     }
 
@@ -128,8 +133,8 @@ public class StyleInfo {
                 this.lineColor = n.getAttributes().getNamedItem("color").getNodeValue().toLowerCase();
             }
         }
-        this.bgColor = "ff000000"; // black default
-        this.fontSize = 12;
+        this.bgColor = DEFAULT_BG_COLOR;
+        this.fontSize = DEFAULT_FONT_SIZE;
         this.id = generateStyleId();
 
     }
@@ -143,8 +148,8 @@ public class StyleInfo {
                 this.lineColor = n.getAttributes().getNamedItem("color").getNodeValue().toLowerCase();
             }
         }
-        this.bgColor = "ff000000"; // black default
-        this.fontSize = 12;
+        this.bgColor = DEFAULT_BG_COLOR;
+        this.fontSize = DEFAULT_FONT_SIZE;
         this.id = generateStyleId();
 
     }

@@ -63,7 +63,9 @@ public class GenericReactionModel {
 
             String logicId = "logicglyph_" + UUID.randomUUID();
             LogicGate logicGate = new LogicGate(logicGateGlobalCoord, logicId,
-                    logicW.getType(), new StyleInfo(logicId));
+                    logicW.getType(),
+                    // logic gate inherits the style of its link pointing to the process
+                    new StyleInfo(logicW.getModification(), logicId));
             for(ReactantWrapper reactantW: reactionW.getModifiers()) {
                 if(reactantW.getLogicGate() != null && reactantW.getLogicGate().equals(logicW)) {
                     reactantToLogicGateMap.put(reactantW, logicId);
