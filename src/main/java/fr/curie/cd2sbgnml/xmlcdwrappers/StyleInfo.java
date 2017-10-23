@@ -46,6 +46,18 @@ public class StyleInfo {
         this.id = generateStyleId();
     }
 
+    /**
+     * Create style info from other style info
+     */
+    public StyleInfo(StyleInfo previousInfo, String refId) {
+        this.bgColor = previousInfo.getBgColor();
+        this.fontSize = previousInfo.getFontSize();
+        this.lineColor = previousInfo.getLineColor();
+        this.lineWidth = previousInfo.getLineWidth();
+        this.refId = refId;
+        this.id = generateStyleId();
+    }
+
     public StyleInfo(CelldesignerCompartmentAlias compAlias, String refId) {
         this.bgColor = "00ffffff";
         this.fontSize = 12; // default

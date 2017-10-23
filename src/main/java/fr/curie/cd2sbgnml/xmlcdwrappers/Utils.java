@@ -17,7 +17,7 @@ public class Utils {
              if((n.getNodeName().equals("notes") || n.getNodeName().equals("celldesigner_notes")) &&
                     ((Element) n).getElementsByTagName("html") != null) {
                 Element notes = (Element)((Element) n).getElementsByTagName("html").item(0);
-                if(!isNoteEmpty(notes)) {
+                if(notes != null && !isNoteEmpty(notes)) {
                     return notes;
                 }
             }

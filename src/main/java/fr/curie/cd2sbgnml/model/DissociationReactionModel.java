@@ -40,7 +40,7 @@ public class DissociationReactionModel extends GenericReactionModel{
         System.out.println("result: " + assocGlyphLocalCoords + " -> " + assocGlyphGlobalCoords);
 
         String dissocId = "dissoc_" + UUID.randomUUID();
-        AssocDissoc dissociation = new AssocDissoc(this, assocGlyphGlobalCoords, dissocId, new StyleInfo(dissocId));
+        AssocDissoc dissociation = new AssocDissoc(assocGlyphGlobalCoords, dissocId, new StyleInfo(dissocId));
 
         // get the relevant points
         Point2D.Float startRcoordPoint = startModel.getAbsoluteAnchorCoordinate(startR.getAnchorPoint());
@@ -104,15 +104,14 @@ public class DissociationReactionModel extends GenericReactionModel{
             Line2D.Float processAxis = new Line2D.Float(absoluteEditPoints0.get(absoluteEditPoints0.size() - 2 - reactionW.getProcessSegmentIndex()),
                     absoluteEditPoints0.get(absoluteEditPoints0.size() - 1 - reactionW.getProcessSegmentIndex()));
             /*
-            !!!!!! process coords must be computed AFTER normalization of arrows !!!!!
-            else, if the link is pointing to the center and not the border of the glyph, process will get shifted
-            as the link is longer than what it appears.
+                !!!!!! process coords must be computed AFTER normalization of arrows !!!!!
+                else, if the link is pointing to the center and not the border of the glyph, process will get shifted
+                as the link is longer than what it appears.
 
-            also here the segment indexes are reversed, as the number starts from dissociation glyph
+                also here the segment indexes are reversed, as the number starts from dissociation glyph
              */
             String prId = "pr_"+UUID.randomUUID();
             Process process = new Process(
-                    this,
                     GeometryUtils.getMiddleOfPolylineSegment(absoluteEditPoints0,
                             absoluteEditPoints0.size() - 2 - reactionW.getProcessSegmentIndex()),
                     prId,
@@ -125,9 +124,9 @@ public class DissociationReactionModel extends GenericReactionModel{
                             absoluteEditPoints0.size() - 2 - reactionW.getProcessSegmentIndex());
 
             /*
-            Here we need to normalize also the link between association and process glyph.
-            As it is not a valid SBGN thing, it is weirdly drawn by visualization tool.
-            Better if the link does not overlap the process here.
+                Here we need to normalize also the link between association and process glyph.
+                As it is not a valid SBGN thing, it is weirdly drawn by visualization tool.
+                Better if the link does not overlap the process here.
              */
             List<Point2D.Float> normalizedSubLinesTuple1 = GeometryUtils.getNormalizedEndPoints(subLinesTuple.getKey(),
                     startModel.getGlyph(),
@@ -140,6 +139,15 @@ public class DissociationReactionModel extends GenericReactionModel{
                     AnchorPoint.CENTER,
                     AnchorPoint.CENTER);
 
+            // port management
+            Point2D.Float pIn = normalizedSubLinesTuple1.get(normalizedSubLinesTuple1.size() - 1);
+            Point2D.Float pOut = normalizedSubLinesTuple2.get(0);
+            process.setPorts(pIn, pOut);
+
+            // replace the end and start points of the sublines by corresponding ports
+            normalizedSubLinesTuple1.set(normalizedSubLinesTuple1.size() - 1, process.getPortIn());
+            normalizedSubLinesTuple2.set(0, process.getPortOut());
+
             String l21Id = "cons_" + UUID.randomUUID();
             LinkModel l21 = new LinkModel(startModel, process, new Link(normalizedSubLinesTuple1),
                     l21Id, "consumption", new StyleInfo(reactionW.getReaction(), l21Id));
@@ -148,6 +156,11 @@ public class DissociationReactionModel extends GenericReactionModel{
             LinkModel l22 = new LinkModel(process, dissociation, new Link(normalizedSubLinesTuple2),
                     l22Id, "consumption", new StyleInfo(reactionW.getReaction(), l22Id));
             System.out.println("link edit points: "+l21.getLink().getStart()+" "+l21.getLink().getEditPoints());
+
+            // merge links to get rid of association glyph
+            LinkModel mergedLink1 = l22.mergeWith(link1, "production", link1.getId());
+            LinkModel mergedLink2 = l22.mergeWith(link2, "production", link2.getId());
+
 
             if(reactionW.isReversible()) {
                 l21.reverse();
@@ -158,11 +171,11 @@ public class DissociationReactionModel extends GenericReactionModel{
             this.getReactantModels().add(endModel1);
             this.getReactantModels().add(endModel2);
             this.getReactionNodeModels().add(process);
-            this.getReactionNodeModels().add(dissociation);
+            //this.getReactionNodeModels().add(dissociation);
             this.getLinkModels().add(l21);
-            this.getLinkModels().add(l22);
-            this.getLinkModels().add(link1);
-            this.getLinkModels().add(link2);
+            //this.getLinkModels().add(l22);
+            this.getLinkModels().add(mergedLink1);
+            this.getLinkModels().add(mergedLink2);
 
             this.addModifiers(reactionW, process);
             this.addAdditionalReactants(reactionW, process);

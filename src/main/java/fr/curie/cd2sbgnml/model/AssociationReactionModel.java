@@ -44,7 +44,7 @@ public class AssociationReactionModel extends GenericReactionModel {
             logger.warn("PROBLEM glyph for reaction "+reactionW.getId()+" global coords "+assocGlyphGlobalCoords+" "+assocGlyphLocalCoords+" "+startR1.getCenterPoint()
             +" "+startR2.getCenterPoint()+" "+endR.getCenterPoint()+" "+editPoints+" "+reactionW.getReaction().getAnnotation().getCelldesignerEditPoints());
         }*/
-        AssocDissoc association = new AssocDissoc(this, assocGlyphGlobalCoords, assocId, new StyleInfo(assocId));
+        AssocDissoc association = new AssocDissoc(assocGlyphGlobalCoords, assocId, new StyleInfo(assocId));
 
         // get the relevant points
         Point2D.Float startR1coordPoint = startModel0.getAbsoluteAnchorCoordinate(startR1.getAnchorPoint());
@@ -99,13 +99,12 @@ public class AssociationReactionModel extends GenericReactionModel {
                     absoluteEditPoints2.get(reactionW.getProcessSegmentIndex() + 1));
 
             /*
-            !!!!!! process coords must be computed AFTER normalization of arrows !!!!!
-            else, if the link is pointing to the center and not the border of the glyph, process will get shifted
-            as the link is longer than what it appears.
+                !!!!!! process coords must be computed AFTER normalization of arrows !!!!!
+                else, if the link is pointing to the center and not the border of the glyph, process will get shifted
+                as the link is longer than what it appears.
              */
             String prId = "pr_"+UUID.randomUUID();
             Process process = new Process(
-                    this,
                     GeometryUtils.getMiddleOfPolylineSegment(absoluteEditPoints2, reactionW.getProcessSegmentIndex()),
                     prId,
                     processAxis,
@@ -116,9 +115,9 @@ public class AssociationReactionModel extends GenericReactionModel {
                     GeometryUtils.splitPolylineAtSegment(absoluteEditPoints2, reactionW.getProcessSegmentIndex());
 
             /*
-            Here we need to normalize also the link between association and process glyph.
-            As it is not a valid SBGN thing, it is weirdly drawn by visualization tool.
-            Better if the link does not overlap the process here.
+                Here we need to normalize also the link between association and process glyph.
+                As it is not a valid SBGN thing, it is weirdly drawn by visualization tool.
+                Better if the link does not overlap the process here.
              */
             List<Point2D.Float> normalizedSubLinesTuple1 = GeometryUtils.getNormalizedEndPoints(subLinesTuple.getKey(),
                     association.getGlyph(),
@@ -132,6 +131,18 @@ public class AssociationReactionModel extends GenericReactionModel {
                     AnchorPoint.CENTER,
                     AnchorPoint.CENTER);
 
+            // PROCESS port management
+            Point2D.Float pIn = normalizedSubLinesTuple1.get(normalizedSubLinesTuple1.size() - 1);
+            Point2D.Float pOut = normalizedSubLinesTuple2.get(0);
+            process.setPorts(pIn, pOut);
+
+            // replace the end and start points of the sublines by corresponding ports
+            normalizedSubLinesTuple1.set(normalizedSubLinesTuple1.size() - 1, process.getPortIn());
+            normalizedSubLinesTuple2.set(0, process.getPortOut());
+
+            // ASSOCIATION ports
+
+
             String l21Id = "cons_" + UUID.randomUUID();
             LinkModel l21 = new LinkModel(association, process, new Link(normalizedSubLinesTuple1),
                     l21Id, "consumption", new StyleInfo(reactionW.getReaction(), l21Id));
@@ -140,6 +151,11 @@ public class AssociationReactionModel extends GenericReactionModel {
             LinkModel l22 = new LinkModel(process, endModel, new Link(normalizedSubLinesTuple2),
                     l22Id, "production", new StyleInfo(reactionW.getReaction(), l22Id));
             System.out.println("link edit points: "+link0.getLink().getEditPoints()+" "+l21.getLink().getStart()+" "+l21.getLink().getEditPoints());
+
+            // merge links to get rid of association glyph
+            LinkModel mergedLink0 = link0.mergeWith(l21, "consumption", link0.getId());
+            LinkModel mergedLink1 = link1.mergeWith(l21, "consumption", link1.getId());
+
 
             if(reactionW.isReversible()) {
                 link0.reverse();
@@ -151,10 +167,10 @@ public class AssociationReactionModel extends GenericReactionModel {
             this.getReactantModels().add(startModel1);
             this.getReactantModels().add(endModel);
             this.getReactionNodeModels().add(process);
-            this.getReactionNodeModels().add(association);
-            this.getLinkModels().add(link0);
-            this.getLinkModels().add(link1);
-            this.getLinkModels().add(l21);
+            //this.getReactionNodeModels().add(association);
+            this.getLinkModels().add(mergedLink0);
+            this.getLinkModels().add(mergedLink1);
+            //this.getLinkModels().add(l21);
             this.getLinkModels().add(l22);
 
             this.addModifiers(reactionW, process);

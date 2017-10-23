@@ -9,19 +9,20 @@ import java.awt.geom.Point2D;
 
 public class AssocDissoc extends ReactionNodeModel {
 
-    public static final float ASSOCDISSOC_SIZE = 8;
+    private static final float ASSOCDISSOC_SIZE = 8;
+    private static final float PORT_DISTANCE_RATIO = 1;
 
-    public AssocDissoc(GenericReactionModel genericReactionModel, Glyph glyph, String id, StyleInfo styleInfo) {
-        super(genericReactionModel, glyph, id, styleInfo);
+    public AssocDissoc(Glyph glyph, String id, StyleInfo styleInfo) {
+        super(glyph, id, ASSOCDISSOC_SIZE, PORT_DISTANCE_RATIO, styleInfo);
     }
 
-    public AssocDissoc(GenericReactionModel genericReactionModel, Point2D.Float centerCoords, String id, StyleInfo styleInfo) {
-        super(genericReactionModel, new Glyph(
+    public AssocDissoc(Point2D.Float centerCoords, String id, StyleInfo styleInfo) {
+        super(new Glyph(
                 centerCoords,
                 ASSOCDISSOC_SIZE,
                 ASSOCDISSOC_SIZE,
                 CdShape.CIRCLE,
                 SbgnShape.CIRCLE),
-                id, styleInfo);
+                id, ASSOCDISSOC_SIZE, PORT_DISTANCE_RATIO, styleInfo);
     }
 }

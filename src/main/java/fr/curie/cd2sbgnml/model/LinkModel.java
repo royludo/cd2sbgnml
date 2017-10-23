@@ -17,6 +17,15 @@ public class LinkModel {
     private String sbgnClass;
     private StyleInfo styleInfo;
 
+    /**
+     * We need to keep the information if a link has been reversed, so we can set it to the correct port of a process.
+     * For example, if we reverse a consumption, a production is now starting at the IN port, which isn't the supposed
+     * way a production arc should go.
+     * TODO we probably should simply store where a link is pointing to, semantically (the glyph or its ports), not
+     * TODO just as a point.
+     */
+    private boolean reversed = false;
+
     public LinkModel(GenericReactionElement start, GenericReactionElement end, Link link, String id, String clazz, StyleInfo styleInfo) {
         this.start = start;
         this.end = end;
@@ -104,6 +113,32 @@ public class LinkModel {
             this.sbgnClass = "production";
         }
 
+        // change reverse flag
+        this.reversed = ! this.reversed;
+
+    }
+
+    /**
+     * Merge 2 links together, and create a new LinkModel as a result.
+     * It is assumed that data are consistent between the 2 merged links (same style, end of the first is
+     * more or less the same as start of the 2nd, same middle element...)
+     *
+     * @param m2
+     * @return
+     */
+    public LinkModel mergeWith(LinkModel m2, String newClass, String newId) {
+        List<Point2D.Float> newPoints = new ArrayList<>();
+
+        newPoints.add(this.getLink().getStart());
+        newPoints.addAll(this.getLink().getEditPoints());
+        newPoints.add(this.getLink().getEnd());
+
+        newPoints.addAll(m2.getLink().getEditPoints());
+        newPoints.add(m2.getLink().getEnd());
+
+        Link newLink = new Link(newPoints);
+        return new LinkModel(this.getStart(), m2.getEnd(),
+                newLink, newId, newClass, new StyleInfo(this.getStyleInfo(), newId));
     }
 
     public GenericReactionElement getStart() {
@@ -128,5 +163,10 @@ public class LinkModel {
 
     public StyleInfo getStyleInfo() {
         return styleInfo;
+    }
+
+
+    public boolean isReversed() {
+        return reversed;
     }
 }

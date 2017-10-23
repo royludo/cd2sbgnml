@@ -1112,4 +1112,13 @@ public class GeometryUtils {
     public static float unsignedRadianToUnsignedDegree(float radian) {
         return (float) (radian / Math.PI * 180);
     }
+
+    /**
+     * @param p1
+     * @param p2
+     * @return the slope of the line going through p1 and p2
+     */
+    public static float lineSlope(Point2D p1, Point2D p2) {
+        return (float) ((p1.getY() - p2.getY()) / (p1.getX() - p2.getX()));
+    }
 }

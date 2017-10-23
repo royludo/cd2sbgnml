@@ -62,7 +62,7 @@ public class GenericReactionModel {
 
 
             String logicId = "logicglyph_" + UUID.randomUUID();
-            LogicGate logicGate = new LogicGate(this, logicGateGlobalCoord, logicId,
+            LogicGate logicGate = new LogicGate(logicGateGlobalCoord, logicId,
                     logicW.getType(), new StyleInfo(logicId));
             for(ReactantWrapper reactantW: reactionW.getModifiers()) {
                 if(reactantW.getLogicGate() != null && reactantW.getLogicGate().equals(logicW)) {
@@ -86,6 +86,14 @@ public class GenericReactionModel {
                     AnchorPoint.E);
 
             System.out.println("FINAL logic gate edit points "+absoluteEditPoints);
+
+            // port management
+            Point2D.Float pIn = logicGate.getGlyph().getCenter();
+            Point2D.Float pOut = absoluteEditPoints.get(1);
+            logicGate.setPorts(pIn, pOut);
+
+            // replace the end and start points of the sublines by corresponding ports
+            absoluteEditPoints.set(0, logicGate.getPortOut());
 
             String logicArcId = "logicarc_" + UUID.randomUUID();
             LinkModel logicLink = new LinkModel(logicGate, process, new Link(absoluteEditPoints),
@@ -128,7 +136,7 @@ public class GenericReactionModel {
                         genericNode = nodeModel;
                     }
                 }
-                genericNodeAnchorPoint = genericNode.getGlyph().getCenter();
+                genericNodeAnchorPoint = genericNode.getPortIn();
                 linkType = "logic arc";
             }
             else { // modifier is linked to process
@@ -209,7 +217,7 @@ public class GenericReactionModel {
             List<Point2D.Float> normalizedEditPoints = new ArrayList<>();
             normalizedEditPoints.add(normalizedStart);
             normalizedEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
-            normalizedEditPoints.add(process.getAbsoluteAnchorCoords(0));
+            normalizedEditPoints.add(process.getPortIn());
 
             String reactLinkId = "addreact_"+ UUID.randomUUID();
             LinkModel reactLink = new LinkModel(reactantModel, process, new Link(normalizedEditPoints),
@@ -257,7 +265,7 @@ public class GenericReactionModel {
                     reactantModel.getAnchorPoint());
 
             List<Point2D.Float> normalizedEditPoints = new ArrayList<>();
-            normalizedEditPoints.add(process.getAbsoluteAnchorCoords(1));
+            normalizedEditPoints.add(process.getPortOut());
             normalizedEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
             normalizedEditPoints.add(normalizedEnd);
 

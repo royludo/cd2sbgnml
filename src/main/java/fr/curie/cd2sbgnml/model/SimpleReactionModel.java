@@ -52,7 +52,6 @@ public class SimpleReactionModel extends GenericReactionModel{
 
             String prId = "pr_"+UUID.randomUUID();
             Process process = new Process(
-                    this,
                     GeometryUtils.getMiddleOfPolylineSegment(absoluteEditPoints, reactionW.getProcessSegmentIndex()),
                     prId,
                     processAxis,
@@ -73,6 +72,15 @@ public class SimpleReactionModel extends GenericReactionModel{
                     endModel.getGlyph(),
                     AnchorPoint.CENTER,
                     endModel.getAnchorPoint());
+
+            // port management
+            Point2D.Float pIn = subLinesTuple1.get(subLinesTuple1.size() - 1);
+            Point2D.Float pOut = subLinesTuple2.get(0);
+            process.setPorts(pIn, pOut);
+
+            // replace the end and start points of the sublines by corresponding ports
+            subLinesTuple1.set(subLinesTuple1.size() - 1, process.getPortIn());
+            subLinesTuple2.set(0, process.getPortOut());
 
             String l1Id = "cons_" + UUID.randomUUID();
             LinkModel l1 = new LinkModel(startModel, process, new Link(subLinesTuple1),

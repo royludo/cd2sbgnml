@@ -12,7 +12,8 @@ import java.awt.geom.Point2D;
 
 public class Process extends ReactionNodeModel {
 
-    public static final float PROCESS_SIZE = 10;
+    private static final float PROCESS_SIZE = 10;
+    private static final float PORT_DISTANCE_RATIO = 1;
 
     /**
      * Represents the oriented line on which the process is oriented.
@@ -31,23 +32,22 @@ public class Process extends ReactionNodeModel {
      */
     private boolean onPolyline;
 
-    public Process(GenericReactionModel genericReactionModel, Glyph glyph, String id,
+    public Process(Glyph glyph, String id,
                    Line2D.Float axis, boolean onPolyline, StyleInfo styleInfo) {
-        super(genericReactionModel, glyph, id, styleInfo);
+        super(glyph, id, PROCESS_SIZE, PORT_DISTANCE_RATIO, styleInfo);
         this.axis = axis;
         this.onPolyline = onPolyline;
     }
 
-    public Process(GenericReactionModel genericReactionModel, Point2D.Float centerCoords,
+    public Process(Point2D.Float centerCoords,
                    String id, Line2D.Float axis, boolean onPolyline, StyleInfo styleInfo) {
-        super(genericReactionModel,
-                new Glyph(
+        super(new Glyph(
                     centerCoords,
                     PROCESS_SIZE,
                     PROCESS_SIZE,
                     CdShape.RECTANGLE,
                     SbgnShape.RECTANGLE),
-                id, styleInfo);
+                id, PROCESS_SIZE, PORT_DISTANCE_RATIO, styleInfo);
         this.axis = axis;
         this.onPolyline = onPolyline;
     }

@@ -40,6 +40,7 @@ public class CD2SBGNML extends GeneralConverter {
     List<Glyph> glyphList;
     HashMap<String, Glyph> glyphMap;
     List<StyleInfo> styleInfoList;
+    HashMap<String, Port> portMap;
 
     public Sbgn toSbgn( SbmlDocument sbmlDoc) {
         Sbgn sbgn = new Sbgn();
@@ -65,6 +66,7 @@ public class CD2SBGNML extends GeneralConverter {
         this.glyphMap = new HashMap<>();
         // store all StyleInfos to be aggregated and added later
         this.styleInfoList = new ArrayList<>();
+        this.portMap = new HashMap<>();
 
 
         // compartment section
@@ -91,20 +93,21 @@ public class CD2SBGNML extends GeneralConverter {
 
             String processId = null;
             if(reactionW.hasProcess()) {
-                Point2D processCoord = genericReactionModel.getProcess().getGlyph().getCenter();
+                Process process = genericReactionModel.getProcess();
+                Point2D processCoord = process.getGlyph().getCenter();
                 System.out.println("process coord " + processCoord);
 
 
                 Glyph processGlyph = new Glyph();
                 processGlyph.setClazz(Process.getSbgnClass(genericReactionModel.getCdReactionType()));
-                processId = genericReactionModel.getProcess().getId();
+                processId = process.getId();
                 processGlyph.setId(processId);
 
                 Bbox processBbox = new Bbox();
-                processBbox.setX((float) processCoord.getX() - Process.PROCESS_SIZE / 2);
-                processBbox.setY((float) processCoord.getY() - Process.PROCESS_SIZE / 2);
-                processBbox.setH(Process.PROCESS_SIZE);
-                processBbox.setW(Process.PROCESS_SIZE);
+                processBbox.setX((float) processCoord.getX() - process.getSize() / 2);
+                processBbox.setY((float) processCoord.getY() - process.getSize() / 2);
+                processBbox.setH(process.getSize());
+                processBbox.setW(process.getSize());
                 processGlyph.setBbox(processBbox);
 
                 // put reaction into process glyph
@@ -112,6 +115,25 @@ public class CD2SBGNML extends GeneralConverter {
                 processGlyph.setNotes(getSBGNNotes(Utils.getNotes(reactionW.getReaction())));
 
                 // TODO process style ?
+
+                // ports
+                Port p1 = new Port();
+                String p1Id = processId+"_p1";
+                p1.setId(p1Id);
+                p1.setX((float) process.getPortIn().getX());
+                p1.setY((float) process.getPortIn().getY());
+                processGlyph.getPort().add(p1);
+                portMap.put(p1Id, p1);
+
+                Port p2 = new Port();
+                String p2Id = processId+"_p2";
+                p2.setId(p2Id);
+                p2.setX((float) process.getPortOut().getX());
+                p2.setY((float) process.getPortOut().getY());
+                processGlyph.getPort().add(p2);
+                portMap.put(p2Id, p2);
+
+                processGlyph.setOrientation(process.getOrientation().name().toLowerCase());
 
                 glyphList.add(processGlyph);
                 glyphMap.put(processId, processGlyph);
@@ -154,11 +176,30 @@ public class CD2SBGNML extends GeneralConverter {
                     logicGlyph.setId(logicId);
 
                     Bbox logicBbox = new Bbox();
-                    logicBbox.setX((float) logicCoord.getX() - LogicGate.LOGICGATE_SIZE / 2);
-                    logicBbox.setY((float) logicCoord.getY() - LogicGate.LOGICGATE_SIZE / 2);
-                    logicBbox.setH(LogicGate.LOGICGATE_SIZE);
-                    logicBbox.setW(LogicGate.LOGICGATE_SIZE);
+                    logicBbox.setX((float) logicCoord.getX() - logicGate.getSize() / 2);
+                    logicBbox.setY((float) logicCoord.getY() - logicGate.getSize() / 2);
+                    logicBbox.setH(logicGate.getSize());
+                    logicBbox.setW(logicGate.getSize());
                     logicGlyph.setBbox(logicBbox);
+
+                    // ports
+                    Port p1 = new Port();
+                    String p1Id = logicId+"_p1";
+                    p1.setId(p1Id);
+                    p1.setX((float) logicGate.getPortIn().getX());
+                    p1.setY((float) logicGate.getPortIn().getY());
+                    logicGlyph.getPort().add(p1);
+                    portMap.put(p1Id, p1);
+
+                    Port p2 = new Port();
+                    String p2Id = logicId+"_p2";
+                    p2.setId(p2Id);
+                    p2.setX((float) logicGate.getPortOut().getX());
+                    p2.setY((float) logicGate.getPortOut().getY());
+                    logicGlyph.getPort().add(p2);
+                    portMap.put(p2Id, p2);
+
+                    logicGlyph.setOrientation(logicGate.getOrientation().name().toLowerCase());
 
                     glyphList.add(logicGlyph);
                     glyphMap.put(logicId, logicGlyph);
@@ -173,26 +214,27 @@ public class CD2SBGNML extends GeneralConverter {
             ReactantWrapper baseProduct = reactionW.getBaseProducts().get(0);
             // ARCS
 
-            if(reactionW.isBranchTypeLeft()) {
+            /*if(reactionW.isBranchTypeLeft()) {
                 System.out.println("REACTION: "+reactionW.getId());
 
                 // add association glyph
                 Glyph assocGlyph = new Glyph();
                 assocGlyph.setClazz("association");
-                String assocId = genericReactionModel.getAssocDissoc().getId();
+                AssocDissoc assocDissoc = genericReactionModel.getAssocDissoc();
+                String assocId = assocDissoc.getId();
                 assocGlyph.setId(assocId);
 
-                Point2D assocCoord = genericReactionModel.getAssocDissoc().getGlyph().getCenter();
+                Point2D assocCoord = assocDissoc.getGlyph().getCenter();
                 Bbox assocBbox = new Bbox();
-                assocBbox.setX((float) assocCoord.getX() - AssocDissoc.ASSOCDISSOC_SIZE / 2);
-                assocBbox.setY((float) assocCoord.getY() - AssocDissoc.ASSOCDISSOC_SIZE / 2);
-                assocBbox.setH(AssocDissoc.ASSOCDISSOC_SIZE);
-                assocBbox.setW(AssocDissoc.ASSOCDISSOC_SIZE);
+                assocBbox.setX((float) assocCoord.getX() - assocDissoc.getSize() / 2);
+                assocBbox.setY((float) assocCoord.getY() - assocDissoc.getSize() / 2);
+                assocBbox.setH(assocDissoc.getSize());
+                assocBbox.setW(assocDissoc.getSize());
                 assocGlyph.setBbox(assocBbox);
 
                 glyphList.add(assocGlyph);
                 glyphMap.put(assocId, assocGlyph);
-                styleInfoList.add(genericReactionModel.getAssocDissoc().getStyleInfo());
+                styleInfoList.add(assocDissoc.getStyleInfo());
                 map.getGlyph().add(assocGlyph);
 
             }
@@ -202,23 +244,24 @@ public class CD2SBGNML extends GeneralConverter {
                 // add association glyph
                 Glyph dissocGlyph = new Glyph();
                 dissocGlyph.setClazz("dissociation");
-                String dissocId = genericReactionModel.getAssocDissoc().getId();
+                AssocDissoc assocDissoc = genericReactionModel.getAssocDissoc();
+                String dissocId = assocDissoc.getId();
                 dissocGlyph.setId(dissocId);
 
-                Point2D dissocCoord = genericReactionModel.getAssocDissoc().getGlyph().getCenter();
+                Point2D dissocCoord = assocDissoc.getGlyph().getCenter();
                 Bbox dissocBbox = new Bbox();
-                dissocBbox.setX((float) dissocCoord.getX() - AssocDissoc.ASSOCDISSOC_SIZE / 2);
-                dissocBbox.setY((float) dissocCoord.getY() - AssocDissoc.ASSOCDISSOC_SIZE / 2);
-                dissocBbox.setH(AssocDissoc.ASSOCDISSOC_SIZE);
-                dissocBbox.setW(AssocDissoc.ASSOCDISSOC_SIZE);
+                dissocBbox.setX((float) dissocCoord.getX() - assocDissoc.getSize() / 2);
+                dissocBbox.setY((float) dissocCoord.getY() - assocDissoc.getSize() / 2);
+                dissocBbox.setH(assocDissoc.getSize());
+                dissocBbox.setW(assocDissoc.getSize());
                 dissocGlyph.setBbox(dissocBbox);
 
                 glyphList.add(dissocGlyph);
                 glyphMap.put(dissocId, dissocGlyph);
-                styleInfoList.add(genericReactionModel.getAssocDissoc().getStyleInfo());
+                styleInfoList.add(assocDissoc.getStyleInfo());
                 map.getGlyph().add(dissocGlyph);
 
-            }
+            }*/
 
             for(LinkModel ln: genericReactionModel.getLinkModels()) {
                 styleInfoList.add(ln.getStyleInfo());
@@ -574,22 +617,48 @@ public class CD2SBGNML extends GeneralConverter {
             logger.error("No target for link: "+linkM.getId()+" missing glyph "+linkM.getEnd().getId());
         }
 
-        return getArc(
-                linkM.getLink(),
-                this.glyphMap.get(linkM.getStart().getId()),
-                this.glyphMap.get(linkM.getEnd().getId()),
-                linkM.getSbgnClass(),
-                linkM.getId());
-    }
+        GenericReactionElement genericSource = linkM.getStart();
+        GenericReactionElement genericTarget = linkM.getEnd();
+        Link link = linkM.getLink();
+        String clazz = linkM.getSbgnClass();
 
-    public Arc getArc(Link link, Glyph source, Glyph target, String clazz, String id) {
         Arc arc1 = new Arc();
+
+        // if linkmodel points to elements which have ports, connect to ports instead of glyphs
+        Object source, target;
+        if(genericSource instanceof ReactionNodeModel) { // case of process, logic gate...
+            String portNumber = "p2";
+            if(linkM.isReversed()) {
+                portNumber = "p1";
+            }
+            source = portMap.get(genericSource.getId()+"_"+portNumber);
+            // TODO for reversible reactions, some product link can start from the input port!
+        }
+        else {
+            source = glyphMap.get(genericSource.getId());
+        }
+
+        // here we want to avoid linking to a process' port if the link is a catalysis, stimulation and so on.
+        // only links going to ports are consumptiion/production and logic gates related
+        if(genericTarget instanceof ReactionNodeModel
+                && (clazz.equals("production") || clazz.equals("consumption") || clazz.equals("logic arc"))) {
+            String portNumber = "p1";
+            if(linkM.isReversed()) {
+                portNumber = "p2";
+            }
+            target = portMap.get(genericTarget.getId()+"_"+portNumber);
+            // TODO for reversible reactions, some product link can start from the input port!
+        }
+        else {
+            target = glyphMap.get(genericTarget.getId());
+        }
+
         arc1.setSource(source);
         arc1.setTarget(target);
-        arc1.setClazz(clazz);
-        arc1.setId(id);
 
-        int pointCounts = link.getEditPoints().size();
+        arc1.setClazz(clazz);
+        arc1.setId(linkM.getId());
+
         Point2D startPoint = link.getStart();
         Point2D endPoint = link.getEnd();
         System.out.println("ARC!!!! -> "+startPoint+" "+link.getEditPoints()+" "+endPoint);

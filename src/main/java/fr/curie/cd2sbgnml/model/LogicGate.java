@@ -11,23 +11,24 @@ import java.awt.geom.Point2D;
 
 public class LogicGate extends ReactionNodeModel{
 
-    public static final float LOGICGATE_SIZE = 20;
+    private static final float LOGICGATE_SIZE = 20;
+    private static final float PORT_DISTANCE_RATIO = 0.5f;
 
     private LogicGateType type;
 
-    public LogicGate(GenericReactionModel genericReactionModel, Glyph glyph, String id, LogicGateType type, StyleInfo styleInfo) {
-        super(genericReactionModel, glyph, id, styleInfo);
+    public LogicGate(Glyph glyph, String id, LogicGateType type, StyleInfo styleInfo) {
+        super(glyph, id, LOGICGATE_SIZE, PORT_DISTANCE_RATIO, styleInfo);
         this.type = type;
     }
 
-    public LogicGate(GenericReactionModel genericReactionModel, Point2D.Float centerCoords, String id, LogicGateType type, StyleInfo styleInfo) {
-        super(genericReactionModel, new Glyph(
+    public LogicGate(Point2D.Float centerCoords, String id, LogicGateType type, StyleInfo styleInfo) {
+        super(new Glyph(
                         centerCoords,
                         LOGICGATE_SIZE,
                         LOGICGATE_SIZE,
                         CdShape.CIRCLE,
                         SbgnShape.CIRCLE),
-                id, styleInfo);
+                id, LOGICGATE_SIZE, PORT_DISTANCE_RATIO, styleInfo);
         this.type = type;
     }
 
