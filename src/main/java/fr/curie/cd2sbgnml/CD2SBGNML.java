@@ -207,12 +207,13 @@ public class CD2SBGNML extends GeneralConverter {
                 }
             }
 
-
-            ReactantWrapper baseReactant = reactionW.getBaseReactants().get(0);
-            ReactantWrapper baseProduct = reactionW.getBaseProducts().get(0);
             // ARCS
 
-            /*if(reactionW.isBranchTypeLeft()) {
+            /*
+            ReactantWrapper baseReactant = reactionW.getBaseReactants().get(0);
+            ReactantWrapper baseProduct = reactionW.getBaseProducts().get(0);
+
+            if(reactionW.isBranchTypeLeft()) {
                 System.out.println("REACTION: "+reactionW.getId());
 
                 // add association glyph
@@ -397,9 +398,8 @@ public class CD2SBGNML extends GeneralConverter {
         }
     }
 
-    public Glyph processSpeciesAlias(SpeciesWrapper species, AliasWrapper alias, ModelWrapper modelW, Map map) {
-        CelldesignerBounds bounds = alias.getBounds();
-        Glyph glyph = getGlyph(alias);
+    public Glyph processSpeciesAlias(SpeciesWrapper species, AliasWrapper alias, ModelWrapper modelW, boolean isClone) {
+        Glyph glyph = getGlyph(alias, isClone);
         glyph.setNotes(getSBGNNotes(species.getNotes()));
         if(species.getReferenceNotes() != null) {
             // TODO is piling up <html> elements in 1 note ok ?
@@ -418,7 +418,7 @@ public class CD2SBGNML extends GeneralConverter {
             else {
                 for(AliasWrapper includedAlias: modelW.getIncludedAliasWrapperFor(alias.getId())) {
                     SpeciesWrapper includedSpecies = modelW.getSpeciesWrapperFor(includedAlias.getSpeciesId());
-                    Glyph includedGlyph = processSpeciesAlias(includedSpecies, includedAlias, modelW, map);
+                    Glyph includedGlyph = processSpeciesAlias(includedSpecies, includedAlias, modelW, isClone);
                     glyph.getGlyph().add(includedGlyph);
 
                     /*
@@ -436,10 +436,14 @@ public class CD2SBGNML extends GeneralConverter {
     }
 
     public void processSpecies(SpeciesWrapper species, ModelWrapper modelW, Map map) {
+        boolean isClone = false;
+        if(species.getAliases().size() > 1) {
+            isClone = true;
+        }
         for(AliasWrapper alias : species.getAliases()) {
             // included species is already added inside its complex when complex is processed
             if(!species.isIncludedSpecies()) {
-                Glyph glyph = processSpeciesAlias(species, alias, modelW, map);
+                Glyph glyph = processSpeciesAlias(species, alias, modelW, isClone);
 
                 // keep references
                 glyphList.add(glyph);
@@ -451,7 +455,7 @@ public class CD2SBGNML extends GeneralConverter {
         }
     }
 
-    public Glyph getGlyph(AliasWrapper aliasW) {
+    public Glyph getGlyph(AliasWrapper aliasW, boolean isClone) {
         String id = aliasW.getSpeciesW().getId()+"_"+aliasW.getId();
         SpeciesWrapper species = aliasW.getSpeciesW();
 
@@ -476,6 +480,11 @@ public class CD2SBGNML extends GeneralConverter {
         Label label = new Label();
         label.setText(Utils.interpretToUTF8(species.getName()));
         glyph.setLabel(label);
+
+        // is clone or not
+        if(isClone) {
+            glyph.setClone(new Glyph.Clone());
+        }
 
         // bbox
         Bbox bbox = new Bbox();
