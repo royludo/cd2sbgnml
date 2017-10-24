@@ -55,4 +55,82 @@ public class Utils {
                 && (body == null && body.getChildNodes().getLength() == 0);
     }
 
+    /**
+     * Resolve some special encoded strings in CellDesigner as UTF8 chars.
+     * @param s
+     * @return
+     */
+    public static String interpretToUTF8(String s) {
+        // special chars
+        String newString = s.replaceAll("_br_", "\n")
+                .replaceAll("_plus_", "+")
+                .replaceAll("_minus_", "-")
+                .replaceAll("_slash_", "/")
+                .replaceAll("_underscore_", "_")
+                .replaceAll("_space_", " ");
+
+        // greek small letters
+        newString = newString
+                .replaceAll("_alpha_", "α")
+                .replaceAll("_beta_", "β")
+                .replaceAll("_gamma_", "γ")
+                .replaceAll("_delta_", "δ")
+                .replaceAll("_epsilon_", "ε")
+                .replaceAll("_zeta_", "ζ")
+                .replaceAll("_eta_", "η")
+                .replaceAll("_theta_", "θ")
+                .replaceAll("_iota_", "ι")
+                .replaceAll("_kappa_", "κ")
+                .replaceAll("_lambda_", "λ")
+                .replaceAll("_mu_", "μ")
+                .replaceAll("_nu_", "ν")
+                .replaceAll("_xi_", "ξ")
+                .replaceAll("_omicron_", "ο")
+                .replaceAll("_pi_", "π")
+                .replaceAll("_rho_", "ρ")
+                .replaceAll("_sigma_", "σ")
+                .replaceAll("_tau_", "τ")
+                .replaceAll("_upsilon_", "υ")
+                .replaceAll("_phi_", "φ")
+                .replaceAll("_chi_", "χ")
+                .replaceAll("_psi_", "ψ")
+                .replaceAll("_omega_", "ω");
+
+        // greek capital letters
+        newString = newString
+                .replaceAll("_Alpha_", "Α")
+                .replaceAll("_Beta_", "Β")
+                .replaceAll("_Gamma_", "Γ")
+                .replaceAll("_Delta_", "Δ")
+                .replaceAll("_Epsilon_", "Ε")
+                .replaceAll("_Zeta_", "Ζ")
+                .replaceAll("_Eta_", "Η")
+                .replaceAll("_Theta_", "Θ")
+                .replaceAll("_Iota_", "Ι")
+                .replaceAll("_Kappa_", "Κ")
+                .replaceAll("_Lambda_", "Λ")
+                .replaceAll("_Mu_", "Μ")
+                .replaceAll("_Nu_", "Ν")
+                .replaceAll("_Xi_", "Ξ")
+                .replaceAll("_Omicron_", "Ο")
+                .replaceAll("_Pi_", "Π")
+                .replaceAll("_Rho_", "Ρ")
+                .replaceAll("_Sigma_", "Σ")
+                .replaceAll("_Tau_", "Τ")
+                .replaceAll("_Upsilon_", "Υ")
+                .replaceAll("_Phi_", "Φ")
+                .replaceAll("_Chi_", "Χ")
+                .replaceAll("_Psi_", "Ψ")
+                .replaceAll("_Omega_", "Ω");
+
+        // get rid of super and subscript, for lack of management possibility
+        newString = newString
+                .replaceAll("_super_","")
+                .replaceAll("_endsuper_","")
+                .replaceAll("_sub_","")
+                .replaceAll("_endsub_","");
+
+        return newString;
+    }
+
 }

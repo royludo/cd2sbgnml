@@ -336,8 +336,24 @@ public class CD2SBGNML extends GeneralConverter {
 
                 // label
                 Label compLabel = new Label();
-                compLabel.setText(compartment.getName().getStringValue());
+                compLabel.setText(Utils.interpretToUTF8(compartment.getName().getStringValue()));
+
+                // if a namepoint element is there, add a bbox to place the label correctly
+                for(int i =0; i < alias.getDomNode().getChildNodes().getLength(); i++) {
+                    Node n = alias.getDomNode().getChildNodes().item(i);
+                    if(n.getNodeName().equals("celldesigner_namePoint")) {
+                        Bbox labelBbox = new Bbox();
+                        labelBbox.setX(Float.parseFloat(n.getAttributes().getNamedItem("x").getNodeValue()));
+                        labelBbox.setY(Float.parseFloat(n.getAttributes().getNamedItem("y").getNodeValue()));
+                        labelBbox.setH(10);
+                        labelBbox.setW(GeometryUtils.getLengthForString(compartment.getName().getStringValue()));
+                        compLabel.setBbox(labelBbox);
+                    }
+                }
+
                 compGlyph.setLabel(compLabel);
+
+
 
                 // bbox
                 Bbox compBbox = new Bbox();
@@ -460,7 +476,7 @@ public class CD2SBGNML extends GeneralConverter {
 
         // label
         Label label = new Label();
-        label.setText(species.getName());
+        label.setText(Utils.interpretToUTF8(species.getName()));
         glyph.setLabel(label);
 
         // bbox
@@ -587,7 +603,7 @@ public class CD2SBGNML extends GeneralConverter {
 
         Glyph unitOfInfo = new Glyph();
         Label infoLabel = new Label();
-        infoLabel.setText(text);
+        infoLabel.setText(Utils.interpretToUTF8(text));
         unitOfInfo.setLabel(infoLabel);
 
         Rectangle2D.Float infoRect = GeometryUtils.getAuxUnitBbox(parentBbox, text, angle);
