@@ -158,8 +158,8 @@ public class AssociationReactionModel extends GenericReactionModel {
 
 
             if(reactionW.isReversible()) {
-                link0.reverse();
-                link1.reverse();
+                mergedLink0.reverse();
+                mergedLink1.reverse();
             }
 
             // add everything to the reaction lists
