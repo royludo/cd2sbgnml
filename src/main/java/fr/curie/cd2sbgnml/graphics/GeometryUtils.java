@@ -964,12 +964,23 @@ public class GeometryUtils {
      * @param angle
      * @return
      */
-    public static Rectangle2D.Float getAuxUnitBbox(Rectangle2D.Float parentBbox, String s, float angle) {
+    public static Rectangle2D.Float getAuxUnitBboxFromAngle(Rectangle2D.Float parentBbox, String s, float angle) {
 
         System.out.println("Aux unit bbox with parent: " + parentBbox+" at angle "+angle);
         System.out.println("received: "+angle+" passed: "+angle);
         Point2D.Float unitCenter = getPositionFromAngle(parentBbox, angle);
-        System.out.println("unitcenter "+unitCenter);
+        System.out.println("UNIT CENTER: "+unitCenter);
+        return getAuxUnitBboxFromPoint(parentBbox, s, unitCenter);
+    }
+
+    public static Rectangle2D.Float getAuxUnitBboxFromRelativeTopRatio(Rectangle2D.Float parentBbox, String s, float ratio) {
+        Point2D.Float unitCenter = getTopPositionFromRatio(parentBbox, ratio);
+        System.out.println("UNIT CENTER top ratio: "+unitCenter);
+        return getAuxUnitBboxFromPoint(parentBbox, s, unitCenter);
+
+    }
+
+    public static Rectangle2D.Float getAuxUnitBboxFromPoint(Rectangle2D.Float parentBbox, String s, Point2D unitCenter) {
         float unitWidth = getLengthForString(s);
         float unitHeight = 10;
         // limit size of infobox to parent glyph width
@@ -1098,6 +1109,19 @@ public class GeometryUtils {
 
 
         return new Point2D.Float((float) resultX,(float) resultY);
+    }
+
+    /**
+     * For genes modification residues, CD uses a % of the glyph width as location. They are always placed on top.
+     * @param rect
+     * @param ratio between 0 and 1, from the left side
+     * @return point in relative coordinate from rect center
+     */
+    public static Point2D.Float getTopPositionFromRatio(Rectangle2D.Float rect, float ratio) {
+        // convert to relative coordinates from input rectangle's center
+        float resultX = rect.width * ratio - rect.width / 2;
+        float resultY = -rect.height / 2;
+        return new Point2D.Float(resultX, resultY);
     }
 
     public static float unsignedRadianToSignedDegree(float radian) {

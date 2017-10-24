@@ -9,6 +9,12 @@ public class ResidueWrapper {
 
     public String id;
     public float angle;
+    public float relativePos; // between 0 and 1
+    /**
+     * Residue can be defined either by an angle (for proteins) or by relative top position (for gene, rna, asrna).
+     * This flag tells which one is used.
+     */
+    public boolean useAngle = true;
     public String state;
     public String name;
 

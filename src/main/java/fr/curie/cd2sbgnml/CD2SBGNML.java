@@ -5,7 +5,6 @@ import fr.curie.cd2sbgnml.graphics.Link;
 import fr.curie.cd2sbgnml.model.*;
 import fr.curie.cd2sbgnml.model.Process;
 import fr.curie.cd2sbgnml.xmlcdwrappers.*;
-import org.apache.xmlbeans.XmlObject;
 import org.sbfc.converter.GeneralConverter;
 import org.sbfc.converter.exceptions.ConversionException;
 import org.sbfc.converter.exceptions.ReadModelException;
@@ -27,7 +26,6 @@ import org.w3c.dom.Node;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.UTFDataFormatException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -535,11 +533,7 @@ public class CD2SBGNML extends GeneralConverter {
         for(ResidueWrapper residueW: species.getResidues()) {
 
             System.out.println("statevar: received: "+residueW.angle+" passed: "+GeometryUtils.unsignedRadianToSignedDegree(residueW.angle));
-            Glyph residue = getStateVariable(
-                    residueW.name,
-                    ResidueWrapper.getShortState(residueW.state),
-                    bboxRect,
-                    GeometryUtils.unsignedRadianToSignedDegree(residueW.angle));
+            Glyph residue = getStateVariableFromResidueWrapper(residueW, bboxRect);
 
             glyph.getGlyph().add(residue);
         }
@@ -585,7 +579,43 @@ public class CD2SBGNML extends GeneralConverter {
         state.setVariable(prefix);
         unitOfInfo.setState(state);
 
-        Rectangle2D.Float infoRect = GeometryUtils.getAuxUnitBbox(parentBbox, prefix+":"+value, angle);
+        Rectangle2D.Float infoRect = GeometryUtils.getAuxUnitBboxFromAngle(parentBbox, prefix+":"+value, angle);
+        Bbox infoBbox = new Bbox();
+        infoBbox.setX((float) infoRect.getX());
+        infoBbox.setY((float) infoRect.getY());
+        infoBbox.setW((float) infoRect.getWidth());
+        infoBbox.setH((float) infoRect.getHeight());
+        unitOfInfo.setBbox(infoBbox);
+
+        unitOfInfo.setClazz("state variable");
+        unitOfInfo.setId("_" + UUID.randomUUID());
+
+        return unitOfInfo;
+    }
+
+    public Glyph getStateVariableFromResidueWrapper(ResidueWrapper residueW, Rectangle2D.Float parentBbox) {
+
+        Glyph unitOfInfo = new Glyph();
+
+        String prefix = residueW.name;
+        String value = ResidueWrapper.getShortState(residueW.state);
+        State state = new State();
+        state.setValue(value);
+        state.setVariable(prefix);
+        unitOfInfo.setState(state);
+
+        Rectangle2D.Float infoRect;
+        if(residueW.useAngle) {
+            System.out.println("From residueW Use angle");
+            infoRect = GeometryUtils.getAuxUnitBboxFromAngle(parentBbox, prefix+":"+value,
+                    GeometryUtils.unsignedRadianToSignedDegree(residueW.angle));
+        }
+        else {
+            System.out.println("From residueW Use top ratio");
+            infoRect = GeometryUtils.getAuxUnitBboxFromRelativeTopRatio(parentBbox, prefix+":"+value, residueW.relativePos);
+        }
+        System.out.println("Info rect final: "+infoRect);
+
         Bbox infoBbox = new Bbox();
         infoBbox.setX((float) infoRect.getX());
         infoBbox.setY((float) infoRect.getY());
@@ -606,7 +636,7 @@ public class CD2SBGNML extends GeneralConverter {
         infoLabel.setText(Utils.interpretToUTF8(text));
         unitOfInfo.setLabel(infoLabel);
 
-        Rectangle2D.Float infoRect = GeometryUtils.getAuxUnitBbox(parentBbox, text, angle);
+        Rectangle2D.Float infoRect = GeometryUtils.getAuxUnitBboxFromAngle(parentBbox, text, angle);
         Bbox infoBbox = new Bbox();
         infoBbox.setX((float) infoRect.getX());
         infoBbox.setY((float) infoRect.getY());
