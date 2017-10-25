@@ -57,6 +57,7 @@ public class SpeciesWrapper {
     private ReferenceType type;
     private Element notes;
     private Element referenceNotes;
+    private Element annotations;
 
     private List<AliasWrapper> aliases;
     private List<ResidueWrapper> residues;
@@ -70,6 +71,8 @@ public class SpeciesWrapper {
         this.compartment = species.getCompartment();
         this.complex = null;
         this.notes = Utils.getNotes(species);
+        this.annotations = Utils.getRDFAnnotations(species.getAnnotation());
+        System.out.println("annotation for species: "+this.id+" "+this.annotations);
 
         this.commonConstructor(species.getAnnotation().getCelldesignerSpeciesIdentity(), modelW);
 
@@ -85,6 +88,7 @@ public class SpeciesWrapper {
         this.complex = complexSpecies.getDomNode().getChildNodes().item(0).getNodeValue();
         this.compartment = null;
         this.notes = Utils.getNotes(species);
+        this.annotations = Utils.getRDFAnnotations(species);
 
         this.commonConstructor(species.getCelldesignerAnnotation().getCelldesignerSpeciesIdentity(), modelW);
     }
@@ -398,5 +402,7 @@ public class SpeciesWrapper {
         return referenceNotes;
     }
 
-
+    public Element getAnnotations() {
+        return annotations;
+    }
 }

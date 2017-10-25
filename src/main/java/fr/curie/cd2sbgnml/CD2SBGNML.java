@@ -52,6 +52,9 @@ public class CD2SBGNML extends GeneralConverter {
         if(modelW.getModel().getNotes() != null) {
             map.setNotes(getSBGNNotes(Utils.getNotes(modelW.getModel())));
         }
+        // put model annotations into map annotations
+        map.setExtension(getSBGNAnnotation(Utils.getRDFAnnotations(modelW.getModel().getAnnotation()), "mapID"));
+
         //System.exit(1);
 
         System.out.println(modelW.getListOfSpecies().size());
@@ -111,6 +114,8 @@ public class CD2SBGNML extends GeneralConverter {
                 // put reaction into process glyph
                 // TODO if no process, add notes into the arc
                 processGlyph.setNotes(getSBGNNotes(Utils.getNotes(reactionW.getReaction())));
+                processGlyph.setExtension(getSBGNAnnotation(
+                        Utils.getRDFAnnotations(reactionW.getReaction().getAnnotation()), processId));
 
                 // TODO process style ?
 
@@ -386,6 +391,8 @@ public class CD2SBGNML extends GeneralConverter {
 
                 // keep notes
                 compGlyph.setNotes(getSBGNNotes(Utils.getNotes(compartment)));
+                compGlyph.setExtension(getSBGNAnnotation(
+                        Utils.getRDFAnnotations(compartment.getAnnotation()), compartmentId));
 
                 // keep references
                 glyphList.add(compGlyph);
@@ -400,7 +407,7 @@ public class CD2SBGNML extends GeneralConverter {
 
     public Glyph processSpeciesAlias(SpeciesWrapper species, AliasWrapper alias, ModelWrapper modelW, boolean isClone) {
         Glyph glyph = getGlyph(alias, isClone);
-        glyph.setNotes(getSBGNNotes(species.getNotes()));
+
         if(species.getReferenceNotes() != null) {
             // TODO is piling up <html> elements in 1 note ok ?
             glyph.getNotes().getAny().add(species.getReferenceNotes());
@@ -570,6 +577,10 @@ public class CD2SBGNML extends GeneralConverter {
             Glyph receptorUnitOfInfo = getUnitOfInfo("truncated", bboxRect, 90);
             glyph.getGlyph().add(receptorUnitOfInfo);
         }
+
+        glyph.setNotes(getSBGNNotes(species.getNotes()));
+        System.out.println("add annotations");
+        glyph.setExtension(getSBGNAnnotation(species.getAnnotations(), id));
 
 
         // class
@@ -815,6 +826,29 @@ public class CD2SBGNML extends GeneralConverter {
         //System.out.println((Element) modelW.getModel().getNotes().getDomNode());
         newNotes.getAny().add(notes);
         return newNotes;
+    }
+
+    /**
+     * Convert a rdf element to an SBGN extension, with an annotation element inside wrapping the rdf.
+     * @param rdf
+     * @return
+     */
+    public SBGNBase.Extension getSBGNAnnotation(Element rdf, String refId) {
+        System.out.println("rdf: "+rdf);
+        if(rdf == null) {
+            return null;
+        }
+
+        // assume the first description is the one concerning our element, which should always be the case
+        Element description = (Element) rdf.getElementsByTagName("rdf:Description").item(0);
+        description.setAttribute("rdf:about", "#"+refId);
+
+        SBGNBase.Extension newExt = new SBGNBase.Extension();
+        //System.out.println((Element) modelW.getModel().getNotes().getDomNode());
+        Element annotationElement = rdf.getOwnerDocument().createElement("annotation");
+        annotationElement.appendChild(rdf.cloneNode(true));
+        newExt.getAny().add(annotationElement);
+        return newExt;
     }
 
     public GeneralModel convert(GeneralModel generalModel) throws ConversionException, ReadModelException {

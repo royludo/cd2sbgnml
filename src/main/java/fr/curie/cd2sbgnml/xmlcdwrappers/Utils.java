@@ -133,4 +133,22 @@ public class Utils {
         return newString;
     }
 
+    /**
+     * Get the RDF element from an annotation element, if present
+     * @param annotationsXml
+     * @param refId the id of the element the RDF is pointing to, content of rdf:about
+     * @return
+     */
+    public static Element getRDFAnnotations(XmlObject annotationsXml) {
+        for(int i=0; i < annotationsXml.getDomNode().getChildNodes().getLength(); i++) {
+            Node n = annotationsXml.getDomNode().getChildNodes().item(i);
+            System.out.println("n name: "+n.getNodeName());
+            if(n.getNodeName().equals("rdf:RDF")) {
+                Element rdf = (Element) n;
+                return rdf;
+            }
+        }
+        return null;
+    }
+
 }
