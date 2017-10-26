@@ -1,22 +1,18 @@
 package fr.curie.cd2sbgnml;
 
-import org.apache.logging.log4j.core.config.LoggerConfig;
-import org.apache.logging.slf4j.Log4jLoggerFactory;
 import org.sbfc.converter.exceptions.ConversionException;
 import org.sbfc.converter.exceptions.ReadModelException;
 import org.sbfc.converter.exceptions.WriteModelException;
 import org.sbgn.SbgnUtil;
-import org.sbml.jsbml.SBMLDocument;
-import org.sbml.jsbml.SBMLReader;
-import org.sbml.jsbml.SBMLWriter;
-import org.sbml.jsbml.TidySBMLWriter;
 /*import org.sbml.sbml.level2.version4.Sbml;
 import org.sbml.wrapper.ModelWrapper;
 import org.sbml.wrapper.ObjectFactory;*/
-import org.apache.logging.slf4j.Log4jLogger;
+import org.sbml.sbml.level2.version4.Model;
+import org.sbml.sbml.level2.version4.Sbml;
+import org.slf4j.impl.SimpleLogger;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBException;
+import javax.xml.bind.*;
 import javax.xml.stream.XMLStreamException;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,9 +21,8 @@ import java.io.IOException;
 public class Main {
     public static void main(String args[]) {
         System.out.println("test");
-        /*System.setProperty( .LOG_FILE_KEY, "src/main/resources/report.log");
-        System.setProperty(SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "DEBUG");*/
-        System.setProperty("log4j.configuration", "src/main/resources/log4j.properties");
+        System.setProperty(SimpleLogger.LOG_FILE_KEY, "samples/report.log");
+        System.setProperty(SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "DEBUG");
 
         /*fr.curie.cd2sbgnml.xmlcdwrappers.ModelWrapper model = null;
         try {
@@ -72,7 +67,7 @@ public class Main {
 
         CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
         try {
-            cdModel.setModelFromFile("samples/components44.xml");
+            cdModel.setModelFromFile("samples/rcd_master.xml");
             //System.out.println(cdModel.modelToString());
         } catch (ReadModelException e) {
             e.printStackTrace();
@@ -95,12 +90,12 @@ public class Main {
             e.printStackTrace();
         }
 
-        /*
+
 
         System.out.println("CONVERT BACK TO CD");
         SBGNSBFCModel sbgnModel = new SBGNSBFCModel();
         try {
-            sbgnModel.setModelFromFile("src/main/resources/out.sbgnml");
+            sbgnModel.setModelFromFile("samples/out.sbgnml");
         } catch (ReadModelException e) {
             e.printStackTrace();
         }
@@ -111,8 +106,16 @@ public class Main {
             //backCdModel.modelToFile("src/main/resources/newCD.sbgnml");
             System.out.println(backCdModel.getBaseSbml());
 
-            ModelWrapper mw = new ModelWrapper(backCdModel.getBaseSbml().getModel(), backCdModel.getBaseSbml());
-            SBMLWriter sw = new SBMLWriter();
+
+            File file = new File("samples/newCD.xml");
+            Marshaller marshaller = JAXBContext.newInstance(Sbml.class).createMarshaller();
+            marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            marshaller.marshal(backCdModel.getBaseSbml() , file);
+
+
+            /*ModelWrapper mw = new ModelWrapper(backCdModel.getBaseSbml().getModel(), backCdModel.getBaseSbml());
+
 
 
             try {
@@ -125,14 +128,18 @@ public class Main {
                 e.printStackTrace();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
-            }
+            }*/
 
         } catch (ConversionException e) {
             e.printStackTrace();
         } catch (ReadModelException e) {
             e.printStackTrace();
+        } catch (PropertyException e) {
+            e.printStackTrace();
+        } catch (JAXBException e) {
+            e.printStackTrace();
         }
 
-        */
+
     }
 }

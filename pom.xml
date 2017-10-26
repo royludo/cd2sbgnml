@@ -46,6 +46,7 @@
                     </execution>
 
                     <!-- cellDesignerParser funasoul -->
+                    <!--
                     <execution>
                         <id>install-celldesigner-parser-funasoul</id>
                         <phase>clean</phase>
@@ -62,6 +63,7 @@
                             <goal>install-file</goal>
                         </goals>
                     </execution>
+                    -->
 
                     <!-- libsbgn -->
                     <execution>
@@ -150,17 +152,19 @@
             <version>1.0</version>
         </dependency>
 
+        <!--
         <dependency>
             <groupId>org.sbml</groupId>
             <artifactId>cellDesigner-parser</artifactId>
             <version>1.0</version>
         </dependency>
 
+
         <dependency>
             <groupId>org.sbml.jsbml</groupId>
             <artifactId>jsbml</artifactId>
             <version>1.2</version>
-        </dependency>
+        </dependency> -->
 
         <dependency>
             <groupId>junit</groupId>
@@ -173,6 +177,13 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
             <version>1.7.25</version>
         </dependency>
 

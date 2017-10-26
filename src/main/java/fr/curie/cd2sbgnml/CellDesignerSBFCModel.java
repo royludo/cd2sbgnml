@@ -4,7 +4,6 @@ import fr.curie.BiNoM.pathways.wrappers.CellDesigner;
 import org.sbfc.converter.exceptions.ReadModelException;
 import org.sbfc.converter.exceptions.WriteModelException;
 import org.sbfc.converter.models.GeneralModel;
-import org.sbml.jsbml.SBMLDocument;
 import org.sbml.sbml.level2.version4.Sbml;
 import org.sbml.x2001.ns.celldesigner.SbmlDocument;
 
@@ -15,7 +14,6 @@ import java.io.StringWriter;
 public class CellDesignerSBFCModel implements GeneralModel {
 
     private SbmlDocument sbml;
-    private SBMLDocument trueSbml;
     private Sbml baseSbml;
 
     public CellDesignerSBFCModel() {
@@ -27,10 +25,7 @@ public class CellDesignerSBFCModel implements GeneralModel {
         this.sbml = sbml;
     }
 
-    public CellDesignerSBFCModel(SBMLDocument sbml) {
-        super();
-        this.trueSbml = sbml;
-    }
+
 
     public CellDesignerSBFCModel(Sbml sbml) {
         super();
@@ -40,9 +35,6 @@ public class CellDesignerSBFCModel implements GeneralModel {
 
     public SbmlDocument getModel() {
         return sbml;
-    }
-    public SBMLDocument getTrueSbml() {
-        return trueSbml;
     }
     public Sbml getBaseSbml() {
         return baseSbml;
