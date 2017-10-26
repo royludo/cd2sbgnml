@@ -1,5 +1,7 @@
 package fr.curie.cd2sbgnml;
 
+import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.apache.logging.slf4j.Log4jLoggerFactory;
 import org.sbfc.converter.exceptions.ConversionException;
 import org.sbfc.converter.exceptions.ReadModelException;
 import org.sbfc.converter.exceptions.WriteModelException;
@@ -8,10 +10,10 @@ import org.sbml.jsbml.SBMLDocument;
 import org.sbml.jsbml.SBMLReader;
 import org.sbml.jsbml.SBMLWriter;
 import org.sbml.jsbml.TidySBMLWriter;
-import org.sbml.sbml.level2.version4.Sbml;
+/*import org.sbml.sbml.level2.version4.Sbml;
 import org.sbml.wrapper.ModelWrapper;
-import org.sbml.wrapper.ObjectFactory;
-import org.slf4j.impl.SimpleLogger;
+import org.sbml.wrapper.ObjectFactory;*/
+import org.apache.logging.slf4j.Log4jLogger;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBException;
@@ -23,8 +25,9 @@ import java.io.IOException;
 public class Main {
     public static void main(String args[]) {
         System.out.println("test");
-        System.setProperty(SimpleLogger.LOG_FILE_KEY, "src/main/resources/report.log");
-        System.setProperty(SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "DEBUG");
+        /*System.setProperty( .LOG_FILE_KEY, "src/main/resources/report.log");
+        System.setProperty(SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "DEBUG");*/
+        System.setProperty("log4j.configuration", "src/main/resources/log4j.properties");
 
         /*fr.curie.cd2sbgnml.xmlcdwrappers.ModelWrapper model = null;
         try {
@@ -69,21 +72,21 @@ public class Main {
 
         CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
         try {
-            cdModel.setModelFromFile("src/main/resources/mtor.xml");
+            cdModel.setModelFromFile("samples/components44.xml");
             //System.out.println(cdModel.modelToString());
         } catch (ReadModelException e) {
             e.printStackTrace();
         }
 
         try {
-            SbgnUtil.writeToFile(new CD2SBGNML().toSbgn(cdModel.getModel()), new File("src/main/resources/out.sbgnml"));
+            SbgnUtil.writeToFile(new CD2SBGNML().toSbgn(cdModel.getModel()), new File("samples/out.sbgnml"));
         } catch (JAXBException e) {
             e.printStackTrace();
         }
 
         System.out.println("VALIDATION");
         try {
-            SbgnUtil.isValid(new File("src/main/resources/out.sbgnml"));
+            SbgnUtil.isValid(new File("samples/out.sbgnml"));
         } catch (JAXBException e) {
             e.printStackTrace();
         } catch (SAXException e) {
