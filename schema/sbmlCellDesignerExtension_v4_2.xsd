@@ -1,0 +1,2208 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- edited with xmlspy v5 rel. 4 U (http://www.xmlspy.com) by Norihiro Kikuchi (Mitsui Knowledge Industry) -->
+<!-- edited with xmlspy v5 rel. 4 U (http://www.xmlspy.com) by Norihiro Kikuchi (Mitsui Knowledge Industry) -->
+<!-- edited with xmlspy v5 rel. 4 U (http://www.xmlspy.com) by Norihiro Kikuchi (Mitsui Knowledge Industry) -->
+<!-- edited with XMLSpy v2007 rel. 3 (http://www.altova.com) by kikuchi (MKI) -->
+<!-- edited with xmlspy v5 rel. 4 U (http://www.xmlspy.com) by Norihiro Kikuchi (Mitsui Knowledge Industry) -->
+<!-- edited with xmlspy v5 rel. 4 U (http://www.xmlspy.com) by Norihiro Kikuchi (Mitsui Knowledge Industry) -->
+<!-- edited with xmlspy v5 rel. 4 U (http://www.xmlspy.com) by Norihiro Kikuchi (Mitsui Knowledge Industry) -->
+<!-- edited with xmlspy v5 rel. 4 U (http://www.xmlspy.com) by Norihiro Kikuchi (Mitsui Knowledge Industry) -->
+<xs:schema targetNamespace="http://www.sbml.org/2001/ns/celldesigner" xmlns:celldesigner="http://www.sbml.org/2001/ns/celldesigner" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <!--Simple data types.-->
+  <xs:simpleType name="SId">
+    <xs:annotation>
+      <xs:documentation>The type SId is the same as the SId in SBML level 2 version 1.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="(_|[a-z]|[A-Z])(_|[a-z]|[A-Z]|[0-9])*"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="SIdSet">
+    <xs:annotation>
+      <xs:documentation>A set of SId.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="(_|[a-z]|[A-Z])(_|[a-z]|[A-Z]|[0-9])*(,(_|[a-z]|[A-Z])(_|[a-z]|[A-Z]|[0-9])*)*"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="point2D">
+    <xs:annotation>
+      <xs:documentation>Coordinate value x,y.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="(\+|-)?[0-9]+(\.[0-9]*)?((e|E)(\+|-)?[0-9]+)?,(\+|-)?[0-9]+(\.[0-9]*)?((e|E)(\+|-)?[0-9]+)?"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="point2DList" final="list">
+    <xs:annotation>
+      <xs:documentation>List of coordinate values.</xs:documentation>
+    </xs:annotation>
+    <xs:list itemType="celldesigner:point2D"/>
+  </xs:simpleType>
+  <!--Types commonly used.-->
+  <xs:complexType name="bounds">
+    <xs:annotation>
+      <xs:documentation>Bound of an object on canvas.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="h" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal">
+          <xs:minInclusive value="0.0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="w" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal">
+          <xs:minInclusive value="0.0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="x" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="y" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="point">
+    <xs:annotation>
+      <xs:documentation>Point of an object on canvas.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="x" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="y" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="innerPosition">
+    <xs:annotation>
+      <xs:documentation>Innerposition relative to a surrounding object.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="x" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="y" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="boxSize">
+    <xs:annotation>
+      <xs:documentation>Box size. Width and height.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="height" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal">
+          <xs:minInclusive value="0.0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="width" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal">
+          <xs:minInclusive value="0.0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="singleLine">
+    <xs:annotation>
+      <xs:documentation>Single line type to draw object.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="width" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal">
+          <xs:minInclusive value="0.0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="doubleLine">
+    <xs:annotation>
+      <xs:documentation>Double line type to draw object.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="innerWidth" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal">
+          <xs:minInclusive value="0.0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="outerWidth" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal">
+          <xs:minInclusive value="0.0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="thickness" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal">
+          <xs:minInclusive value="0.0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="paint">
+    <xs:annotation>
+      <xs:documentation>Paint scheme to paint object.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="color" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="[0-9a-fA-F]{8}"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="scheme" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Color"/>
+          <xs:enumeration value="Gradation"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="view">
+    <xs:annotation>
+      <xs:documentation>View state.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="state" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="brief"/>
+          <xs:enumeration value="usual"/>
+          <xs:enumeration value="complexnoborder"/>
+          <xs:enumeration value="complexparentbrief"/>
+          <xs:enumeration value="none"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="usualView">
+    <xs:annotation>
+      <xs:documentation>Data for drawing object with usual view.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="innerPosition" type="celldesigner:innerPosition" minOccurs="0"/>
+      <xs:element name="boxSize" type="celldesigner:boxSize"/>
+      <xs:element name="singleLine" type="celldesigner:singleLine"/>
+      <xs:element name="paint" type="celldesigner:paint"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="briefView">
+    <xs:annotation>
+      <xs:documentation>Data for drawing object with brief (compact) view.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="innerPosition" type="celldesigner:innerPosition"/>
+      <xs:element name="boxSize" type="celldesigner:boxSize"/>
+      <xs:element name="singleLine" type="celldesigner:singleLine"/>
+      <xs:element name="paint" type="celldesigner:paint"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="notes">
+    <xs:annotation>
+      <xs:documentation>Notes as in sbml.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:any namespace="http://www.w3.org/1999/xhtml" processContents="skip" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="class">
+    <xs:annotation>
+      <xs:documentation>Object classes for network nodes or containers of process diagrams.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="PROTEIN"/>
+        <xs:enumeration value="GENE"/>
+        <xs:enumeration value="RNA"/>
+        <xs:enumeration value="ANTISENSE_RNA"/>
+        <xs:enumeration value="PHENOTYPE"/>
+        <xs:enumeration value="ION"/>
+        <xs:enumeration value="SIMPLE_MOLECULE"/>
+        <xs:enumeration value="DRUG"/>
+        <xs:enumeration value="UNKNOWN"/>
+        <xs:enumeration value="COMPLEX"/>
+        <xs:enumeration value="SQUARE"/>
+        <xs:enumeration value="OVAL"/>
+        <xs:enumeration value="SQUARE_CLOSEUP_NORTHWEST"/>
+        <xs:enumeration value="SQUARE_CLOSEUP_NORTHEAST"/>
+        <xs:enumeration value="SQUARE_CLOSEUP_SOUTHWEST"/>
+        <xs:enumeration value="SQUARE_CLOSEUP_SOUTHEAST"/>
+        <xs:enumeration value="SQUARE_CLOSEUP_NORTH"/>
+        <xs:enumeration value="SQUARE_CLOSEUP_EAST"/>
+        <xs:enumeration value="SQUARE_CLOSEUP_WEST"/>
+        <xs:enumeration value="SQUARE_CLOSEUP_SOUTH"/>
+        <xs:enumeration value="DEGRADED"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="name">
+    <xs:annotation>
+      <xs:documentation>Name of a compartment, or a species.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="activity">
+    <xs:annotation>
+      <xs:documentation>Designation of activity of the species (aliases).</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="active"/>
+        <xs:enumeration value="inactive"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <!--Species extension.-->
+  <xs:element name="positionToCompartment">
+    <xs:annotation>
+      <xs:documentation>Species' position to its parent compartment. For the species not forming any complex.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="outerSurface"/>
+        <xs:enumeration value="transmembrane"/>
+        <xs:enumeration value="innerSurface"/>
+        <xs:enumeration value="inside"/>
+        <xs:enumeration value="insideOfMembrane"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="complexSpecies" type="celldesigner:SId">
+    <xs:annotation>
+      <xs:documentation>Species id of the parent complex. For the species forming a complex.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="hypothetical">
+    <xs:annotation>
+      <xs:documentation>Designator to tell that the species is hypothetical.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:boolean"/>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="proteinReference">
+    <xs:annotation>
+      <xs:documentation>Reference to a protein.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="celldesigner:SId"/>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="geneReference">
+    <xs:annotation>
+      <xs:documentation>Reference to a gene.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="celldesigner:SId"/>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="rnaReference">
+    <xs:annotation>
+      <xs:documentation>Reference to an rna.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="celldesigner:SId"/>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="antisensernaReference">
+    <xs:annotation>
+      <xs:documentation>Reference to an antisense rna.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="celldesigner:SId"/>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="homodimer">
+    <xs:annotation>
+      <xs:documentation>Valence value of homogeneous multimer.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:positiveInteger"/>
+    </xs:simpleType>
+  </xs:element>
+  <xs:complexType name="listOfModifications">
+    <xs:annotation>
+      <xs:documentation>List of residue modification.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence maxOccurs="unbounded">
+      <xs:element name="modification">
+        <xs:complexType>
+          <xs:attribute name="residue" type="celldesigner:SId" use="required"/>
+          <xs:attribute name="state" use="required">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="phosphorylated"/>
+                <xs:enumeration value="acetylated"/>
+                <xs:enumeration value="ubiquitinated"/>
+                <xs:enumeration value="methylated"/>
+                <xs:enumeration value="hydroxylated"/>
+                <xs:enumeration value="don't care"/>
+                <xs:enumeration value="unknown"/>
+                <xs:enumeration value="glycosylated"/>
+                <xs:enumeration value="myristoylated"/>
+                <xs:enumeration value="palmytoylated"/>
+                <xs:enumeration value="prenylated"/>
+                <xs:enumeration value="protonated"/>
+                <xs:enumeration value="sulfated"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="state">
+    <xs:annotation>
+      <xs:documentation>Chemical "state" to distinguish chemical species derived from a root chemical.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element ref="celldesigner:homodimer" minOccurs="0"/>
+      <xs:element name="listOfModifications" type="celldesigner:listOfModifications" minOccurs="0"/>
+      <xs:element name="listOfStructuralStates" type="celldesigner:listOfStructuralStates" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="speciesIdentity">
+    <xs:annotation>
+      <xs:documentation>Identity to distinguish chemical species of CellDesigner's model.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element ref="celldesigner:class"/>
+      <xs:element ref="celldesigner:hypothetical" minOccurs="0"/>
+      <xs:choice>
+        <xs:element ref="celldesigner:name" minOccurs="0"/>
+        <xs:element ref="celldesigner:proteinReference" minOccurs="0"/>
+        <xs:element ref="celldesigner:rnaReference" minOccurs="0"/>
+        <xs:element ref="celldesigner:geneReference" minOccurs="0"/>
+        <xs:element ref="celldesigner:antisensernaReference" minOccurs="0"/>
+      </xs:choice>
+      <xs:element name="state" type="celldesigner:state" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="catalyzed">
+    <xs:annotation>
+      <xs:documentation>Catalyzed reaction.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="reaction" type="celldesigner:SId" use="required"/>
+  </xs:complexType>
+  <xs:complexType name="listOfCatalyzedReactions">
+    <xs:annotation>
+      <xs:documentation>List of catalyzed reaction.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="catalyzed" type="celldesigner:catalyzed" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="speciesAnnotationType">
+    <xs:annotation>
+      <xs:documentation>Annotation for species.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="extension">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:choice>
+              <xs:element ref="celldesigner:positionToCompartment"/>
+              <xs:element ref="celldesigner:complexSpecies"/>
+            </xs:choice>
+            <xs:element name="speciesIdentity" type="celldesigner:speciesIdentity"/>
+            <xs:element name="listOfCatalyzedReactions" type="celldesigner:listOfCatalyzedReactions" minOccurs="0"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <!-- keep the possibility to add RDF annotations -->
+      <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!--Model extension.-->
+  <xs:element name="modelVersion" fixed="4.0">
+    <xs:annotation>
+      <xs:documentation>Model version declaration.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:decimal">
+        <xs:minInclusive value="0.0"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:complexType name="modelDisplay">
+    <xs:annotation>
+      <xs:documentation>Model size, width and height.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="sizeX" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minExclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="sizeY" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minExclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <!--Model.IncludedSpecies-->
+  <xs:complexType name="species">
+    <xs:annotation>
+      <xs:documentation>Species inside complexes.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="notes" type="celldesigner:notes" minOccurs="0"/>
+      <xs:element name="annotation">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:choice>
+              <xs:element ref="celldesigner:positionToCompartment"/>
+              <xs:element ref="celldesigner:complexSpecies"/>
+            </xs:choice>
+            <xs:element name="speciesIdentity" type="celldesigner:speciesIdentity"/>
+            <xs:element name="listOfCatalyzedReactions" type="celldesigner:listOfCatalyzedReactions" minOccurs="0"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="id" type="celldesigner:SId" use="required"/>
+    <xs:attribute name="name" type="xs:string" use="optional"/>
+    <xs:attribute name="compartment" type="celldesigner:SId"/>
+    <xs:attribute name="initialAmount" type="xs:double" use="optional"/>
+    <xs:attribute name="initialConcentration" type="xs:double" use="optional"/>
+    <xs:attribute name="substanceUnits" type="celldesigner:SId" use="optional"/>
+    <xs:attribute name="spatialSizeUnits" type="celldesigner:SId" use="optional"/>
+    <xs:attribute name="hasOnlySubstanceUnits" type="xs:boolean" use="optional" default="false"/>
+    <xs:attribute name="boundaryCondition" type="xs:boolean" use="optional" default="false"/>
+    <xs:attribute name="charge" type="xs:integer" use="optional"/>
+    <xs:attribute name="constant" type="xs:boolean" use="optional" default="false"/>
+  </xs:complexType>
+  <xs:complexType name="listOfIncludedSpecies">
+    <xs:annotation>
+      <xs:documentation>List of species included by complexes.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="species" type="celldesigner:species" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!--Model.CompartmentAlias-->
+  <xs:complexType name="compartmentAlias">
+    <xs:annotation>
+      <xs:documentation>For compartment aliases.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element ref="celldesigner:class"/>
+      <xs:choice>
+        <xs:element name="bounds" type="celldesigner:bounds" minOccurs="0"/>
+        <xs:element name="point" type="celldesigner:point" minOccurs="0"/>
+      </xs:choice>
+      <xs:element name="namePoint" type="celldesigner:point"/>
+      <xs:element name="doubleLine" type="celldesigner:doubleLine"/>
+      <xs:element name="paint" type="celldesigner:paint"/>
+      <xs:element name="info" type="celldesigner:info"/>
+    </xs:sequence>
+    <xs:attribute name="compartment" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="listOfCompartmentAliases">
+    <xs:annotation>
+      <xs:documentation>List of compartment aliases.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="compartmentAlias" type="celldesigner:compartmentAlias" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!--Model.ComplexSpeciesAlias, Model.SpeciesAlias-->
+  <xs:complexType name="complexSpeciesAlias">
+    <xs:annotation>
+      <xs:documentation>For species aliases of complex species.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element ref="celldesigner:activity"/>
+      <xs:element name="bounds" type="celldesigner:bounds"/>
+      <xs:element name="view" type="celldesigner:view"/>
+      <xs:element name="backupSize">
+        <xs:complexType>
+          <xs:attribute name="w" type="xs:double"/>
+          <xs:attribute name="h" type="xs:double"/>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="backupView" type="celldesigner:view"/>
+      <xs:element name="structuralState" type="celldesigner:structuralStateAngle" minOccurs="0"/>
+      <xs:element name="usualView" type="celldesigner:usualView"/>
+      <xs:element name="briefView" type="celldesigner:briefView"/>
+      <xs:element name="listOfSpeciesTag" type="celldesigner:listOfSpeciesTag" minOccurs="0"/>
+      <xs:element name="info" type="celldesigner:info"/>
+    </xs:sequence>
+    <xs:attribute name="compartmentAlias" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="species" type="celldesigner:SId" use="required"/>
+  </xs:complexType>
+  <xs:complexType name="listOfComplexSpeciesAliases">
+    <xs:annotation>
+      <xs:documentation>List of complex species aliases.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="complexSpeciesAlias" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:complexContent>
+            <xs:extension base="celldesigner:complexSpeciesAlias">
+              <xs:attribute name="complexSpeciesAlias" type="celldesigner:SId" use="optional"/>
+            </xs:extension>
+          </xs:complexContent>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="speciesAlias">
+    <xs:annotation>
+      <xs:documentation>For species aliases not forming complexes.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element ref="celldesigner:activity"/>
+      <xs:element name="bounds" type="celldesigner:bounds"/>
+      <xs:element name="view" type="celldesigner:view"/>
+      <xs:element name="structuralState" type="celldesigner:structuralStateAngle" minOccurs="0"/>
+      <xs:element name="usualView" type="celldesigner:usualView"/>
+      <xs:element name="briefView" type="celldesigner:briefView"/>
+      <xs:element name="listOfSpeciesTag" type="celldesigner:listOfSpeciesTag" minOccurs="0"/>
+      <xs:element name="info" type="celldesigner:info"/>
+    </xs:sequence>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="species" type="celldesigner:SId" use="required"/>
+    <xs:attribute name="compartmentAlias" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="complexSpeciesAlias" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="listOfSpeciesAliases">
+    <xs:annotation>
+      <xs:documentation>List of simple species aliases.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="speciesAlias" type="celldesigner:speciesAlias" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!--Model.Group-->
+  <xs:complexType name="group">
+    <xs:annotation>
+      <xs:documentation>Group of speciesAliases.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="members" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="(_|[a-z]|[A-Z])(_|[a-z]|[A-Z]|[0-9])*(,(_|[a-z]|[A-Z])(_|[a-z]|[A-Z]|[0-9])*)+"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="listOfGroups">
+    <xs:annotation>
+      <xs:documentation>List of groups.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="group" type="celldesigner:group" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!--Model.Protein-->
+  <xs:complexType name="modificationResidue">
+    <xs:annotation>
+      <xs:documentation>For modification residue of proteins.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="name" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:string"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="angle" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal">
+          <xs:maxInclusive value="6.283185307179586476925286766559"/>
+          <xs:minInclusive value="0.0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="side"/>
+  </xs:complexType>
+  <xs:complexType name="listOfModificationResidues">
+    <xs:annotation>
+      <xs:documentation>List of modification residues.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="modificationResidue" type="celldesigner:modificationResidue" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="protein">
+    <xs:annotation>
+      <xs:documentation>For protein.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="notes" type="celldesigner:notes" minOccurs="0"/>
+      <xs:element name="listOfBindingRegions" type="celldesigner:listOfBindingRegions" minOccurs="0"/>
+      <xs:element name="listOfModificationResidues" type="celldesigner:listOfModificationResidues" minOccurs="0"/>
+      <xs:element name="listOfStructuralStates" type="celldesigner:listOfStructuralStates" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="name" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="type" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="GENERIC"/>
+          <xs:enumeration value="ION_CHANNEL"/>
+          <xs:enumeration value="RECEPTOR"/>
+          <xs:enumeration value="TRUNCATED"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="listOfProteins">
+    <xs:annotation>
+      <xs:documentation>List of proteins.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="protein" type="celldesigner:protein" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!--Model.Gene, Model.RNA, Model.AntisenseRNA-->
+  <xs:complexType name="region">
+    <xs:annotation>
+      <xs:documentation>Specific region on nucleotide.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="size" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal">
+          <xs:minInclusive value="0.0"/>
+          <xs:maxInclusive value="1.0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="pos" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal">
+          <xs:minInclusive value="0.0"/>
+          <xs:maxInclusive value="1.0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="type">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="proteinBindingDomain"/>
+          <xs:enumeration value="Modification Site"/>
+          <xs:enumeration value="transcriptionStartingSiteL"/>
+          <xs:enumeration value="transcriptionStartingSiteR"/>
+          <xs:enumeration value="CodingRegion"/>
+          <xs:enumeration value="RegulatoryRegion"/>
+          <xs:enumeration value="empty"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="name">
+      <xs:simpleType>
+        <xs:restriction base="xs:string"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="active" type="xs:boolean" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="listOfRegions">
+    <xs:annotation>
+      <xs:documentation>List of regions.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="region" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:complexContent>
+            <xs:extension base="celldesigner:region"/>
+          </xs:complexContent>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="gene">
+    <xs:annotation>
+      <xs:documentation>For gene.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="notes" type="celldesigner:notes" minOccurs="0"/>
+      <xs:element name="listOfRegions" type="celldesigner:listOfRegions" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="name" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="type" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="GENE"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="listOfGenes">
+    <xs:annotation>
+      <xs:documentation>List of genes.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="gene" type="celldesigner:gene" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="RNA">
+    <xs:annotation>
+      <xs:documentation>For RNA.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="notes" type="celldesigner:notes" minOccurs="0"/>
+      <xs:element name="listOfRegions" type="celldesigner:listOfRegions" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="name" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="type" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="RNA"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="listOfRNAs">
+    <xs:annotation>
+      <xs:documentation>List of RNAs.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="RNA" type="celldesigner:RNA" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="AntisenseRNA">
+    <xs:annotation>
+      <xs:documentation>For antisense RNA.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="notes" type="celldesigner:notes" minOccurs="0"/>
+      <xs:element name="listOfRegions" type="celldesigner:listOfRegions" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="name" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="type" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="ANTISENSE_RNA"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="listOfAntisenseRNAs">
+    <xs:annotation>
+      <xs:documentation>List of asRNAs.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="AntisenseRNA" type="celldesigner:AntisenseRNA" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!--Model.BlockDiagram-->
+  <xs:complexType name="canvas">
+    <xs:annotation>
+      <xs:documentation>Canvas size of block diagrams.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="height" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="width" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="block">
+    <xs:annotation>
+      <xs:documentation>Block(protein) on canvas.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="width" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="height" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="x" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="y" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="nameOffsetX" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="nameOffsetY" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="halo">
+    <xs:annotation>
+      <xs:documentation>Halo around a block(protein).</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="width" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="height" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="x" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="y" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="residueInBlockDiagram">
+    <xs:annotation>
+      <xs:documentation>Residue on the upper side of a block(protein).</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="residue" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="type" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="phosphorylated"/>
+          <xs:enumeration value="acetylated"/>
+          <xs:enumeration value="ubiquitinated"/>
+          <xs:enumeration value="methylated"/>
+          <xs:enumeration value="hydroxylated"/>
+          <xs:enumeration value="empty"/>
+          <xs:enumeration value="dontcare"/>
+          <xs:enumeration value="unknown"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="offsetX" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal">
+          <xs:enumeration value="-103.82142857142863"/>
+          <xs:enumeration value="-15.0"/>
+          <xs:enumeration value="-18.321428571428584"/>
+          <xs:enumeration value="-23.0"/>
+          <xs:enumeration value="-45.0"/>
+          <xs:enumeration value="-75.0"/>
+          <xs:enumeration value="0.0"/>
+          <xs:enumeration value="15.0"/>
+          <xs:enumeration value="23.0"/>
+          <xs:enumeration value="45.0"/>
+          <xs:enumeration value="75.0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="name">
+      <xs:simpleType>
+        <xs:restriction base="xs:string"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="nameOffsetX">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="nameOffsetY">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="listOfResiduesInBlockDiagram">
+    <xs:annotation>
+      <xs:documentation>List of residues on a block(protein).</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="residueInBlockDiagram" type="celldesigner:residueInBlockDiagram" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="externalConnectionInBlockDiagram">
+    <xs:annotation>
+      <xs:documentation>External connection to a residue.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="residue" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="type" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="activation"/>
+          <xs:enumeration value="activationMaybe"/>
+          <xs:enumeration value="inhibition"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="predefined" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:boolean"/>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="listOfExternalConnectionsInBlockDiagram">
+    <xs:annotation>
+      <xs:documentation>List of external connections to residues.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="externalConnectionInBlockDiagram" type="celldesigner:externalConnectionInBlockDiagram" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="externalNameForResidue">
+    <xs:annotation>
+      <xs:documentation>External protein name connecting to residues.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="listOfExternalConnectionsInBlockDiagram" type="celldesigner:listOfExternalConnectionsInBlockDiagram"/>
+    </xs:sequence>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="offsetY" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="name" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="nameOffsetX" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="nameOffsetY" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="protein" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:string"/>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="listOfExternalNamesForResidue">
+    <xs:annotation>
+      <xs:documentation>List of external names.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="externalNameForResidue" type="celldesigner:externalNameForResidue" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="bindingSiteInBlockDiagram">
+    <xs:annotation>
+      <xs:documentation>Binding site on the left side of a block(protein).</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="offsetY" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="name" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="nameOffsetX" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="nameOffsetY" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="protein" use="required">
+      <xs:simpleType>
+        <xs:union memberTypes="celldesigner:SId">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:length value="0"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:union>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="listOfBindingSitesInBlockDiagram">
+    <xs:annotation>
+      <xs:documentation>List of binding sites of a block(protein).</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="bindingSiteInBlockDiagram" type="celldesigner:bindingSiteInBlockDiagram" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="effectTargetInBlockDiagram">
+    <xs:annotation>
+      <xs:documentation>Target protein of an effect.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="protein" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="effectInBlockDiagram">
+    <xs:annotation>
+      <xs:documentation>Type and targets of an effect.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="effectTargetInBlockDiagram" type="celldesigner:effectTargetInBlockDiagram" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="type" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="CATALYSIS"/>
+          <xs:enumeration value="INHIBITION"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="effectSiteInBlockDiagram">
+    <xs:annotation>
+      <xs:documentation>Effect site on the lower side of a block(protein).</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="effectInBlockDiagram" type="celldesigner:effectInBlockDiagram" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="offsetX" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="offsetY" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="name" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="nameOffsetX" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="nameOffsetY" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="reaction" type="celldesigner:SId"/>
+    <xs:attribute name="species" type="celldesigner:SId"/>
+  </xs:complexType>
+  <xs:complexType name="listOfEffectSitesInBlockDiagram">
+    <xs:annotation>
+      <xs:documentation>List of effect sites.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="effectSiteInBlockDiagram" type="celldesigner:effectSiteInBlockDiagram" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="degradedShapeInBlockDiagram">
+    <xs:annotation>
+      <xs:documentation>Degradation symbol.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="width" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="height" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="offsetX" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="offsetY" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="degradedInBlockDiagram">
+    <xs:annotation>
+      <xs:documentation>Degradation of a protein represented by the block.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="degradedShapeInBlockDiagram" type="celldesigner:degradedShapeInBlockDiagram"/>
+    </xs:sequence>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="offsetY" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="internalOperatorValueInBlockDiagram">
+    <xs:annotation>
+      <xs:documentation>Assigned value to the operator.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="value" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="offsetX" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="offsetY" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="internalOperatorInBlockDiagram">
+    <xs:annotation>
+      <xs:documentation>Operator inside of a block(protein) describing logic.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="internalOperatorValueInBlockDiagram" type="celldesigner:internalOperatorValueInBlockDiagram" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="type" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="and"/>
+          <xs:enumeration value="or"/>
+          <xs:enumeration value="add"/>
+          <xs:enumeration value="multiply"/>
+          <xs:enumeration value="threshold"/>
+          <xs:enumeration value="autoActivate"/>
+          <xs:enumeration value="assign"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="sub" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="ge"/>
+          <xs:enumeration value="gt"/>
+          <xs:enumeration value="le"/>
+          <xs:enumeration value="lt"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="offsetX" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="offsetY" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="listOfInternalOperatorsInBlockDiagram">
+    <xs:annotation>
+      <xs:documentation>List of internal operators.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="internalOperatorInBlockDiagram" type="celldesigner:internalOperatorInBlockDiagram" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="startingPointInBlockDiagram">
+    <xs:annotation>
+      <xs:documentation>Starting point (residue, binding site, operator) of the link.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="offsetX" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="offsetY" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="residue">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="bindingSite">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="operator">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="endPointInBlockDiagram">
+    <xs:annotation>
+      <xs:documentation>End point (residue, binding site, effect site, operator, link, degrade) of the link.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="offsetX" use="required">
+      <xs:simpleType>
+        <xs:list itemType="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="offsetY" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="residue">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="bindingSite">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="effectSite">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="operator">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="link">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="degrade">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="internalLinkInBlockDiagram">
+    <xs:annotation>
+      <xs:documentation>Link between operators, residues, binding sites, effect sites. and degradation.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="startingPointInBlockDiagram" type="celldesigner:startingPointInBlockDiagram"/>
+      <xs:element name="endPointInBlockDiagram" type="celldesigner:endPointInBlockDiagram"/>
+    </xs:sequence>
+    <xs:attribute name="id" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="type" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="activation"/>
+          <xs:enumeration value="absoluteActivation"/>
+          <xs:enumeration value="inhibition"/>
+          <xs:enumeration value="absoluteInhibition"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="listOfInternalLinksInBlockDiagram">
+    <xs:annotation>
+      <xs:documentation>List of links of a block(protein).</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="internalLinkInBlockDiagram" type="celldesigner:internalLinkInBlockDiagram" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="blockDiagram">
+    <xs:annotation>
+      <xs:documentation>Block diagram for a protein.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="canvas" type="celldesigner:canvas"/>
+      <xs:element name="block" type="celldesigner:block"/>
+      <xs:element name="halo" type="celldesigner:halo"/>
+      <xs:element name="listOfResiduesInBlockDiagram" type="celldesigner:listOfResiduesInBlockDiagram"/>
+      <xs:element name="listOfExternalNamesForResidue" type="celldesigner:listOfExternalNamesForResidue"/>
+      <xs:element name="listOfBindingSitesInBlockDiagram" type="celldesigner:listOfBindingSitesInBlockDiagram"/>
+      <xs:element name="listOfEffectSitesInBlockDiagram" type="celldesigner:listOfEffectSitesInBlockDiagram"/>
+      <xs:element name="degradedInBlockDiagram" type="celldesigner:degradedInBlockDiagram" minOccurs="0"/>
+      <xs:element name="listOfInternalOperatorsInBlockDiagram" type="celldesigner:listOfInternalOperatorsInBlockDiagram"/>
+      <xs:element name="listOfInternalLinksInBlockDiagram" type="celldesigner:listOfInternalLinksInBlockDiagram"/>
+    </xs:sequence>
+    <xs:attribute name="protein" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="listOfBlockDiagrams">
+    <xs:annotation>
+      <xs:documentation>List of block diagrams.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="blockDiagram" type="celldesigner:blockDiagram" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="modelAnnotationType">
+    <xs:annotation>
+      <xs:documentation>Annotation for model.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="extension">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="celldesigner:modelVersion"/>
+            <xs:element name="modelDisplay" type="celldesigner:modelDisplay"/>
+            <xs:element name="listOfIncludedSpecies" type="celldesigner:listOfIncludedSpecies" minOccurs="0"/>
+            <xs:element name="listOfCompartmentAliases" type="celldesigner:listOfCompartmentAliases"/>
+            <xs:element name="listOfComplexSpeciesAliases" type="celldesigner:listOfComplexSpeciesAliases"/>
+            <xs:element name="listOfSpeciesAliases" type="celldesigner:listOfSpeciesAliases"/>
+            <xs:element name="listOfGroups" type="celldesigner:listOfGroups"/>
+            <xs:element name="listOfProteins" type="celldesigner:listOfProteins"/>
+            <xs:element name="listOfGenes" type="celldesigner:listOfGenes"/>
+            <xs:element name="listOfRNAs" type="celldesigner:listOfRNAs"/>
+            <xs:element name="listOfAntisenseRNAs" type="celldesigner:listOfAntisenseRNAs"/>
+            <xs:element name="listOfLayers" type="celldesigner:listOfLayers" minOccurs="0"/>
+            <xs:element name="listOfBlockDiagrams" type="celldesigner:listOfBlockDiagrams" minOccurs="0"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <!-- keep the possibility to add RDF annotations -->
+      <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!--Compartment extension.-->
+  <xs:complexType name="compartmentAnnotationType">
+    <xs:annotation>
+      <xs:documentation>Annotation for compartment.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="extension">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="celldesigner:name"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <!-- keep the possibility to add RDF annotations -->
+      <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!--Reaction extension.-->
+  <xs:complexType name="linkAnchor">
+    <xs:annotation>
+      <xs:documentation>Link position designator to species alias.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="position" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="N"/>
+          <xs:enumeration value="NNE"/>
+          <xs:enumeration value="NE"/>
+          <xs:enumeration value="ENE"/>
+          <xs:enumeration value="E"/>
+          <xs:enumeration value="ESE"/>
+          <xs:enumeration value="SE"/>
+          <xs:enumeration value="SSE"/>
+          <xs:enumeration value="S"/>
+          <xs:enumeration value="SSW"/>
+          <xs:enumeration value="SW"/>
+          <xs:enumeration value="WSW"/>
+          <xs:enumeration value="W"/>
+          <xs:enumeration value="WNW"/>
+          <xs:enumeration value="NW"/>
+          <xs:enumeration value="NNW"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="line">
+    <xs:annotation>
+      <xs:documentation>Line color and width.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="color" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="[0-9a-fA-F]{8}"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="width" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal">
+          <xs:minInclusive value="0.0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="lineType2">
+    <xs:annotation>
+      <xs:documentation>Line color, width and curve style.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="color" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="[0-9a-fA-F]{8}"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="width" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal">
+          <xs:minInclusive value="0.0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="type" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Curve"/>
+          <xs:enumeration value="Straight"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="lineDirection">
+    <xs:annotation>
+      <xs:documentation>Line direction designator.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="index" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="value" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="horizontal"/>
+          <xs:enumeration value="vertical"/>
+          <xs:enumeration value="unknown"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="arm">
+      <xs:simpleType>
+        <xs:restriction base="xs:short">
+          <xs:minInclusive value="0"/>
+          <xs:maxInclusive value="2"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="listOfLineDirection">
+    <xs:annotation>
+      <xs:documentation>List of line direction.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="lineDirection" type="celldesigner:lineDirection" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="connectScheme">
+    <xs:annotation>
+      <xs:documentation>Connection scheme.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="listOfLineDirection" type="celldesigner:listOfLineDirection"/>
+    </xs:sequence>
+    <xs:attribute name="connectPolicy" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="direct"/>
+          <xs:enumeration value="square"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="rectangleIndex"/>
+  </xs:complexType>
+  <xs:element name="reactionType">
+    <xs:annotation>
+      <xs:documentation>Base reaction type.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="STATE_TRANSITION"/>
+        <xs:enumeration value="KNOWN_TRANSITION_OMITTED"/>
+        <xs:enumeration value="UNKNOWN_TRANSITION"/>
+        <xs:enumeration value="CATALYSIS"/>
+        <xs:enumeration value="UNKNOWN_CATALYSIS"/>
+        <xs:enumeration value="INHIBITION"/>
+        <xs:enumeration value="UNKNOWN_INHIBITION"/>
+        <xs:enumeration value="TRANSPORT"/>
+        <xs:enumeration value="HETERODIMER_ASSOCIATION"/>
+        <xs:enumeration value="DISSOCIATION"/>
+        <xs:enumeration value="TRUNCATION"/>
+        <xs:enumeration value="TRANSCRIPTIONAL_ACTIVATION"/>
+        <xs:enumeration value="TRANSCRIPTIONAL_INHIBITION"/>
+        <xs:enumeration value="TRANSLATIONAL_ACTIVATION"/>
+        <xs:enumeration value="TRANSLATIONAL_INHIBITION"/>
+        <xs:enumeration value="TRANSCRIPTION"/>
+        <xs:enumeration value="TRANSLATION"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:complexType name="baseReactant">
+    <xs:annotation>
+      <xs:documentation>Base reactant.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="linkAnchor" type="celldesigner:linkAnchor" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="alias" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="species" type="celldesigner:SId" use="required"/>
+  </xs:complexType>
+  <xs:complexType name="baseReactants">
+    <xs:annotation>
+      <xs:documentation>List of base reactants.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="baseReactant" type="celldesigner:baseReactant" maxOccurs="2"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="baseProduct">
+    <xs:annotation>
+      <xs:documentation>Base product.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="linkAnchor" type="celldesigner:linkAnchor" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="alias" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="species" type="celldesigner:SId" use="required"/>
+  </xs:complexType>
+  <xs:complexType name="baseProducts">
+    <xs:annotation>
+      <xs:documentation>List of base products.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="baseProduct" type="celldesigner:baseProduct" maxOccurs="2"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="reactantLink">
+    <xs:annotation>
+      <xs:documentation>Reactant link type.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="linkAnchor" type="celldesigner:linkAnchor" minOccurs="0"/>
+      <xs:element name="line" type="celldesigner:lineType2"/>
+    </xs:sequence>
+    <xs:attribute name="alias" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="reactant" type="celldesigner:SId" use="required"/>
+    <xs:attribute name="targetLineIndex" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="-?[0-9]+,[0-9]+"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="listOfReactantLinks">
+    <xs:annotation>
+      <xs:documentation>List of reactant link types.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="reactantLink" type="celldesigner:reactantLink" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="productLink">
+    <xs:annotation>
+      <xs:documentation>Product link type.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="linkAnchor" type="celldesigner:linkAnchor" minOccurs="0"/>
+      <xs:element name="line" type="celldesigner:lineType2"/>
+    </xs:sequence>
+    <xs:attribute name="alias" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="product" type="celldesigner:SId" use="required"/>
+    <xs:attribute name="targetLineIndex" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="-?[0-9]+,[0-9]+"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="listOfProductLinks">
+    <xs:annotation>
+      <xs:documentation>List of product link types.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="productLink" type="celldesigner:productLink" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="offset">
+    <xs:annotation>
+      <xs:documentation>Offset of a link from default position(center to center).</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="x" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="y" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="editPoints">
+    <xs:annotation>
+      <xs:documentation>Edit points.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="celldesigner:point2DList">
+        <xs:attribute name="num0">
+          <xs:simpleType>
+            <xs:restriction base="xs:short">
+              <xs:minInclusive value="0"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="num1">
+          <xs:simpleType>
+            <xs:restriction base="xs:short">
+              <xs:minInclusive value="0"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="num2">
+          <xs:simpleType>
+            <xs:restriction base="xs:short">
+              <xs:minInclusive value="0"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="omittedShapeIndex">
+          <xs:simpleType>
+            <xs:restriction base="xs:short">
+              <xs:minInclusive value="0"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="tShapeIndex">
+          <xs:simpleType>
+            <xs:restriction base="xs:short">
+              <xs:minInclusive value="0"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="linkTarget">
+    <xs:annotation>
+      <xs:documentation>Target of a link.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="linkAnchor" type="celldesigner:linkAnchor"/>
+    </xs:sequence>
+    <xs:attribute name="alias" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SId"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="species" type="celldesigner:SId" use="required"/>
+  </xs:complexType>
+  <xs:complexType name="modification">
+    <xs:annotation>
+      <xs:documentation>Line modification.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="connectScheme" type="celldesigner:connectScheme" minOccurs="0"/>
+      <xs:element name="linkTarget" type="celldesigner:linkTarget" minOccurs="0" maxOccurs="2"/>
+      <xs:element name="line" type="celldesigner:line" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="aliases" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SIdSet"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="modifiers" use="required">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:SIdSet"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="type" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="CATALYSIS"/>
+          <xs:enumeration value="UNKNOWN_CATALYSIS"/>
+          <xs:enumeration value="INHIBITION"/>
+          <xs:enumeration value="UNKNOWN_INHIBITION"/>
+          <xs:enumeration value="HETERODIMER_ASSOCIATION"/>
+          <xs:enumeration value="TRANSCRIPTIONAL_ACTIVATION"/>
+          <xs:enumeration value="TRANSCRIPTIONAL_INHIBITION"/>
+          <xs:enumeration value="TRANSLATIONAL_ACTIVATION"/>
+          <xs:enumeration value="TRANSLATIONAL_INHIBITION"/>
+          <xs:enumeration value="PHYSICAL_STIMULATION"/>
+          <xs:enumeration value="MODULATION"/>
+          <xs:enumeration value="TRIGGER"/>
+          <xs:enumeration value="BOOLEAN_LOGIC_GATE_AND"/>
+          <xs:enumeration value="BOOLEAN_LOGIC_GATE_OR"/>
+          <xs:enumeration value="BOOLEAN_LOGIC_GATE_NOT"/>
+          <xs:enumeration value="BOOLEAN_LOGIC_GATE_UNKNOWN"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="targetLineIndex" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="-?[0-9]+,[0-9]+"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="editPoints">
+      <xs:simpleType>
+        <xs:restriction base="celldesigner:point2DList"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="num0">
+      <xs:simpleType>
+        <xs:restriction base="xs:nonNegativeInteger"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="num1">
+      <xs:simpleType>
+        <xs:restriction base="xs:nonNegativeInteger"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="num2">
+      <xs:simpleType>
+        <xs:restriction base="xs:nonNegativeInteger"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="modification">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="CATALYSIS"/>
+          <xs:enumeration value="UNKNOWN_CATALYSIS"/>
+          <xs:enumeration value="INHIBITION"/>
+          <xs:enumeration value="UNKNOWN_INHIBITION"/>
+          <xs:enumeration value="HETERODIMER_ASSOCIATION"/>
+          <xs:enumeration value="TRANSCRIPTIONAL_ACTIVATION"/>
+          <xs:enumeration value="TRANSCRIPTIONAL_INHIBITION"/>
+          <xs:enumeration value="TRANSLATIONAL_ACTIVATION"/>
+          <xs:enumeration value="TRANSLATIONAL_INHIBITION"/>
+          <xs:enumeration value="PHYSICAL_STIMULATION"/>
+          <xs:enumeration value="MODULATION"/>
+          <xs:enumeration value="TRIGGER"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="offsetX">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="offsetY">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal"/>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="listOfModification">
+    <xs:annotation>
+      <xs:documentation>List of line modification.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="modification" type="celldesigner:modification" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="reactionAnnotationType">
+    <xs:annotation>
+      <xs:documentation>Annotation for reaction.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="extension">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="celldesigner:name" minOccurs="0"/>
+            <xs:element ref="celldesigner:reactionType"/>
+            <xs:element name="baseReactants" type="celldesigner:baseReactants"/>
+            <xs:element name="baseProducts" type="celldesigner:baseProducts"/>
+            <xs:element name="listOfReactantLinks" type="celldesigner:listOfReactantLinks" minOccurs="0"/>
+            <xs:element name="listOfProductLinks" type="celldesigner:listOfProductLinks" minOccurs="0"/>
+            <xs:element name="connectScheme" type="celldesigner:connectScheme"/>
+            <xs:element name="offset" type="celldesigner:offset" minOccurs="0"/>
+            <xs:element name="editPoints" type="celldesigner:editPoints" minOccurs="0"/>
+            <xs:element name="line" type="celldesigner:line"/>
+            <xs:element name="listOfModification" type="celldesigner:listOfModification" minOccurs="0"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <!-- keep the possibility to add RDF annotations -->
+      <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!--(Modifier)SpeciesReference extension.-->
+  <xs:element name="alias">
+    <xs:annotation>
+      <xs:documentation>Alias referer inside (modifier) species reference.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="celldesigner:SId"/>
+    </xs:simpleType>
+  </xs:element>
+  <xs:complexType name="layer">
+    <xs:sequence>
+      <xs:element name="listOfTexts" type="celldesigner:listOfTexts" minOccurs="0"/>
+      <xs:element name="listOfSquares" type="celldesigner:listOfSquares" minOccurs="0"/>
+      <xs:element name="listOfFreeLines" type="celldesigner:listOfFreeLines" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id"/>
+    <xs:attribute name="name"/>
+    <xs:attribute name="locked" type="xs:boolean" use="required"/>
+    <xs:attribute name="visible" type="xs:boolean" use="required"/>
+  </xs:complexType>
+  <xs:complexType name="speciesReferenceAnnotationType">
+    <xs:annotation>
+      <xs:documentation>Annotation for (modifier)speciesReference.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="extension">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="celldesigner:alias"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <!-- keep the possibility to add RDF annotations -->
+      <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="layerSpeciesAlias">
+    <xs:sequence>
+      <xs:element name="layerNotes" type="xs:string"/>
+      <xs:element name="bounds" type="celldesigner:bounds"/>
+      <xs:element name="paint" type="celldesigner:paint"/>
+      <xs:element name="font">
+        <xs:complexType>
+          <xs:attribute name="size" type="xs:int"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="target" type="xs:string" use="required"/>
+    <xs:attribute name="targetId" type="xs:string" use="required"/>
+    <xs:attribute name="x" type="xs:decimal" use="required"/>
+    <xs:attribute name="y" type="xs:decimal" use="required"/>
+  </xs:complexType>
+  <xs:complexType name="layerCompartmentAlias">
+    <xs:sequence>
+      <xs:element name="bounds" type="celldesigner:bounds"/>
+      <xs:element name="paint" type="celldesigner:paint"/>
+    </xs:sequence>
+    <xs:attribute name="type" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Oval"/>
+          <xs:enumeration value="Square"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="layerFreeLine">
+    <xs:sequence>
+      <xs:element name="bounds" type="celldesigner:layerLineBounds"/>
+      <xs:element name="line" type="celldesigner:line"/>
+    </xs:sequence>
+    <xs:attribute name="isArrow" type="xs:boolean"/>
+    <xs:attribute name="isDotted" type="xs:boolean"/>
+  </xs:complexType>
+  <xs:complexType name="listOfTexts">
+    <xs:sequence>
+      <xs:element name="layerSpeciesAlias" type="celldesigner:layerSpeciesAlias" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="listOfSquares">
+    <xs:sequence>
+      <xs:element name="layerCompartmentAlias" type="celldesigner:layerCompartmentAlias" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="listOfFreeLines">
+    <xs:sequence>
+      <xs:element name="layerFreeLine" type="celldesigner:layerFreeLine" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="listOfLayers">
+    <xs:sequence>
+      <xs:element name="layer" type="celldesigner:layer" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="listOfBindingRegions">
+    <xs:sequence>
+      <xs:element name="bindingRegion" type="celldesigner:bindingRegion" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="listOfStructuralStates">
+    <xs:sequence>
+      <xs:element name="structuralState" type="celldesigner:StructuralStates"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="bindingRegion">
+    <xs:attribute name="angle" type="xs:decimal" use="optional"/>
+    <xs:attribute name="id" type="xs:string" use="optional"/>
+    <xs:attribute name="name" type="xs:string" use="optional"/>
+    <xs:attribute name="size" type="xs:decimal" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="layerLineBounds">
+    <xs:attribute name="sx" type="xs:decimal"/>
+    <xs:attribute name="sy" type="xs:decimal"/>
+    <xs:attribute name="ex" type="xs:decimal"/>
+    <xs:attribute name="ey" type="xs:decimal"/>
+  </xs:complexType>
+  <xs:complexType name="StructuralStates">
+    <xs:attribute name="structuralState" type="xs:string"/>
+  </xs:complexType>
+  <xs:complexType name="structuralStateAngle">
+    <xs:attribute name="angle" type="xs:double"/>
+  </xs:complexType>
+  <xs:complexType name="listOfSpeciesTag">
+    <xs:sequence>
+      <xs:element name="SpeciesTag" type="celldesigner:SpeciesTag" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="SpeciesTag">
+    <xs:sequence>
+      <xs:element name="KeyInfo" type="celldesigner:KeyInfo"/>
+      <xs:element name="TagBounds" type="celldesigner:TagBounds"/>
+      <xs:element name="TagEdgeLine" type="celldesigner:TagEdgeLine"/>
+      <xs:element name="TagFramePaint" type="celldesigner:paint"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="KeyInfo">
+    <xs:attribute name="name" type="xs:string"/>
+    <xs:attribute name="direct" type="xs:string"/>
+  </xs:complexType>
+  <xs:complexType name="TagBounds">
+    <xs:attribute name="x" type="xs:double"/>
+    <xs:attribute name="y" type="xs:double"/>
+    <xs:attribute name="w" type="xs:double"/>
+    <xs:attribute name="h" type="xs:double"/>
+  </xs:complexType>
+  <xs:complexType name="TagEdgeLine">
+    <xs:attribute name="width" type="xs:double"/>
+  </xs:complexType>
+  <xs:complexType name="info">
+    <xs:attribute name="state" type="xs:string" use="optional"/>
+    <xs:attribute name="prefix" type="xs:string" use="optional"/>
+    <xs:attribute name="label" type="xs:string" use="optional"/>
+    <xs:attribute name="angle" type="xs:decimal" use="required"/>
+  </xs:complexType>
+</xs:schema>

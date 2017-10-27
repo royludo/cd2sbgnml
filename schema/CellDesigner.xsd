@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:sbml="http://www.sbml.org/sbml/level2/version4" xmlns:celldesigner="http://www.sbml.org/2001/ns/celldesigner" targetNamespace="http://www.sbml.org/sbml/level2/version4" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:import namespace="http://www.sbml.org/2001/ns/celldesigner" schemaLocation="sbmlCellDesignerExtension_v4_2.xsd"/>
+  <xs:redefine schemaLocation="sbml-level-2-v4-wo-annotation.xsd">
+		<xs:complexType name="Compartment">
+			<xs:annotation>
+				<xs:documentation>Redefined compartment.</xs:documentation>
+			</xs:annotation>
+			<xs:complexContent>
+				<!-- <xs:restriction base="sbml:Compartment"> -->
+				<xs:extension base="sbml:Compartment">
+					<xs:sequence>
+            <!--
+						<xs:element name="notes" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:any namespace="http://www.w3.org/1999/xhtml" processContents="skip" maxOccurs="unbounded"/>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+            -->
+						<xs:element name="annotation" type="celldesigner:compartmentAnnotationType" minOccurs="0"/>
+					</xs:sequence>
+				<!-- </xs:restriction> -->
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+		<xs:complexType name="Species">
+			<xs:annotation>
+				<xs:documentation>Redefined species.</xs:documentation>
+			</xs:annotation>
+			<xs:complexContent>
+				<!-- <xs:restriction base="sbml:Species"> -->
+				<xs:extension base="sbml:Species">
+					<xs:sequence>
+            <!--
+						<xs:element name="notes" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:any namespace="http://www.w3.org/1999/xhtml" processContents="skip" maxOccurs="unbounded"/>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+            -->
+						<xs:element name="annotation" type="celldesigner:speciesAnnotationType" minOccurs="0"/>
+					</xs:sequence>
+				<!-- </xs:restriction> -->
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+		<xs:complexType name="Reaction">
+			<xs:annotation>
+				<xs:documentation>Redefined reaction.</xs:documentation>
+			</xs:annotation>
+			<xs:complexContent>
+				<!-- <xs:restriction base="sbml:Reaction"> -->
+				<xs:extension base="sbml:Reaction">
+					<xs:sequence>
+            <!--
+						<xs:element name="notes" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:any namespace="http://www.w3.org/1999/xhtml" processContents="skip" maxOccurs="unbounded"/>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+            -->
+						<xs:element name="annotation" type="celldesigner:reactionAnnotationType" minOccurs="0"/>
+						<!-- <xs:element name="listOfReactants" type="sbml:ListOfSpeciesReferences" minOccurs="0"/> -->
+						<!-- <xs:element name="listOfProducts" type="sbml:ListOfSpeciesReferences" minOccurs="0"/> -->
+						<!-- <xs:element name="listOfModifiers" type="sbml:ListOfModifierSpeciesReferences" minOccurs="0"/> -->
+						<!-- <xs:element name="kineticLaw" type="sbml:KineticLaw" minOccurs="0"/> -->
+					</xs:sequence>
+				<!-- </xs:restriction> -->
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+		<xs:complexType name="SpeciesReference">
+			<xs:annotation>
+				<xs:documentation>Redefined speciesReference.</xs:documentation>
+			</xs:annotation>
+			<xs:complexContent>
+				<!-- <xs:restriction base="sbml:SpeciesReference"> -->
+				<xs:extension base="sbml:SpeciesReference">
+					<xs:sequence>
+            <!--
+						<xs:element name="notes" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:any namespace="http://www.w3.org/1999/xhtml" processContents="skip" maxOccurs="unbounded"/>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+            -->
+						<xs:element name="annotation" type="celldesigner:speciesReferenceAnnotationType" minOccurs="0"/>
+						<!-- <xs:element name="stoichiometryMath" type="sbml:StoichiometryMath" minOccurs="0"/> -->
+					</xs:sequence>
+				<!-- </xs:restriction> -->
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+		<xs:complexType name="ModifierSpeciesReference">
+			<xs:annotation>
+				<xs:documentation>Redefined modifierSpeciesReference.</xs:documentation>
+			</xs:annotation>
+			<xs:complexContent>
+				<!-- <xs:restriction base="sbml:ModifierSpeciesReference"> -->
+				<xs:extension base="sbml:ModifierSpeciesReference">
+					<xs:sequence>
+            <!--
+						<xs:element name="notes" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:any namespace="http://www.w3.org/1999/xhtml" processContents="skip" maxOccurs="unbounded"/>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+            -->
+						<xs:element name="annotation" type="celldesigner:speciesReferenceAnnotationType" minOccurs="0"/>
+					</xs:sequence>
+				<!-- </xs:restriction> -->
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+		<xs:complexType name="Model">
+			<xs:annotation>
+				<xs:documentation>Redefined model.</xs:documentation>
+			</xs:annotation>
+			<xs:complexContent>
+				<!-- <xs:restriction base="sbml:Model"> -->
+				<xs:extension base="sbml:Model">
+					<xs:sequence>
+            <!--
+						<xs:element name="notes" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:any namespace="http://www.w3.org/1999/xhtml" processContents="skip" maxOccurs="unbounded"/>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+            -->
+						<xs:element name="annotation" type="celldesigner:modelAnnotationType" minOccurs="0"/>
+            <!--
+						<xs:element name="listOfFunctionDefinitions" minOccurs="0">
+							<xs:complexType>
+								<xs:complexContent>
+									<xs:extension base="sbml:SBase">
+										<xs:sequence>
+											<xs:element name="functionDefinition" type="sbml:FunctionDefinition" maxOccurs="unbounded"/>
+										</xs:sequence>
+									</xs:extension>
+								</xs:complexContent>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="listOfUnitDefinitions" minOccurs="0">
+							<xs:complexType>
+								<xs:complexContent>
+									<xs:extension base="sbml:SBase">
+										<xs:sequence>
+											<xs:element name="unitDefinition" type="sbml:UnitDefinition" maxOccurs="unbounded"/>
+										</xs:sequence>
+									</xs:extension>
+								</xs:complexContent>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="listOfCompartments" minOccurs="0">
+							<xs:complexType>
+								<xs:complexContent>
+									<xs:extension base="sbml:SBase">
+										<xs:sequence>
+											<xs:element name="compartment" type="sbml:Compartment" maxOccurs="unbounded"/>
+										</xs:sequence>
+									</xs:extension>
+								</xs:complexContent>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="listOfSpecies" minOccurs="0">
+							<xs:complexType>
+								<xs:complexContent>
+									<xs:extension base="sbml:SBase">
+										<xs:sequence>
+											<xs:element name="species" type="sbml:Species" maxOccurs="unbounded"/>
+										</xs:sequence>
+									</xs:extension>
+								</xs:complexContent>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="listOfParameters" minOccurs="0">
+							<xs:complexType>
+								<xs:complexContent>
+									<xs:extension base="sbml:SBase">
+										<xs:sequence>
+											<xs:element name="parameter" type="sbml:Parameter" maxOccurs="unbounded"/>
+										</xs:sequence>
+									</xs:extension>
+								</xs:complexContent>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="listOfRules" minOccurs="0">
+							<xs:complexType>
+								<xs:complexContent>
+									<xs:extension base="sbml:SBase">
+										<xs:choice maxOccurs="unbounded">
+											<xs:element name="algebraicRule" type="sbml:AlgebraicRule" minOccurs="0"/>
+											<xs:element name="assignmentRule" type="sbml:AssignmentRule" minOccurs="0"/>
+											<xs:element name="rateRule" type="sbml:RateRule" minOccurs="0"/>
+										</xs:choice>
+									</xs:extension>
+								</xs:complexContent>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="listOfReactions" minOccurs="0">
+							<xs:complexType>
+								<xs:complexContent>
+									<xs:extension base="sbml:SBase">
+										<xs:sequence>
+											<xs:element name="reaction" type="sbml:Reaction" maxOccurs="unbounded"/>
+										</xs:sequence>
+									</xs:extension>
+								</xs:complexContent>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="listOfEvents" minOccurs="0">
+							<xs:complexType>
+								<xs:complexContent>
+									<xs:extension base="sbml:SBase">
+										<xs:sequence>
+											<xs:element name="event" type="sbml:Event" maxOccurs="unbounded"/>
+										</xs:sequence>
+									</xs:extension>
+								</xs:complexContent>
+							</xs:complexType>
+						</xs:element>
+            -->
+					</xs:sequence>
+				<!-- </xs:restriction> -->
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:redefine>
+</xs:schema>
