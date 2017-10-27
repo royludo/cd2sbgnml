@@ -47,6 +47,9 @@ public class SBGNML2CD extends GeneralConverter {
      * Global translation factors that are to be applied to all elements
      */
     Rectangle2D mapBounds;
+    Sbml sbml;
+    boolean mapHasStyle;
+    java.util.Map<String, StyleInfo> styleMap;
 
 
     public Sbml toCD(Sbgn sbgn) {
@@ -55,11 +58,11 @@ public class SBGNML2CD extends GeneralConverter {
         Map sbgnMap = sbgn.getMap().get(0);
 
         // init celldesigner file
-        Sbml sbml = this.initFile(sbgnMap);
+        sbml = this.initFile(sbgnMap);
 
         // parse all the style info
-        java.util.Map<String, StyleInfo> styleMap = new HashMap<>();
-        boolean mapHasStyle = false;
+        styleMap = new HashMap<>();
+        mapHasStyle = false;
         for(Element e: sbgnMap.getExtension().getAny()) {
             if(e.getTagName().equals("renderInformation")) {
                 styleMap = SBGNUtils.mapStyleinfo(e);
@@ -70,62 +73,11 @@ public class SBGNML2CD extends GeneralConverter {
 
 
         for(Glyph glyph: sbgnMap.getGlyph()){
-            if(glyph.getClazz().equals("compartment")) {
-
-                String label = glyph.getLabel() == null ? "": glyph.getLabel().getText();
-                CompartmentModel compM = new CompartmentModel(
-                        glyph.getId(),
-                        label,
-                        new Rectangle2D.Float(
-                                glyph.getBbox().getX() - (float) mapBounds.getX(),
-                                glyph.getBbox().getY() - (float) mapBounds.getY(),
-                                glyph.getBbox().getW(),
-                                glyph.getBbox().getH())
-                        );
-
-                if(glyph.getCompartmentRef() != null) {
-                    compM.setOutside(((Glyph) glyph.getCompartmentRef()).getId());
-                }
-
-                if(mapHasStyle) {
-                    compM.setStyleInfo(styleMap.get(glyph.getId()));
-                }
-
-                // label is precisely placed
-                if(glyph.getLabel() != null
-                        && glyph.getLabel().getBbox() != null) {
-                    Point2D namePoint = new Point2D.Float(
-                            glyph.getLabel().getBbox().getX(),
-                            glyph.getLabel().getBbox().getY()
-                    );
-                    compM.setNamePoint(namePoint);
-                }
-
-                // notes
-                if(glyph.getNotes() != null) {
-                    Element notes = glyph.getNotes().getAny().get(0);
-                    compM.setNotes(notes);
-                }
-
-                // rdf annotations
-                if(glyph.getExtension() != null) {
-                    for(Element e: glyph.getExtension().getAny()){
-                        if(e.getTagName().equals("annotation")) {
-                            // TODO urn:miriam:CHEBI:12 doesn't seem to be loaded by CD
-                            // TODO find a way to resolve uri ?
-                            Element rdf = SBGNUtils.sanitizeRdfURNs((Element) e.getElementsByTagName("rdf:RDF").item(0));
-                            compM.setAnnotations(rdf);
-                        }
-                    }
-                }
-
-
-
-                SimpleEntry<Compartment, CompartmentAlias> cdElements = compM.getCDElements();
-                Compartment cdComp = cdElements.getKey();
-                CompartmentAlias cdCompAlias = cdElements.getValue();
-                sbml.getModel().getListOfCompartments().getCompartment().add(cdComp);
-                sbml.getModel().getAnnotation().getExtension().getListOfCompartmentAliases().getCompartmentAlias().add(cdCompAlias);
+            String clazz = glyph.getClazz();
+            switch (clazz) {
+                case "compartment":
+                    processCompartment(glyph);
+                    break;
 
             }
         }
@@ -134,6 +86,67 @@ public class SBGNML2CD extends GeneralConverter {
 
         return sbml;
     }
+
+    private void processCompartment(Glyph glyph) {
+
+        String label = glyph.getLabel() == null ? "": glyph.getLabel().getText();
+        CompartmentModel compM = new CompartmentModel(
+                glyph.getId(),
+                label,
+                new Rectangle2D.Float(
+                        glyph.getBbox().getX() - (float) mapBounds.getX(),
+                        glyph.getBbox().getY() - (float) mapBounds.getY(),
+                        glyph.getBbox().getW(),
+                        glyph.getBbox().getH())
+        );
+
+        if(glyph.getCompartmentRef() != null) {
+            compM.setOutside(((Glyph) glyph.getCompartmentRef()).getId());
+        }
+
+        if(mapHasStyle) {
+            compM.setStyleInfo(styleMap.get(glyph.getId()));
+        }
+
+        // label is precisely placed
+        if(glyph.getLabel() != null
+                && glyph.getLabel().getBbox() != null) {
+            Point2D namePoint = new Point2D.Float(
+                    glyph.getLabel().getBbox().getX(),
+                    glyph.getLabel().getBbox().getY()
+            );
+            compM.setNamePoint(namePoint);
+        }
+
+        // notes
+        if(glyph.getNotes() != null
+                && glyph.getNotes().getAny().size() > 0) {
+            Element notes = glyph.getNotes().getAny().get(0);
+            compM.setNotes(notes);
+        }
+
+        // rdf annotations
+        if(glyph.getExtension() != null) {
+            for(Element e: glyph.getExtension().getAny()){
+                if(e.getTagName().equals("annotation")) {
+                    // TODO urn:miriam:CHEBI:12 doesn't seem to be loaded by CD
+                    // TODO find a way to resolve uri ?
+                    Element rdf = SBGNUtils.sanitizeRdfURNs((Element) e.getElementsByTagName("rdf:RDF").item(0));
+                    compM.setAnnotations(rdf);
+                }
+            }
+        }
+
+
+
+        SimpleEntry<Compartment, CompartmentAlias> cdElements = compM.getCDElements();
+        Compartment cdComp = cdElements.getKey();
+        CompartmentAlias cdCompAlias = cdElements.getValue();
+        sbml.getModel().getListOfCompartments().getCompartment().add(cdComp);
+        sbml.getModel().getAnnotation().getExtension().getListOfCompartmentAliases().getCompartmentAlias().add(cdCompAlias);
+
+    }
+
 
     private Sbml initFile(Map map) {
 

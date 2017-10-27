@@ -66,10 +66,10 @@ public class Main {
             e.printStackTrace();
         }*/
 
-        if(false) {
+        if(true) {
             CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
             try {
-                cdModel.setModelFromFile("samples/reaction.xml");
+                cdModel.setModelFromFile("samples/mtor.xml");
                 //System.out.println(cdModel.modelToString());
             } catch (ReadModelException e) {
                 e.printStackTrace();
@@ -98,7 +98,7 @@ public class Main {
         System.out.println("CONVERT BACK TO CD");
         SBGNSBFCModel sbgnModel = new SBGNSBFCModel();
         try {
-            sbgnModel.setModelFromFile("samples/compartmentTest.sbgnml");
+            sbgnModel.setModelFromFile("samples/out.sbgnml");
         } catch (ReadModelException e) {
             e.printStackTrace();
         }

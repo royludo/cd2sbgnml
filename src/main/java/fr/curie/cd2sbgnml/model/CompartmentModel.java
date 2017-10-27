@@ -124,7 +124,9 @@ public class CompartmentModel {
         float lineWidth = this.getStyleInfo().getLineWidth();
         lineWidth = lineWidth < 3 ? 3: lineWidth; // needs to be at least 3
         float outerwidth = (lineWidth - 1) / 2 + 1;
+        outerwidth = outerwidth > 5 ? 5 : outerwidth; // limit max size
         float innerwidth = (lineWidth -1) / 2;
+        innerwidth = innerwidth > 4 ? 4 : innerwidth; // limit max size, needs to be less than outer
 
         dbline.setThickness(BigDecimal.valueOf(lineWidth));
         dbline.setOuterWidth(BigDecimal.valueOf(outerwidth));
