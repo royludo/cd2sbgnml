@@ -1,5 +1,6 @@
 package fr.curie.cd2sbgnml;
 
+import fr.curie.cd2sbgnml.xmlcdwrappers.Utils;
 import org.sbfc.converter.exceptions.ConversionException;
 import org.sbfc.converter.exceptions.ReadModelException;
 import org.sbfc.converter.exceptions.WriteModelException;
@@ -67,7 +68,7 @@ public class Main {
 
         CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
         try {
-            cdModel.setModelFromFile("samples/rcd_master.xml");
+            cdModel.setModelFromFile("samples/reaction.xml");
             //System.out.println(cdModel.modelToString());
         } catch (ReadModelException e) {
             e.printStackTrace();
@@ -111,6 +112,7 @@ public class Main {
             Marshaller marshaller = JAXBContext.newInstance(Sbml.class).createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new Utils.DefaultNamespacePrefixMapper());
             marshaller.marshal(backCdModel.getBaseSbml() , file);
 
 

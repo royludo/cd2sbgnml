@@ -1,6 +1,7 @@
 package fr.curie.cd2sbgnml;
 
 import com.sun.org.apache.xerces.internal.dom.ElementDefinitionImpl;
+import fr.curie.cd2sbgnml.model.CompartmentModel;
 import org.apache.xmlbeans.SchemaType;
 import org.apache.xmlbeans.XmlAnySimpleType;
 import org.apache.xmlbeans.XmlObject;
@@ -16,18 +17,20 @@ import org.sbgn.bindings.Glyph;
 import org.sbgn.bindings.Map;
 import org.sbgn.bindings.Sbgn;
 import org.sbml._2001.ns.celldesigner.*;
-import org.sbml.sbml.level2.version4.Model;
+import org.sbml.sbml.level2.version4.*;
 import org.sbml.sbml.level2.version4.ObjectFactory;
-import org.sbml.sbml.level2.version4.Sbml;
+import org.sbml.sbml.level2.version4.OriginalModel.ListOfCompartments;
 import org.sbml.x2001.ns.celldesigner.*;
 import org.sbml.x2001.ns.celldesigner.CelldesignerModelVersionDocument.CelldesignerModelVersion;
 import org.sbml.x2001.ns.celldesigner.impl.CelldesignerModelVersionDocumentImpl;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import sun.java2d.pipe.SpanShapeRenderer;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.stream.XMLStreamException;
+import java.awt.geom.Rectangle2D;
 import java.lang.annotation.Annotation;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -46,9 +49,24 @@ public class SBGNML2CD extends GeneralConverter {
         // init celldesigner file
         Sbml sbml = this.initFile(sbgnMap);
 
-
         for(Glyph glyph: sbgnMap.getGlyph()){
+            if(glyph.getClazz().equals("compartment")) {
+                CompartmentModel compM = new CompartmentModel(
+                        glyph.getId(),
+                        glyph.getLabel().getText(),
+                        new Rectangle2D.Float(
+                                glyph.getBbox().getX(),
+                                glyph.getBbox().getY(),
+                                glyph.getBbox().getW(),
+                                glyph.getBbox().getH())
+                        );
+                SimpleEntry<Compartment, CompartmentAlias> cdElements = compM.getCDElements();
+                Compartment cdComp = cdElements.getKey();
+                CompartmentAlias cdCompAlias = cdElements.getValue();
+                sbml.getModel().getListOfCompartments().getCompartment().add(cdComp);
+                sbml.getModel().getAnnotation().getExtension().getListOfCompartmentAliases().getCompartmentAlias().add(cdCompAlias);
 
+            }
         }
 
 
@@ -72,7 +90,7 @@ public class SBGNML2CD extends GeneralConverter {
         model.setAnnotation(annotation);
 
         ModelAnnotationType.Extension ext = new ModelAnnotationType.Extension();
-        ext.setModelVersion(BigDecimal.valueOf(4));
+        ext.setModelVersion(BigDecimal.valueOf(4.0));
 
         SimpleEntry<Integer, Integer> bounds = getMapBounds(map);
         ModelDisplay modelDisplay = new ModelDisplay();
@@ -94,6 +112,16 @@ public class SBGNML2CD extends GeneralConverter {
 
         annotation.setExtension(ext);
 
+        ListOfCompartments listOfCompartments = new ListOfCompartments();
+        model.setListOfCompartments(listOfCompartments);
+
+        // default compartment
+        Compartment defaultCompartment = new Compartment();
+        listOfCompartments.getCompartment().add(defaultCompartment);
+        defaultCompartment.setId("default");
+        defaultCompartment.setMetaid("default");
+        defaultCompartment.setSize(1d);
+        defaultCompartment.setUnits("volume");
 
 
 

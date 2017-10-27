@@ -1,8 +1,12 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
+import com.sun.xml.internal.bind.marshaller.NamespacePrefixMapper;
 import org.apache.xmlbeans.XmlObject;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Utils {
 
@@ -136,7 +140,6 @@ public class Utils {
     /**
      * Get the RDF element from an annotation element, if present
      * @param annotationsXml
-     * @param refId the id of the element the RDF is pointing to, content of rdf:about
      * @return
      */
     public static Element getRDFAnnotations(XmlObject annotationsXml) {
@@ -149,6 +152,25 @@ public class Utils {
             }
         }
         return null;
+    }
+
+    /**
+     * This is used to tell jaxb to use 'celldesigner' as namespace prefix, when marshalling
+     */
+    public static class DefaultNamespacePrefixMapper extends NamespacePrefixMapper {
+
+        private Map<String, String> namespaceMap = new HashMap<>();
+
+        public DefaultNamespacePrefixMapper() {
+            namespaceMap.put("http://www.sbml.org/2001/ns/celldesigner", "celldesigner");
+            namespaceMap.put("http://www.w3.org/1998/Math/MathML", "mathml");
+
+        }
+
+        @Override
+        public String getPreferredPrefix(String namespaceUri, String suggestion, boolean requirePrefix) {
+            return namespaceMap.getOrDefault(namespaceUri, suggestion);
+        }
     }
 
 }
