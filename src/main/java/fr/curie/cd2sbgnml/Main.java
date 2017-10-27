@@ -66,29 +66,31 @@ public class Main {
             e.printStackTrace();
         }*/
 
-        CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
-        try {
-            cdModel.setModelFromFile("samples/reaction.xml");
-            //System.out.println(cdModel.modelToString());
-        } catch (ReadModelException e) {
-            e.printStackTrace();
-        }
+        if(false) {
+            CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
+            try {
+                cdModel.setModelFromFile("samples/reaction.xml");
+                //System.out.println(cdModel.modelToString());
+            } catch (ReadModelException e) {
+                e.printStackTrace();
+            }
 
-        try {
-            SbgnUtil.writeToFile(new CD2SBGNML().toSbgn(cdModel.getModel()), new File("samples/out.sbgnml"));
-        } catch (JAXBException e) {
-            e.printStackTrace();
-        }
+            try {
+                SbgnUtil.writeToFile(new CD2SBGNML().toSbgn(cdModel.getModel()), new File("samples/out.sbgnml"));
+            } catch (JAXBException e) {
+                e.printStackTrace();
+            }
 
-        System.out.println("VALIDATION");
-        try {
-            SbgnUtil.isValid(new File("samples/out.sbgnml"));
-        } catch (JAXBException e) {
-            e.printStackTrace();
-        } catch (SAXException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("VALIDATION");
+            try {
+                SbgnUtil.isValid(new File("samples/out.sbgnml"));
+            } catch (JAXBException e) {
+                e.printStackTrace();
+            } catch (SAXException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
 
@@ -96,7 +98,7 @@ public class Main {
         System.out.println("CONVERT BACK TO CD");
         SBGNSBFCModel sbgnModel = new SBGNSBFCModel();
         try {
-            sbgnModel.setModelFromFile("samples/out.sbgnml");
+            sbgnModel.setModelFromFile("samples/compartmentTest.sbgnml");
         } catch (ReadModelException e) {
             e.printStackTrace();
         }

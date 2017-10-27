@@ -46,13 +46,20 @@ public class CompartmentModel {
 
         this.metaid = id;
         this.aliasId = id+"_alias1";
-        this.namePoint = getDefaultNamePoint(name, bbox);
+        this.namePoint = getDefaultNamePoint(name, id, bbox);
         this.styleInfo = new StyleInfo(id);
     }
 
-    public static Point2D getDefaultNamePoint(String name, Rectangle2D bbox) {
+    public static Point2D getDefaultNamePoint(String name, String id, Rectangle2D bbox) {
+        String s;
+        if(name.isEmpty()) {
+            s = id;
+        }
+        else {
+            s = name;
+        }
         // centered horizontally
-        float x = (float) (bbox.getX() + bbox.getWidth() / 2 - GeometryUtils.getLengthForString(name) / 2);
+        float x = (float) (bbox.getX() + bbox.getWidth() / 2 - GeometryUtils.getLengthForString(s) / 2);
         // at the bottom
         float y = (float) (bbox.getY() + bbox.getHeight() * 0.95);
         return new Point2D.Float(x, y);
@@ -79,8 +86,6 @@ public class CompartmentModel {
         notes.getAny().add(this.getNotes());
         compartment.setNotes(notes);
 
-        //TODO how do I add annotations ???
-        System.out.println("ANNOTAION comaprtment "+ this.getAnnotations());
         annotation.getAny().add(this.getAnnotations());
 
 

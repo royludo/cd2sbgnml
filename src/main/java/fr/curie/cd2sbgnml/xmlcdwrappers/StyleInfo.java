@@ -208,4 +208,19 @@ public class StyleInfo {
         return "BgColor: "+this.bgColor+" lineColor: "+this.lineColor+" lineWidth: "+this.lineWidth+" fontSize: "+this.fontSize;
     }
 
+    public void setLineWidth(float lineWidth) {
+        this.lineWidth = lineWidth;
+    }
+
+    public void setBgColor(String bgColor) {
+        this.bgColor = bgColor;
+    }
+
+    public void setFontSize(float fontSize) {
+        this.fontSize = fontSize;
+    }
+
+    public void setLineColor(String lineColor) {
+        this.lineColor = lineColor;
+    }
 }

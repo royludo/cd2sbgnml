@@ -2,6 +2,7 @@ package fr.curie.cd2sbgnml;
 
 import com.sun.org.apache.xerces.internal.dom.ElementDefinitionImpl;
 import fr.curie.cd2sbgnml.model.CompartmentModel;
+import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
 import org.apache.xmlbeans.SchemaType;
 import org.apache.xmlbeans.XmlAnySimpleType;
 import org.apache.xmlbeans.XmlObject;
@@ -30,15 +31,22 @@ import sun.java2d.pipe.SpanShapeRenderer;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.stream.XMLStreamException;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.lang.annotation.Annotation;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.HashMap;
 
 
 public class SBGNML2CD extends GeneralConverter {
+
+    /**
+     * Global translation factors that are to be applied to all elements
+     */
+    Rectangle2D mapBounds;
 
 
     public Sbml toCD(Sbgn sbgn) {
@@ -49,17 +57,70 @@ public class SBGNML2CD extends GeneralConverter {
         // init celldesigner file
         Sbml sbml = this.initFile(sbgnMap);
 
+        // parse all the style info
+        java.util.Map<String, StyleInfo> styleMap = new HashMap<>();
+        boolean mapHasStyle = false;
+        for(Element e: sbgnMap.getExtension().getAny()) {
+            if(e.getTagName().equals("renderInformation")) {
+                styleMap = SBGNUtils.mapStyleinfo(e);
+                mapHasStyle = true;
+            }
+        }
+
+
+
         for(Glyph glyph: sbgnMap.getGlyph()){
             if(glyph.getClazz().equals("compartment")) {
+
+                String label = glyph.getLabel() == null ? "": glyph.getLabel().getText();
                 CompartmentModel compM = new CompartmentModel(
                         glyph.getId(),
-                        glyph.getLabel().getText(),
+                        label,
                         new Rectangle2D.Float(
-                                glyph.getBbox().getX(),
-                                glyph.getBbox().getY(),
+                                glyph.getBbox().getX() - (float) mapBounds.getX(),
+                                glyph.getBbox().getY() - (float) mapBounds.getY(),
                                 glyph.getBbox().getW(),
                                 glyph.getBbox().getH())
                         );
+
+                if(glyph.getCompartmentRef() != null) {
+                    compM.setOutside(((Glyph) glyph.getCompartmentRef()).getId());
+                }
+
+                if(mapHasStyle) {
+                    compM.setStyleInfo(styleMap.get(glyph.getId()));
+                }
+
+                // label is precisely placed
+                if(glyph.getLabel() != null
+                        && glyph.getLabel().getBbox() != null) {
+                    Point2D namePoint = new Point2D.Float(
+                            glyph.getLabel().getBbox().getX(),
+                            glyph.getLabel().getBbox().getY()
+                    );
+                    compM.setNamePoint(namePoint);
+                }
+
+                // notes
+                if(glyph.getNotes() != null) {
+                    Element notes = glyph.getNotes().getAny().get(0);
+                    compM.setNotes(notes);
+                }
+
+                // rdf annotations
+                if(glyph.getExtension() != null) {
+                    for(Element e: glyph.getExtension().getAny()){
+                        if(e.getTagName().equals("annotation")) {
+                            // TODO urn:miriam:CHEBI:12 doesn't seem to be loaded by CD
+                            // TODO find a way to resolve uri ?
+                            Element rdf = SBGNUtils.sanitizeRdfURNs((Element) e.getElementsByTagName("rdf:RDF").item(0));
+                            compM.setAnnotations(rdf);
+                        }
+                    }
+                }
+
+
+
                 SimpleEntry<Compartment, CompartmentAlias> cdElements = compM.getCDElements();
                 Compartment cdComp = cdElements.getKey();
                 CompartmentAlias cdCompAlias = cdElements.getValue();
@@ -92,10 +153,10 @@ public class SBGNML2CD extends GeneralConverter {
         ModelAnnotationType.Extension ext = new ModelAnnotationType.Extension();
         ext.setModelVersion(BigDecimal.valueOf(4.0));
 
-        SimpleEntry<Integer, Integer> bounds = getMapBounds(map);
+        this.mapBounds = SBGNUtils.getMapBounds(map);
         ModelDisplay modelDisplay = new ModelDisplay();
-        modelDisplay.setSizeX(bounds.getKey().shortValue());
-        modelDisplay.setSizeY(bounds.getValue().shortValue());
+        modelDisplay.setSizeX((short) mapBounds.getWidth());
+        modelDisplay.setSizeY((short) mapBounds.getHeight());
         ext.setModelDisplay(modelDisplay);
 
         ext.setListOfSpeciesAliases(new ListOfSpeciesAliases());
@@ -159,42 +220,6 @@ public class SBGNML2CD extends GeneralConverter {
         sbmlDocument.setSbml(sbml);*/
 
         return sbml;
-    }
-
-    /**
-     * returns the size of a map
-     * @param map
-     * @return
-     */
-    public SimpleEntry<Integer, Integer> getMapBounds(Map map) {
-        if(map.getGlyph().size() == 0) {
-            return new SimpleEntry<>(0,0);
-        }
-
-        float minX, maxX, minY, maxY;
-        Bbox firstBox = map.getGlyph().get(0).getBbox();
-        minX = firstBox.getX();
-        maxX = minX + firstBox.getW();
-        minY = firstBox.getY();
-        maxY = minY + firstBox.getH();
-
-        for(Glyph glyph: map.getGlyph()){
-            Bbox b = glyph.getBbox();
-            float currentX = b.getX();
-            float currentMaxX = b.getX() + b.getW();
-            float currentY = b.getY();
-            float currentMaxY = b.getY() + b.getH();
-
-
-            minX = Float.min(currentX, minX);
-            maxX = Float.max(currentMaxX, maxX);
-            minY = Float.min(currentY, minY);
-            maxY = Float.max(currentMaxY, maxY);
-        }
-
-        int sizeX = Math.round(maxX - minX) + 100; // add some margin
-        int sizeY = Math.round(maxY - minY) + 100;
-        return new SimpleEntry<>(sizeX, sizeY);
     }
 
 
