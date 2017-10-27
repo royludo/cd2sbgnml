@@ -545,6 +545,11 @@
     <xs:sequence>
       <xs:element ref="celldesigner:activity"/>
       <xs:element name="bounds" type="celldesigner:bounds"/>
+      <xs:element name="font">
+        <xs:complexType>
+          <xs:attribute name="size" type="xs:int"/>
+        </xs:complexType>
+      </xs:element>
       <xs:element name="view" type="celldesigner:view"/>
       <xs:element name="backupSize">
         <xs:complexType>
@@ -594,6 +599,11 @@
     <xs:sequence>
       <xs:element ref="celldesigner:activity"/>
       <xs:element name="bounds" type="celldesigner:bounds"/>
+      <xs:element name="font">
+        <xs:complexType>
+          <xs:attribute name="size" type="xs:int"/>
+        </xs:complexType>
+      </xs:element>
       <xs:element name="view" type="celldesigner:view"/>
       <xs:element name="structuralState" type="celldesigner:structuralStateAngle" minOccurs="0"/>
       <xs:element name="usualView" type="celldesigner:usualView"/>
