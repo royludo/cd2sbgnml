@@ -1,17 +1,7 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
-import org.sbml.x2001.ns.celldesigner.*;
-import org.sbml.x2001.ns.celldesigner.CelldesignerCompartmentAliasDocument.CelldesignerCompartmentAlias;
-import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesAliasDocument.CelldesignerComplexSpeciesAlias;
-import org.sbml.x2001.ns.celldesigner.CelldesignerDoubleLineDocument.CelldesignerDoubleLine;
-import org.sbml.x2001.ns.celldesigner.CelldesignerLineDocument.CelldesignerLine;
-import org.sbml.x2001.ns.celldesigner.CelldesignerModificationDocument.CelldesignerModification;
-import org.sbml.x2001.ns.celldesigner.CelldesignerPaintDocument.CelldesignerPaint;
-import org.sbml.x2001.ns.celldesigner.CelldesignerProductLinkDocument.CelldesignerProductLink;
-import org.sbml.x2001.ns.celldesigner.CelldesignerReactantLinkDocument.CelldesignerReactantLink;
-import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesAliasDocument.CelldesignerSpeciesAlias;
-import org.sbml.x2001.ns.celldesigner.CelldesignerUsualViewDocument.CelldesignerUsualView;
-import org.sbml.x2001.ns.celldesigner.ReactionDocument.Reaction;
+import org.sbml._2001.ns.celldesigner.*;
+import org.sbml.sbml.level2.version4.Reaction;
 import org.w3c.dom.Node;
 
 import java.util.HashMap;
@@ -63,38 +53,36 @@ public class StyleInfo {
         this.id = generateStyleId();
     }
 
-    public StyleInfo(CelldesignerCompartmentAlias compAlias, String refId) {
+    public StyleInfo(CompartmentAlias compAlias, String refId) {
         this.bgColor = DEFAULT_BG_COLOR;
         this.fontSize = DEFAULT_FONT_SIZE; // default
         this.refId = refId;
 
-        CelldesignerPaint paint = compAlias.getCelldesignerPaint();
-        CelldesignerDoubleLine doubleLine = compAlias.getCelldesignerDoubleLine();
+        Paint paint = compAlias.getPaint();
+        DoubleLine doubleLine = compAlias.getDoubleLine();
 
-        this.lineWidth = Float.parseFloat(doubleLine.getThickness())
-                + Float.parseFloat(doubleLine.getOuterWidth()) / 2
-                + Float.parseFloat(doubleLine.getInnerWidth()) / 2;
-        this.lineColor = paint.getColor().getStringValue().toLowerCase();
+        this.lineWidth = doubleLine.getThickness().floatValue()
+                + doubleLine.getOuterWidth().floatValue() / 2
+                + doubleLine.getInnerWidth().floatValue() / 2;
+        this.lineColor = paint.getColor().toLowerCase();
         this.id = generateStyleId();
     }
 
-    public StyleInfo(CelldesignerComplexSpeciesAlias complexAlias, String refId) {
+    public StyleInfo(ComplexSpeciesAlias complexAlias, String refId) {
         this.refId = refId;
-        this.fontSize = Float.parseFloat(complexAlias.getCelldesignerFont().getSize().getStringValue());
+        this.fontSize = complexAlias.getFont().getSize();
         this.lineColor = DEFAULT_LINE_COLOR;
-        CelldesignerUsualView usualView = complexAlias.getCelldesignerUsualView();
-        this.lineWidth = Float.parseFloat(usualView.getCelldesignerSingleLine().getWidth());
-        this.bgColor = usualView.getCelldesignerPaint().getColor().getStringValue().toLowerCase();
+        this.lineWidth = complexAlias.getUsualView().getSingleLine().getWidth().floatValue();
+        this.bgColor = complexAlias.getUsualView().getPaint().getColor().toLowerCase();
         this.id = generateStyleId();
     }
 
-    public StyleInfo(CelldesignerSpeciesAlias speciesAlias, String refId) {
+    public StyleInfo(SpeciesAlias speciesAlias, String refId) {
         this.refId = refId;
-        this.fontSize = Float.parseFloat(speciesAlias.getCelldesignerFont().getSize().getStringValue());
+        this.fontSize = speciesAlias.getFont().getSize();
         this.lineColor = DEFAULT_LINE_COLOR;
-        CelldesignerUsualView usualView = speciesAlias.getCelldesignerUsualView();
-        this.lineWidth = Float.parseFloat(usualView.getCelldesignerSingleLine().getWidth());
-        this.bgColor = usualView.getCelldesignerPaint().getColor().getStringValue().toLowerCase();
+        this.lineWidth = speciesAlias.getUsualView().getSingleLine().getWidth().floatValue();
+        this.bgColor = speciesAlias.getUsualView().getPaint().getColor().toLowerCase();
         this.id = generateStyleId();
     }
 
@@ -105,49 +93,39 @@ public class StyleInfo {
      */
     public StyleInfo(Reaction reaction, String refId) {
         this.refId = refId;
-        CelldesignerLine line = reaction.getAnnotation().getCelldesignerLine();
-        this.lineWidth = Float.parseFloat(line.getWidth());
+        Line line = reaction.getAnnotation().getExtension().getLine();
+        this.lineWidth = line.getWidth().floatValue();
         this.lineColor = line.getColor().toLowerCase();
         this.bgColor = DEFAULT_BG_COLOR;
         this.fontSize = DEFAULT_FONT_SIZE;
         this.id = generateStyleId();
     }
 
-    public StyleInfo(CelldesignerModification modif, String refId) {
+    public StyleInfo(Modification modif, String refId) {
         this.refId = refId;
-        CelldesignerLine line = modif.getCelldesignerLine();
-        this.lineWidth = Float.parseFloat(line.getWidth());
+        Line line = modif.getLine();
+        this.lineWidth = line.getWidth().floatValue();
         this.lineColor = line.getColor().toLowerCase();
         this.bgColor = DEFAULT_BG_COLOR;
         this.fontSize = DEFAULT_FONT_SIZE;
         this.id = generateStyleId();
     }
 
-    public StyleInfo(CelldesignerReactantLink reactantLink, String refId) {
+    public StyleInfo(ReactantLink reactantLink, String refId) {
         this.refId = refId;
 
-        for(int i=0; i < reactantLink.getDomNode().getChildNodes().getLength(); i++) {
-            Node n = reactantLink.getDomNode().getChildNodes().item(i);
-            if(n.getNodeName().equals("celldesigner_line")) {
-                this.lineWidth = Float.parseFloat(n.getAttributes().getNamedItem("width").getNodeValue());
-                this.lineColor = n.getAttributes().getNamedItem("color").getNodeValue().toLowerCase();
-            }
-        }
+        this.lineWidth = reactantLink.getLine().getWidth().floatValue();
+        this.lineColor = reactantLink.getLine().getColor().toLowerCase();
         this.bgColor = DEFAULT_BG_COLOR;
         this.fontSize = DEFAULT_FONT_SIZE;
         this.id = generateStyleId();
 
     }
 
-    public StyleInfo(CelldesignerProductLink productLink, String refId) {
+    public StyleInfo(ProductLink productLink, String refId) {
         this.refId = refId;
-        for(int i=0; i < productLink.getDomNode().getChildNodes().getLength(); i++) {
-            Node n = productLink.getDomNode().getChildNodes().item(i);
-            if(n.getNodeName().equals("celldesigner_line")) {
-                this.lineWidth = Float.parseFloat(n.getAttributes().getNamedItem("width").getNodeValue());
-                this.lineColor = n.getAttributes().getNamedItem("color").getNodeValue().toLowerCase();
-            }
-        }
+        this.lineWidth = productLink.getLine().getWidth().floatValue();
+        this.lineColor = productLink.getLine().getColor().toLowerCase();
         this.bgColor = DEFAULT_BG_COLOR;
         this.fontSize = DEFAULT_FONT_SIZE;
         this.id = generateStyleId();

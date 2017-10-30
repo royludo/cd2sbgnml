@@ -3,23 +3,8 @@ package fr.curie.cd2sbgnml.xmlcdwrappers;
 import org.apache.xmlbeans.SchemaType;
 import org.apache.xmlbeans.impl.schema.SchemaTypeImpl;
 import org.sbgn.bindings.Glyph;
-import org.sbml.x2001.ns.celldesigner.CelldesignerAntisenseRNADocument.CelldesignerAntisenseRNA;
-import org.sbml.x2001.ns.celldesigner.CelldesignerClassDocument.CelldesignerClass;
-import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesAliasDocument.CelldesignerComplexSpeciesAlias;
-import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesDocument.CelldesignerComplexSpecies;
-import org.sbml.x2001.ns.celldesigner.CelldesignerGeneDocument.CelldesignerGene;
-import org.sbml.x2001.ns.celldesigner.CelldesignerModificationDocument.CelldesignerModification;
-import org.sbml.x2001.ns.celldesigner.CelldesignerModificationResidueDocument.CelldesignerModificationResidue;
-import org.sbml.x2001.ns.celldesigner.CelldesignerProteinDocument.CelldesignerProtein;
-import org.sbml.x2001.ns.celldesigner.CelldesignerRNADocument.CelldesignerRNA;
-import org.sbml.x2001.ns.celldesigner.CelldesignerRegionDocument;
-import org.sbml.x2001.ns.celldesigner.CelldesignerRegionDocument.CelldesignerRegion;
-import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesAliasDocument.CelldesignerSpeciesAlias;
-import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesDocument.CelldesignerSpecies;
-import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesIdentityDocument.CelldesignerSpeciesIdentity;
-import org.sbml.x2001.ns.celldesigner.CelldesignerStateDocument.CelldesignerState;
-import org.sbml.x2001.ns.celldesigner.SpeciesDocument.Species;
-import org.sbml.x2001.ns.celldesigner.impl.CelldesignerRegionDocumentImpl;
+import org.sbml._2001.ns.celldesigner.*;
+import org.sbml.sbml.level2.version4.Species;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -64,33 +49,30 @@ public class SpeciesWrapper {
 
     public SpeciesWrapper(Species species, ModelWrapper modelW) {
         this.isIncludedSpecies = false;
-        CelldesignerClass cdClassClass = species.getAnnotation().getCelldesignerSpeciesIdentity().getCelldesignerClass();
-        this.cdClass = cdClassClass.getDomNode().getChildNodes().item(0).getNodeValue();
+        this.cdClass = species.getAnnotation().getExtension().getSpeciesIdentity().getClazz();
         this.id = species.getId();
-        this.name = species.getName().getStringValue();
+        this.name = species.getName();
         this.compartment = species.getCompartment();
         this.complex = null;
-        this.notes = Utils.getNotes(species);
-        this.annotations = Utils.getRDFAnnotations(species.getAnnotation());
+        this.notes = Utils.getNotes(species.getNotes());
+        this.annotations = Utils.getRDFAnnotations(species.getAnnotation().getAny());
         System.out.println("annotation for species: "+this.id+" "+this.annotations);
 
-        this.commonConstructor(species.getAnnotation().getCelldesignerSpeciesIdentity(), modelW);
+        this.commonConstructor(species.getAnnotation().getExtension().getSpeciesIdentity(), modelW);
 
     }
 
-    public SpeciesWrapper(CelldesignerSpecies species, ModelWrapper modelW) {
+    public SpeciesWrapper(org.sbml._2001.ns.celldesigner.Species species, ModelWrapper modelW) {
         this.isIncludedSpecies = true;
-        CelldesignerClass cdClassClass = species.getCelldesignerAnnotation().getCelldesignerSpeciesIdentity().getCelldesignerClass();
-        this.cdClass = cdClassClass.getDomNode().getChildNodes().item(0).getNodeValue();
+        this.cdClass = species.getAnnotation().getSpeciesIdentity().getClazz();
         this.id = species.getId();
-        this.name = species.getName().getStringValue();
-        CelldesignerComplexSpecies complexSpecies = species.getCelldesignerAnnotation().getCelldesignerComplexSpecies();
-        this.complex = complexSpecies.getDomNode().getChildNodes().item(0).getNodeValue();
+        this.name = species.getName();
+        this.complex = species.getAnnotation().getComplexSpecies();
         this.compartment = null;
-        this.notes = Utils.getNotes(species);
-        this.annotations = Utils.getRDFAnnotations(species);
+        this.notes = Utils.getNotes(species.getNotes());
+        //this.annotations = Utils.getRDFAnnotations(species.getAnnotation().); TODO not applicable ?
 
-        this.commonConstructor(species.getCelldesignerAnnotation().getCelldesignerSpeciesIdentity(), modelW);
+        this.commonConstructor(species.getAnnotation().getSpeciesIdentity(), modelW);
     }
 
 
@@ -128,7 +110,7 @@ public class SpeciesWrapper {
 
     }
 
-    private void commonConstructor(CelldesignerSpeciesIdentity identity, ModelWrapper modelW) {
+    private void commonConstructor(SpeciesIdentity identity, ModelWrapper modelW) {
         this.multimer = 1; // default to 1 if nothing else found
         this.residues = new ArrayList<>();
         this.aliases = new ArrayList<>();
@@ -137,7 +119,7 @@ public class SpeciesWrapper {
 
         if(this.isComplex) {
             logger.debug("Species has "+modelW.getComplexSpeciesAliasFor(this.id).size()+" complexSpeciesAliases");
-            for(CelldesignerComplexSpeciesAlias complexAlias : modelW.getComplexSpeciesAliasFor(this.id)) {
+            for(ComplexSpeciesAlias complexAlias : modelW.getComplexSpeciesAliasFor(this.id)) {
                 if (complexAlias == null) {
                     continue;
                 }
@@ -157,7 +139,7 @@ public class SpeciesWrapper {
             }
 
             logger.debug("Species has "+modelW.getSpeciesAliasFor(this.id).size()+" speciesAliases");
-            for(CelldesignerSpeciesAlias alias : modelW.getSpeciesAliasFor(this.id)) {
+            for(SpeciesAlias alias : modelW.getSpeciesAliasFor(this.id)) {
                 if (alias == null) {
                     continue;
                 }
@@ -167,24 +149,23 @@ public class SpeciesWrapper {
         }
 
         // get information from the species' reference
-        List<CelldesignerModificationResidue> listOfReferenceModif;
+        List<ModificationResidue> listOfReferenceModif;
         HashMap<String, ResidueWrapper> mapOfReferenceModif = new HashMap<>();
-        if(identity.isSetCelldesignerProteinReference()) {
-            String protId = identity.getCelldesignerProteinReference().getDomNode().getChildNodes().item(0).getNodeValue();
-            CelldesignerProtein prot = modelW.getProtein(protId);
+        if(identity.getProteinReference() != null) {
+            String protId = identity.getProteinReference();
+            Protein prot = modelW.getProtein(protId);
 
-            if(prot.isSetCelldesignerListOfModificationResidues()) {
+            if(prot.getListOfModificationResidues() != null) {
                 // loop through reference residues
-                listOfReferenceModif =
-                        Arrays.asList(prot.getCelldesignerListOfModificationResidues().getCelldesignerModificationResidueArray());
+                listOfReferenceModif = prot.getListOfModificationResidues().getModificationResidue();
 
                 mapOfReferenceModif = new HashMap<>();
-                for (CelldesignerModificationResidue modif : listOfReferenceModif) {
+                for (ModificationResidue modif : listOfReferenceModif) {
                     System.out.println("Residue found for "+prot.getId()+" resid "+modif.getId()+" angle "+modif.getAngle());
                     ResidueWrapper residueWrapper = new ResidueWrapper(modif.getId());
-                    residueWrapper.angle = Float.parseFloat(modif.getAngle());
-                    if(modif.isSetName()) {
-                        residueWrapper.name = modif.getName().getStringValue();
+                    residueWrapper.angle = modif.getAngle().floatValue();
+                    if(modif.getName() != null) {
+                        residueWrapper.name = modif.getName();
                     }
                     mapOfReferenceModif.put(residueWrapper.id, residueWrapper);
                 }
@@ -192,85 +173,80 @@ public class SpeciesWrapper {
                 logger.debug(mapOfReferenceModif.size()+" res for protein "+protId);
             }
 
-            this.type = getTypeFromString(prot.getType().toString());
+            this.type = getTypeFromString(prot.getType());
 
             // manage protein reference notes
-            this.referenceNotes = Utils.getNotes(prot);
+            this.referenceNotes = Utils.getNotes(prot.getNotes());
         }
-        else if(identity.isSetCelldesignerRnaReference()) {
-            String rnaId = identity.getCelldesignerRnaReference().getDomNode().getChildNodes().item(0).getNodeValue();
-            CelldesignerRNA rna = modelW.getRNA(rnaId);
+        else if(identity.getRnaReference() != null) {
+            String rnaId = identity.getRnaReference();
+            RNA rna = modelW.getRNA(rnaId);
             this.type = getTypeFromString(rna.getType());
 
-            if(rna.isSetCelldesignerListOfRegions()) {
-                NodeList listofnodes = rna.getDomNode().getChildNodes();
-                mapOfReferenceModif = mapOfRegion(listofnodes);
+            if(rna.getListOfRegions() != null) {
+                mapOfReferenceModif = mapOfRegion(rna.getListOfRegions());
             }
 
             // manage reference notes
-            this.referenceNotes = Utils.getNotes(rna);
+            this.referenceNotes = Utils.getNotes(rna.getNotes());
 
         }
-        else if(identity.isSetCelldesignerAntisensernaReference()) {
-            String asrnaId = identity.getCelldesignerAntisensernaReference().getDomNode().getChildNodes().item(0).getNodeValue();
-            CelldesignerAntisenseRNA asrna = modelW.getAntisenseRNA(asrnaId);
+        else if(identity.getAntisensernaReference() != null) {
+            String asrnaId = identity.getAntisensernaReference();
+            AntisenseRNA asrna = modelW.getAntisenseRNA(asrnaId);
             this.type = getTypeFromString(asrna.getType());
 
-            if(asrna.isSetCelldesignerListOfRegions()) {
+            if(asrna.getListOfRegions() != null) {
                 // loop through reference list of regions
-                NodeList listofnodes = asrna.getDomNode().getChildNodes();
-                mapOfReferenceModif = mapOfRegion(listofnodes);
+                mapOfReferenceModif = mapOfRegion(asrna.getListOfRegions());
             }
 
             // manage reference notes
-            this.referenceNotes = Utils.getNotes(asrna);
+            this.referenceNotes = Utils.getNotes(asrna.getNotes());
 
         }
-        else if(identity.isSetCelldesignerGeneReference()) {
-            String geneId = identity.getCelldesignerGeneReference().getDomNode().getChildNodes().item(0).getNodeValue();
-            CelldesignerGene gene = modelW.getGene(geneId);
+        else if(identity.getGeneReference() != null) {
+            String geneId = identity.getGeneReference();
+            Gene gene = modelW.getGene(geneId);
             this.type = getTypeFromString(gene.getType());
 
-            if(gene.isSetCelldesignerListOfRegions()) {
+            if(gene.getListOfRegions() != null) {
                 // loop through reference list of regions
-                NodeList listofnodes = gene.getDomNode().getChildNodes();
-                mapOfReferenceModif = mapOfRegion(listofnodes);
-                System.out.println("GENE MODIF COUNT: "+mapOfReferenceModif.size()+" "+listofnodes.getLength());
+                mapOfReferenceModif = mapOfRegion(gene.getListOfRegions());
+                System.out.println("GENE MODIF COUNT: "+mapOfReferenceModif.size()+" "+gene.getListOfRegions().getRegion().size());
 
             }
 
 
             // manage reference notes
-            this.referenceNotes = Utils.getNotes(gene);
+            this.referenceNotes = Utils.getNotes(gene.getNotes());
         }
 
 
-        if(identity.isSetCelldesignerState()) {
-            CelldesignerState state = identity.getCelldesignerState();
+        if(identity.getState() != null) {
+            State state = identity.getState();
 
             // parse multimer and infounit
-            if(state.isSetCelldesignerHomodimer()) {
-                this.multimer = Integer.parseInt(state.getCelldesignerHomodimer().
-                        getDomNode().getChildNodes().item(0).getNodeValue());
+            if(state.getHomodimer() != null) {
+                this.multimer = state.getHomodimer().intValue();
             }
 
-            if(state.isSetCelldesignerListOfStructuralStates()) {
+            if(state.getListOfStructuralStates() != null) {
                 // assume that there is only 1 state per species
-                this.structuralState = state.getCelldesignerListOfStructuralStates().
-                        getCelldesignerStructuralStateArray(0).getStructuralState().getStringValue();
+                this.structuralState = state.getListOfStructuralStates().getStructuralState().getStructuralState();
             }
 
             // parse state variable/residues
-            if(state.isSetCelldesignerListOfModifications()) {
+            if(state.getListOfModifications() != null) {
 
                 // list and map this species' residues
-                List<CelldesignerModification> listOfModif =
-                        Arrays.asList(state.getCelldesignerListOfModifications().getCelldesignerModificationArray());
+                List<ListOfModifications.Modification> listOfModif =
+                        state.getListOfModifications().getModification();
 
 
                 // loop through the species' residues
-                for (CelldesignerModification modif : listOfModif) {
-                    System.out.println("adding state: "+modif.getState().getStringValue()+" for res "+modif.getResidue());
+                for (ListOfModifications.Modification modif : listOfModif) {
+                    System.out.println("adding state: "+modif.getState()+" for res "+modif.getResidue());
                     String residueId = modif.getResidue();
                     ResidueWrapper residueWrapper = mapOfReferenceModif.get(residueId);
                     /*
@@ -279,7 +255,7 @@ public class SpeciesWrapper {
                     has a residue d_rs1.
                      */
                     if(residueWrapper != null) {
-                        residueWrapper.state = modif.getState().getStringValue();
+                        residueWrapper.state = modif.getState();
                     }
                     else {
                         logger.error("Residue "+residueId+" doesn't exist in referenced protein.");
@@ -297,6 +273,7 @@ public class SpeciesWrapper {
 
     /**
      * Getting a list of region is impossible because of broken Binom api, so we use raw NodeList
+     * @deprecated
      * @param listOfNode NodeList of children of the RNA/gene/ASRNA! (not of the listOfRegions)
      * @return
      */
@@ -328,6 +305,26 @@ public class SpeciesWrapper {
             }
         }
 
+        return mapOfReferenceModif;
+    }
+
+    private HashMap<String, ResidueWrapper> mapOfRegion(ListOfRegions listOfRegions) {
+        HashMap<String, ResidueWrapper> mapOfReferenceModif = new HashMap<>();
+
+        for(Region region: listOfRegions.getRegion()) {
+            String type = region.getType();
+            String id = region.getId();
+            float pos = region.getPos().floatValue();
+            if(type.equals("Modification Site")) {
+                ResidueWrapper residueWrapper = new ResidueWrapper(id);
+                residueWrapper.relativePos = pos;
+                residueWrapper.useAngle = false;
+                if(region.getName() != null) {
+                    residueWrapper.name = region.getName();
+                }
+                mapOfReferenceModif.put(residueWrapper.id, residueWrapper);
+            }
+        }
         return mapOfReferenceModif;
     }
 

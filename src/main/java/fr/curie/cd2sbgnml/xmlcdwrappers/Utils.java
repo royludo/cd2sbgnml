@@ -2,10 +2,14 @@ package fr.curie.cd2sbgnml.xmlcdwrappers;
 
 import com.sun.xml.internal.bind.marshaller.NamespacePrefixMapper;
 import org.apache.xmlbeans.XmlObject;
+import org.sbml._2001.ns.celldesigner.Notes;
+import org.sbml._2001.ns.celldesigner.Species;
+import org.sbml.sbml.level2.version4.SBase;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Utils {
@@ -25,6 +29,34 @@ public class Utils {
                     return notes;
                 }
             }
+        }
+        return null;
+    }
+
+    // TODO check if ok
+    public static Element getNotes(List<Element> xml) {
+        for(Element e: xml) {
+            if((e.getTagName().equals("notes") || e.getTagName().equals("celldesigner:notes")) &&
+                    e.getElementsByTagName("html") != null) {
+                Element notes = (Element) e.getElementsByTagName("html").item(0);
+                if(notes != null && !isNoteEmpty(notes)) {
+                    return notes;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static Element getNotes(Notes xml) {
+        if(xml != null) {
+            return getNotes(xml.getAny());
+        }
+        return null;
+    }
+
+    public static Element getNotes(SBase.Notes xml) {
+        if(xml != null) {
+            return getNotes(xml.getAny());
         }
         return null;
     }
@@ -154,6 +186,16 @@ public class Utils {
         return null;
     }
 
+    // TODO verify it works ok
+    public static Element getRDFAnnotations(List<Element> annotationsXml) {
+        for(Element e: annotationsXml) {
+            if(e.getTagName().equals("rdf:RDF")) {
+                return e;
+            }
+        }
+        return null;
+    }
+
     /**
      * This is used to tell jaxb to use 'celldesigner' as namespace prefix, when marshalling
      */
@@ -163,7 +205,8 @@ public class Utils {
 
         public DefaultNamespacePrefixMapper() {
             namespaceMap.put("http://www.sbml.org/2001/ns/celldesigner", "celldesigner");
-            namespaceMap.put("http://www.w3.org/1998/Math/MathML", "mathml");
+
+            namespaceMap.put("http://www.w3.org/1998/Math/MathML", "celldesigner");
 
         }
 

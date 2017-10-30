@@ -1,15 +1,16 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
-import org.sbml.x2001.ns.celldesigner.CelldesignerConnectSchemeDocument.CelldesignerConnectScheme;
-import org.sbml.x2001.ns.celldesigner.CelldesignerModificationDocument.CelldesignerModification;
-import org.sbml.x2001.ns.celldesigner.CelldesignerProductLinkDocument.CelldesignerProductLink;
-import org.sbml.x2001.ns.celldesigner.CelldesignerReactantLinkDocument.CelldesignerReactantLink;
-import org.sbml.x2001.ns.celldesigner.ReactionDocument.Reaction;
+import org.sbml._2001.ns.celldesigner.ConnectScheme;
+import org.sbml._2001.ns.celldesigner.Modification;
+import org.sbml._2001.ns.celldesigner.ProductLink;
+import org.sbml._2001.ns.celldesigner.ReactantLink;
+import org.sbml.sbml.level2.version4.Reaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Node;
 
 import java.awt.geom.Point2D;
+import java.net.ConnectException;
 import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
 
@@ -41,10 +42,9 @@ public class ReactionWrapper {
         this.modifiers = new ArrayList<>();
         this.logicGates = new ArrayList<>();
         this.processSegmentIndex = getProcessSegment(reaction);
-        this.reactionType = reaction.getAnnotation().getCelldesignerReactionType().
-                getDomNode().getChildNodes().item(0).getNodeValue();
+        this.reactionType = reaction.getAnnotation().getExtension().getReactionType();
         this.hasProcess = hasProcess(reaction);
-        this.isReversible = reaction.isSetReversible() ? Boolean.parseBoolean(reaction.getReversible()) : true;
+        this.isReversible = reaction.isReversible(); //  reaction.isSetReversible() ? Boolean.parseBoolean(reaction.getReversible()) : true;
 
         // fill the corresponding lists
         SimpleEntry<List<ReactantWrapper>, List<LogicGateWrapper>> wrapperListTuple = ReactantWrapper.fromReaction(reaction, modelW);
@@ -95,7 +95,7 @@ public class ReactionWrapper {
      * @return index as int starting from 0
      */
     public static int getProcessSegment(Reaction reaction) {
-        CelldesignerConnectScheme connectScheme = reaction.getAnnotation().getCelldesignerConnectScheme();
+        ConnectScheme connectScheme = reaction.getAnnotation().getExtension().getConnectScheme();
 
         /*
          * in ACSN, connectScheme element is missing in some places (apoptosis)
@@ -105,15 +105,13 @@ public class ReactionWrapper {
             return 0;
         }
 
-        if(connectScheme.getDomNode().
-                getAttributes().getNamedItem("rectangleIndex") != null) {
-            return Integer.parseInt(connectScheme.getDomNode().
-                    getAttributes().getNamedItem("rectangleIndex").getNodeValue());
+        if(connectScheme.getRectangleIndex() != null) {
+            return Integer.parseInt(connectScheme.getRectangleIndex());
         }
         else {
-            if(reaction.getAnnotation().isSetCelldesignerEditPoints()
-                    && reaction.getAnnotation().getCelldesignerEditPoints().isSetTShapeIndex()) {
-                return Integer.parseInt(reaction.getAnnotation().getCelldesignerEditPoints().getTShapeIndex());
+            if(reaction.getAnnotation().getExtension().getEditPoints() != null
+                    && reaction.getAnnotation().getExtension().getEditPoints().getTShapeIndex() != null) {
+                return (int) reaction.getAnnotation().getExtension ().getEditPoints().getTShapeIndex();
             }
             else {
                 // default to 1st segment, if nothing is specified
@@ -123,7 +121,7 @@ public class ReactionWrapper {
     }
 
     public static boolean hasProcess(Reaction reaction) {
-        CelldesignerConnectScheme connectScheme = reaction.getAnnotation().getCelldesignerConnectScheme();
+        ConnectScheme connectScheme = reaction.getAnnotation().getExtension().getConnectScheme();
 
         /*
          * in ACSN, connectScheme element is missing in some places (apoptosis)
@@ -132,13 +130,12 @@ public class ReactionWrapper {
             return true;
         }
 
-        if(connectScheme.getDomNode().
-                getAttributes().getNamedItem("rectangleIndex") != null) {
+        if(connectScheme.getRectangleIndex() != null) {
             return true;
         }
         else {
-            if(reaction.getAnnotation().isSetCelldesignerEditPoints()
-                    && reaction.getAnnotation().getCelldesignerEditPoints().isSetTShapeIndex()) {
+            if(reaction.getAnnotation().getExtension().getEditPoints() != null
+                    && reaction.getAnnotation().getExtension().getEditPoints().getTShapeIndex() != null) {
                 return true;
             }
             else {
@@ -149,6 +146,7 @@ public class ReactionWrapper {
 
     /**
      * Parse a string of the form "x,y x2,y2 ..." to a list of Point2D
+     * @deprecated
      * @param editPointString
      * @return
      */
@@ -162,25 +160,35 @@ public class ReactionWrapper {
         return editPoints;
     }
 
+    public static List<Point2D.Float> parseEditPointsString(List<String> editPointString) {
+        List<Point2D.Float> editPoints = new ArrayList<>();
+        editPointString.stream().
+                forEach(e -> {
+                    String[] tmp = e.split(",");
+                    editPoints.add(new Point2D.Float(Float.parseFloat(tmp[0]), Float.parseFloat(tmp[1])));
+                });
+        return editPoints;
+    }
+
     /**
      * Get the list of edit points for the base reaction
      * @return
      */
     public static List<Point2D.Float> getBaseEditPoints (Reaction reaction){
-        if(!reaction.getAnnotation().isSetCelldesignerEditPoints()) {
+        if(reaction.getAnnotation().getExtension().getEditPoints() == null) {
             return new ArrayList<>();
         }
 
-        String editPointString = reaction.getAnnotation().getCelldesignerEditPoints().
-                getDomNode().getFirstChild().getNodeValue();
+        // TODO check if ok
+        List<String> editPointString = reaction.getAnnotation().getExtension().getEditPoints().getValue();
         return parseEditPointsString(editPointString);
     }
 
     public static List<Point2D.Float> getEditPointsForBranch(Reaction reaction, int b) {
         List<Point2D.Float> editPoints = getBaseEditPoints(reaction);
-        int num0 = Integer.parseInt(reaction.getAnnotation().getCelldesignerEditPoints().getNum0());
-        int num1 = Integer.parseInt(reaction.getAnnotation().getCelldesignerEditPoints().getNum1());
-        int num2 = Integer.parseInt(reaction.getAnnotation().getCelldesignerEditPoints().getNum2());
+        int num0 = (int) reaction.getAnnotation().getExtension().getEditPoints().getNum0();
+        int num1 = (int) reaction.getAnnotation().getExtension().getEditPoints().getNum1();
+        int num2 = (int) reaction.getAnnotation().getExtension().getEditPoints().getNum2();
 
         List<Point2D.Float> finalEditPoints = new ArrayList<>();
         switch(b) {
@@ -214,18 +222,19 @@ public class ReactionWrapper {
      * @return
      */
     public static List<Point2D.Float> getEditPointsForModifier(Reaction reaction, int index) {
-        CelldesignerModification modif = reaction.getAnnotation().
-                getCelldesignerListOfModification().getCelldesignerModificationArray(index);
+        Modification modif = reaction.getAnnotation().
+                getExtension().getListOfModification().getModification().get(index);
 
-        if(!modif.isSetEditPoints()) {
+        if(modif.getEditPoints() == null) {
             return new ArrayList<>();
         }
 
         /*
         In ACSN some isseteditPoints can return true without having any editpoints, and then return empty string
          */
-        if(modif.isSetEditPoints() && !modif.getEditPoints().getStringValue().equals("")) {
-            String editPointString = modif.getEditPoints().getStringValue();
+        // TODO check if ok
+        if(modif.getEditPoints() != null) { // && !modif.getEditPoints().getStringValue().equals("")) {
+            List<String> editPointString = modif.getEditPoints();
             return parseEditPointsString(editPointString);
         }
         else {
@@ -241,31 +250,24 @@ public class ReactionWrapper {
      * @return
      */
     public static List<Point2D.Float> getEditPointsForAdditionalReactant(Reaction reaction, int index) {
-        CelldesignerReactantLink reactLink = reaction.getAnnotation().
-                getCelldesignerListOfReactantLinks().getCelldesignerReactantLinkArray(index);
+        ReactantLink reactLink = reaction.getAnnotation().
+                getExtension().getListOfReactantLinks().getReactantLink().get(index);
 
-        for(int i=0; i < reactLink.getDomNode().getChildNodes().getLength(); i++) {
-            Node n = reactLink.getDomNode().getChildNodes().item(i);
-            if(n.getNodeName().equals("celldesigner_editPoints")) {
-                return parseEditPointsString(n.getChildNodes().item(0).getNodeValue());
-            }
+        if(reactLink.getEditPoints() != null) {
+            return parseEditPointsString(reactLink.getEditPoints().getValue());
         }
-
         return new ArrayList<>();
     }
 
     public static List<Point2D.Float> getEditPointsForAdditionalProduct(Reaction reaction, int index) {
-        CelldesignerProductLink reactLink = reaction.getAnnotation().
-                getCelldesignerListOfProductLinks().getCelldesignerProductLinkArray(index);
+        ProductLink reactLink = reaction.getAnnotation().
+                getExtension().getListOfProductLinks().getProductLink().get(index);
 
-        for(int i=0; i < reactLink.getDomNode().getChildNodes().getLength(); i++) {
-            Node n = reactLink.getDomNode().getChildNodes().item(i);
-            if(n.getNodeName().equals("celldesigner_editPoints")) {
-                return parseEditPointsString(n.getChildNodes().item(0).getNodeValue());
-            }
+        if(reactLink.getEditPoints() != null) {
+            return parseEditPointsString(reactLink.getEditPoints().getValue());
         }
-
         return new ArrayList<>();
+
     }
 
 
@@ -287,8 +289,8 @@ public class ReactionWrapper {
         return id;
     }
 
-    public CelldesignerConnectScheme getBaseConnectScheme() {
-        return this.getReaction().getAnnotation().getCelldesignerConnectScheme();
+    public ConnectScheme getBaseConnectScheme() {
+        return this.getReaction().getAnnotation().getExtension().getConnectScheme();
     }
 
     public Reaction getReaction() {

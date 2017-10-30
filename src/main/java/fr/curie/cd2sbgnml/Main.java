@@ -3,20 +3,16 @@ package fr.curie.cd2sbgnml;
 import fr.curie.cd2sbgnml.xmlcdwrappers.Utils;
 import org.sbfc.converter.exceptions.ConversionException;
 import org.sbfc.converter.exceptions.ReadModelException;
-import org.sbfc.converter.exceptions.WriteModelException;
 import org.sbgn.SbgnUtil;
 /*import org.sbml.sbml.level2.version4.Sbml;
 import org.sbml.wrapper.ModelWrapper;
 import org.sbml.wrapper.ObjectFactory;*/
-import org.sbml.sbml.level2.version4.Model;
 import org.sbml.sbml.level2.version4.Sbml;
 import org.slf4j.impl.SimpleLogger;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.*;
-import javax.xml.stream.XMLStreamException;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class Main {
@@ -69,14 +65,14 @@ public class Main {
         if(true) {
             CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
             try {
-                cdModel.setModelFromFile("samples/mtor.xml");
+                cdModel.setModelFromFile("samples/reaction.xml");
                 //System.out.println(cdModel.modelToString());
             } catch (ReadModelException e) {
                 e.printStackTrace();
             }
 
             try {
-                SbgnUtil.writeToFile(new CD2SBGNML().toSbgn(cdModel.getModel()), new File("samples/out.sbgnml"));
+                SbgnUtil.writeToFile(new CD2SBGNML().toSbgn(cdModel.getSbml()), new File("samples/out.sbgnml"));
             } catch (JAXBException e) {
                 e.printStackTrace();
             }
@@ -107,7 +103,7 @@ public class Main {
             //SbgnUtil.writeToFile(new CD2SBGNML().toSbgn(cdModel.getModel()), new File("src/main/resources/out.sbgnml"));
             CellDesignerSBFCModel backCdModel = (CellDesignerSBFCModel) new SBGNML2CD().convert(sbgnModel);
             //backCdModel.modelToFile("src/main/resources/newCD.sbgnml");
-            System.out.println(backCdModel.getBaseSbml());
+            System.out.println(backCdModel.getSbml());
 
 
             File file = new File("samples/newCD.xml");
@@ -115,10 +111,10 @@ public class Main {
             marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new Utils.DefaultNamespacePrefixMapper());
-            marshaller.marshal(backCdModel.getBaseSbml() , file);
+            marshaller.marshal(backCdModel.getSbml() , file);
 
 
-            /*ModelWrapper mw = new ModelWrapper(backCdModel.getBaseSbml().getModel(), backCdModel.getBaseSbml());
+            /*ModelWrapper mw = new ModelWrapper(backCdModel.getSbml().getModel(), backCdModel.getSbml());
 
 
 

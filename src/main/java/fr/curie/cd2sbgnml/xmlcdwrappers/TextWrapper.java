@@ -1,6 +1,6 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
-import org.sbml.x2001.ns.celldesigner.CelldesignerLayerSpeciesAliasDocument.CelldesignerLayerSpeciesAlias;
+import org.sbml._2001.ns.celldesigner.LayerSpeciesAlias;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,26 +20,24 @@ public class TextWrapper {
     private String color;
     private Rectangle2D.Float bbox;
 
-    public TextWrapper(CelldesignerLayerSpeciesAlias layerAlias, boolean visible) {
+    public TextWrapper(LayerSpeciesAlias layerAlias, boolean visible) {
         this.visible = visible;
 
-        this.text = layerAlias.getCelldesignerLayerNotes().getDomNode().getChildNodes().item(0).getNodeValue();
+        this.text = layerAlias.getLayerNotes();
         this.refPoint = new Point2D.Float(
-                Float.parseFloat(layerAlias.getX().getStringValue()),
-                Float.parseFloat(layerAlias.getY().getStringValue()));
-        /*
-        The incomplete API of celldesignerParser prevent from getting targetType and Id
+                layerAlias.getX().floatValue(),
+                layerAlias.getY().floatValue());
 
-        this.targetType = layerAlias.getDomNode().getAttributes().getNamedItem("targetType").getNodeValue();
-        this.targetId = layerAlias.getDomNode().getAttributes().getNamedItem("targetId").getNodeValue();
-        */
-        this.fontSize = Float.parseFloat(layerAlias.getCelldesignerFont().getSize().getStringValue());
-        this.color = layerAlias.getCelldesignerPaint().getColor().getStringValue();
+        this.targetType = layerAlias.getTarget();
+        this.targetId = layerAlias.getTargetId();
+
+        this.fontSize = layerAlias.getFont().getSize().floatValue();
+        this.color = layerAlias.getPaint().getColor();
         this.bbox = new Rectangle2D.Float(
-                Float.parseFloat(layerAlias.getCelldesignerBounds().getX()),
-                Float.parseFloat(layerAlias.getCelldesignerBounds().getY()),
-                Float.parseFloat(layerAlias.getCelldesignerBounds().getW()),
-                Float.parseFloat(layerAlias.getCelldesignerBounds().getH())
+                layerAlias.getBounds().getX().floatValue(),
+                layerAlias.getBounds().getY().floatValue(),
+                layerAlias.getBounds().getW().floatValue(),
+                layerAlias.getBounds().getH().floatValue()
         );
 
         /*logger.debug("Check TextWrapper");
@@ -78,4 +76,11 @@ public class TextWrapper {
         return bbox;
     }
 
+    public String getTargetType() {
+        return targetType;
+    }
+
+    public String getTargetId() {
+        return targetId;
+    }
 }

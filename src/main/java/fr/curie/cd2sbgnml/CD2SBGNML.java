@@ -13,17 +13,22 @@ import org.sbfc.converter.models.SBGNModel;
 import org.sbgn.bindings.*;
 import org.sbgn.bindings.Glyph.State;
 import org.sbgn.bindings.Map;
-import org.sbml.x2001.ns.celldesigner.CelldesignerBoundsDocument.CelldesignerBounds;
-import org.sbml.x2001.ns.celldesigner.CelldesignerCompartmentAliasDocument.CelldesignerCompartmentAlias;
-import org.sbml.x2001.ns.celldesigner.*;
-import org.sbml.x2001.ns.celldesigner.CelldesignerPointDocument.CelldesignerPoint;
-import org.sbml.x2001.ns.celldesigner.CompartmentDocument.Compartment;
+import org.sbml._2001.ns.celldesigner.Bounds;
+import org.sbml._2001.ns.celldesigner.CompartmentAlias;
+import org.sbml._2001.ns.celldesigner.ModelDisplay;
+import org.sbml.sbml.level2.version4.Compartment;
+import org.sbml.sbml.level2.version4.Sbml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.*;
@@ -40,20 +45,20 @@ public class CD2SBGNML extends GeneralConverter {
     List<StyleInfo> styleInfoList;
     HashMap<String, Port> portMap;
 
-    public Sbgn toSbgn( SbmlDocument sbmlDoc) {
+    public Sbgn toSbgn(Sbml sbml) {
         Sbgn sbgn = new Sbgn();
         Map map = new Map();
         map.setId("mapID");
         sbgn.getMap().add(map);
 
-        ModelWrapper modelW = ModelWrapper.create(sbmlDoc);
+        ModelWrapper modelW = ModelWrapper.create(sbml);
 
         // put model notes into map notes
         if(modelW.getModel().getNotes() != null) {
-            map.setNotes(getSBGNNotes(Utils.getNotes(modelW.getModel())));
+            map.setNotes(getSBGNNotes(Utils.getNotes(modelW.getModel().getNotes())));
         }
         // put model annotations into map annotations
-        map.setExtension(getSBGNAnnotation(Utils.getRDFAnnotations(modelW.getModel().getAnnotation()), "mapID"));
+        map.setExtension(getSBGNAnnotation(Utils.getRDFAnnotations(modelW.getModel().getAnnotation().getAny()), "mapID"));
 
         //System.exit(1);
 
@@ -113,9 +118,9 @@ public class CD2SBGNML extends GeneralConverter {
 
                 // put reaction into process glyph
                 // TODO if no process, add notes into the arc
-                processGlyph.setNotes(getSBGNNotes(Utils.getNotes(reactionW.getReaction())));
+                processGlyph.setNotes(getSBGNNotes(Utils.getNotes(reactionW.getReaction().getNotes())));
                 processGlyph.setExtension(getSBGNAnnotation(
-                        Utils.getRDFAnnotations(reactionW.getReaction().getAnnotation()), processId));
+                        Utils.getRDFAnnotations(reactionW.getReaction().getAnnotation().getAny()), processId));
 
                 // TODO process style ?
 
@@ -313,7 +318,7 @@ public class CD2SBGNML extends GeneralConverter {
         }
         System.out.println(StyleInfo.getMapOfColorDefinitions(styleInfoList));
         SBGNBase.Extension ext = new SBGNBase.Extension();
-        ext.getAny().add(getAllStyles(styleInfoList, sbmlDoc));
+        ext.getAny().add(getAllStyles(styleInfoList, sbml));
         map.setExtension(ext);
 
 
@@ -323,10 +328,10 @@ public class CD2SBGNML extends GeneralConverter {
     public void processCompartment(Compartment compartment, ModelWrapper modelW, Map map) {
         if(! compartment.getId().equals("default")) {
             //System.out.println(compartment.getId()+" "+compartment.getName().getStringValue() +" "+compartment.getOutside());
-            for(CelldesignerCompartmentAlias alias : modelW.getCompartmentAliasFor(compartment.getId())) {
+            for(CompartmentAlias alias : modelW.getCompartmentAliasFor(compartment.getId())) {
                 //System.out.println(alias.getCelldesignerBounds());
-                CelldesignerBounds cdBounds = alias.getCelldesignerBounds();
-                CelldesignerPoint cdPoint = alias.getCelldesignerPoint();
+                Bounds cdBounds = alias.getBounds();
+                org.sbml._2001.ns.celldesigner.Point cdPoint = alias.getPoint();
 
                 Glyph compGlyph = new Glyph();
 
@@ -340,19 +345,16 @@ public class CD2SBGNML extends GeneralConverter {
 
                 // label
                 Label compLabel = new Label();
-                compLabel.setText(Utils.interpretToUTF8(compartment.getName().getStringValue()));
+                compLabel.setText(Utils.interpretToUTF8(compartment.getName()));
 
                 // if a namepoint element is there, add a bbox to place the label correctly
-                for(int i =0; i < alias.getDomNode().getChildNodes().getLength(); i++) {
-                    Node n = alias.getDomNode().getChildNodes().item(i);
-                    if(n.getNodeName().equals("celldesigner_namePoint")) {
-                        Bbox labelBbox = new Bbox();
-                        labelBbox.setX(Float.parseFloat(n.getAttributes().getNamedItem("x").getNodeValue()));
-                        labelBbox.setY(Float.parseFloat(n.getAttributes().getNamedItem("y").getNodeValue()));
-                        labelBbox.setH(10);
-                        labelBbox.setW(GeometryUtils.getLengthForString(compartment.getName().getStringValue()));
-                        compLabel.setBbox(labelBbox);
-                    }
+                if(alias.getNamePoint() != null) {
+                    Bbox labelBbox = new Bbox();
+                    labelBbox.setX(alias.getNamePoint().getX().floatValue());
+                    labelBbox.setY(alias.getNamePoint().getY().floatValue());
+                    labelBbox.setH(10);
+                    labelBbox.setW(GeometryUtils.getLengthForString(compartment.getName()));
+                    compLabel.setBbox(labelBbox);
                 }
 
                 compGlyph.setLabel(compLabel);
@@ -364,17 +366,17 @@ public class CD2SBGNML extends GeneralConverter {
                 if (cdBounds == null) {
                     // bounds may not be here, point instead
                     // assume that the compartment takes all the remaining map space
-                    float pointX = Float.parseFloat(cdPoint.getX());
-                    float pointY = Float.parseFloat(cdPoint.getY());
-                    CelldesignerModelDisplayDocument.CelldesignerModelDisplay display =
-                            modelW.getModel().getAnnotation().getCelldesignerModelDisplay();
-                    float mapSizeX = Float.parseFloat(display.getSizeX());
-                    float mapSizeY = Float.parseFloat(display.getSizeY());
+                    float pointX = cdPoint.getX().floatValue();
+                    float pointY = cdPoint.getY().floatValue();
+                    ModelDisplay display =
+                            modelW.getModel().getAnnotation().getExtension().getModelDisplay();
+                    float mapSizeX = display.getSizeX();
+                    float mapSizeY = display.getSizeY();
 
                     Rectangle2D.Float bbox = GeometryUtils.getCompartmentBbox(
-                            alias.getCelldesignerClass().getDomNode().getChildNodes().item(0).getNodeValue(),
+                            alias.getClazz(),
                             pointX, pointY,
-                            Float.parseFloat(alias.getCelldesignerDoubleLine().getThickness()),
+                            alias.getDoubleLine().getThickness().floatValue(),
                             mapSizeX, mapSizeY);
 
                     compBbox.setX((float) bbox.getX());
@@ -382,17 +384,17 @@ public class CD2SBGNML extends GeneralConverter {
                     compBbox.setW((float) bbox.getWidth());
                     compBbox.setH((float) bbox.getHeight());
                 } else {
-                    compBbox.setX(Float.parseFloat(cdBounds.getX()));
-                    compBbox.setY(Float.parseFloat(cdBounds.getY()));
-                    compBbox.setH(Float.parseFloat(cdBounds.getH()));
-                    compBbox.setW(Float.parseFloat(cdBounds.getW()));
+                    compBbox.setX(cdBounds.getX().floatValue());
+                    compBbox.setY(cdBounds.getY().floatValue());
+                    compBbox.setH(cdBounds.getH().floatValue());
+                    compBbox.setW(cdBounds.getW().floatValue());
                 }
                 compGlyph.setBbox(compBbox);
 
                 // keep notes
-                compGlyph.setNotes(getSBGNNotes(Utils.getNotes(compartment)));
+                compGlyph.setNotes(getSBGNNotes(Utils.getNotes(compartment.getNotes())));
                 compGlyph.setExtension(getSBGNAnnotation(
-                        Utils.getRDFAnnotations(compartment.getAnnotation()), compartmentId));
+                        Utils.getRDFAnnotations(compartment.getAnnotation().getAny()), compartmentId));
 
                 // keep references
                 glyphList.add(compGlyph);
@@ -469,10 +471,10 @@ public class CD2SBGNML extends GeneralConverter {
         System.out.println(species.getId()+" "+species.getName()+" "+species.getCompartment());
         //System.out.println(bounds);
         Rectangle2D.Float bboxRect = new Rectangle2D.Float(
-                Float.parseFloat(aliasW.getBounds().getX()),
-                Float.parseFloat(aliasW.getBounds().getY()),
-                Float.parseFloat(aliasW.getBounds().getW()),
-                Float.parseFloat(aliasW.getBounds().getH() )
+                aliasW.getBounds().getX().floatValue(),
+                aliasW.getBounds().getY().floatValue(),
+                aliasW.getBounds().getW().floatValue(),
+                aliasW.getBounds().getH().floatValue()
         );
 
         Glyph glyph = new Glyph();
@@ -751,8 +753,18 @@ public class CD2SBGNML extends GeneralConverter {
         return arc1;
     }
 
-    public Element getAllStyles(List<StyleInfo> styleInfoList, SbmlDocument sbmldoc) {
-        Document baseDoc = sbmldoc.getSbml().getDomNode().getOwnerDocument();
+    public Element getAllStyles(List<StyleInfo> styleInfoList, Sbml sbmldoc) {
+        // convert to DOM document
+        Document baseDoc = null;
+        try {
+            baseDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+            /*JAXBContext context = JAXBContext.newInstance(Sbml.class.getPackage().getName());
+            Marshaller marshaller = context.createMarshaller();*/
+        } catch (ParserConfigurationException  e) {
+            e.printStackTrace();
+        }
+
+        //Document baseDoc = sbmldoc.getSbml().getDomNode().getOwnerDocument();
 
         java.util.Map<String, String> colorMap = StyleInfo.getMapOfColorDefinitions(styleInfoList);
         Element renderInformation = baseDoc.createElement("renderInformation");
@@ -853,7 +865,7 @@ public class CD2SBGNML extends GeneralConverter {
 
     public GeneralModel convert(GeneralModel generalModel) throws ConversionException, ReadModelException {
         CellDesignerSBFCModel cdModel = (CellDesignerSBFCModel) generalModel;
-        return new SBGNModel(this.toSbgn(cdModel.getModel()));
+        return new SBGNModel(this.toSbgn(cdModel.getSbml()));
     }
 
     public String getResultExtension() {

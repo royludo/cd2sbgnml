@@ -1,6 +1,7 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
-import org.sbml.x2001.ns.celldesigner.CelldesignerModificationDocument.CelldesignerModification;
+
+import org.sbml._2001.ns.celldesigner.Modification;
 
 public class LogicGateWrapper {
 
@@ -8,7 +9,7 @@ public class LogicGateWrapper {
 
     private LogicGateType type;
     private String modificationType;
-    private CelldesignerModification modification;
+    private Modification modification;
 
     /**
      * The index of the reactant in the corresponding list (modification,  additional product...) in the
@@ -16,9 +17,10 @@ public class LogicGateWrapper {
      */
     private int positionIndex;
 
-    public LogicGateWrapper(CelldesignerModification modif, int i) {
+    public LogicGateWrapper(Modification modif, int i) {
         this.positionIndex = i;
-        this.modificationType = modif.getDomNode().getAttributes().getNamedItem("modificationType").getNodeValue();
+        System.out.println("LOGIC MODIFICAITON "+modif.getModificationType());
+        this.modificationType = modif.getModificationType();
         switch (modif.getType()) {
             case "BOOLEAN_LOGIC_GATE_OR": this.type = LogicGateType.OR; break;
             case "BOOLEAN_LOGIC_GATE_AND": this.type = LogicGateType.AND; break;
@@ -42,7 +44,7 @@ public class LogicGateWrapper {
         return positionIndex;
     }
 
-    public CelldesignerModification getModification() {
+    public Modification getModification() {
         return modification;
     }
 }

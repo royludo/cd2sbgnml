@@ -1,12 +1,10 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
-import org.sbml.x2001.ns.celldesigner.CelldesignerBoundsDocument.CelldesignerBounds;
-import org.sbml.x2001.ns.celldesigner.CelldesignerCompartmentAliasDocument.CelldesignerCompartmentAlias;
-import org.sbml.x2001.ns.celldesigner.CelldesignerComplexSpeciesAliasDocument.CelldesignerComplexSpeciesAlias;
-import org.sbml.x2001.ns.celldesigner.CelldesignerSpeciesAliasDocument.CelldesignerSpeciesAlias;
+import org.sbml._2001.ns.celldesigner.*;
 import org.w3c.dom.Node;
 
 import java.awt.geom.Point2D;
+import java.math.BigDecimal;
 
 /**
  * wraps speciesAlias and complexSpeciesAlias as they have a lot in common
@@ -15,7 +13,7 @@ public class AliasWrapper {
 
     public enum AliasType {COMPLEX, COMPARTMENT, BASIC}
 
-    private CelldesignerBounds bounds;
+    private Bounds bounds;
     private AliasType aliasType;
     private String id;
     private String complexAlias;
@@ -26,9 +24,9 @@ public class AliasWrapper {
     private AliasInfoWrapper info;
     private StyleInfo styleInfo;
 
-    public AliasWrapper(CelldesignerSpeciesAlias alias, SpeciesWrapper speciesW) {
+    public AliasWrapper(SpeciesAlias alias, SpeciesWrapper speciesW) {
         this.aliasType = AliasType.BASIC;
-        this.bounds = alias.getCelldesignerBounds();
+        this.bounds = alias.getBounds();
         this.id = alias.getId();
         this.complexAlias = alias.getComplexSpeciesAlias();
         this.speciesId = alias.getSpecies();
@@ -41,38 +39,50 @@ public class AliasWrapper {
             //e.printStackTrace();
             this.compartmentAlias = null;
         }
-        this.isActive = alias.getCelldesignerActivity().getDomNode().getChildNodes().item(0).getNodeValue().equals("active");
-        this.addAliasInfo(alias.getDomNode());
+        this.isActive = alias.getActivity().equals("active");
+        //this.addAliasInfo(alias.getDomNode());
+        this.info = new AliasInfoWrapper(
+                alias.getInfo().getAngle().floatValue(),
+                alias.getInfo().getPrefix(),
+                alias.getInfo().getLabel());
         this.styleInfo = new StyleInfo(alias, speciesW.getId()+"_"+this.id);
 
     }
 
-    public AliasWrapper(CelldesignerComplexSpeciesAlias alias, SpeciesWrapper speciesW) {
+    public AliasWrapper(ComplexSpeciesAlias alias, SpeciesWrapper speciesW) {
         this.aliasType = AliasType.COMPLEX;
-        this.bounds = alias.getCelldesignerBounds();
+        this.bounds = alias.getBounds();
         this.id = alias.getId();
         this.speciesId = alias.getSpecies();
         this.speciesW = speciesW;
 
+        // TODO is this ok ?
+        ListOfComplexSpeciesAliases.ComplexSpeciesAlias a = (ListOfComplexSpeciesAliases.ComplexSpeciesAlias) alias;
+        this.complexAlias = a.getComplexSpeciesAlias();
         // complexSpeciesAlias cannot be accessed through standard object structure
         // probably because of outdated api of binom
         // we need to fetch it manually in the xml, if present
-        if(alias.getDomNode().getAttributes().getNamedItem("complexSpeciesAlias") != null) {
+        /*if(alias.getDomNode().getAttributes().getNamedItem("complexSpeciesAlias") != null) {
             this.complexAlias = alias.getDomNode().getAttributes().getNamedItem("complexSpeciesAlias").getNodeValue();
         }
         else {
             this.complexAlias = null;
-        }
+        }*/
+
          //alias.getDomNode().getAttributes().getNamedItem("complexSpeciesAlias").getNodeValue();
         this.compartmentAlias = alias.getCompartmentAlias();
-        this.isActive = alias.getCelldesignerActivity().getDomNode().getChildNodes().item(0).getNodeValue().equals("active");
-        this.addAliasInfo(alias.getDomNode());
+        this.isActive = alias.getActivity ().equals("active");
+        //this.addAliasInfo(alias.getDomNode());
+        this.info = new AliasInfoWrapper(
+                alias.getInfo().getAngle().floatValue(),
+                alias.getInfo().getPrefix(),
+                alias.getInfo().getLabel());
         this.styleInfo = new StyleInfo(alias, speciesW.getId()+"_"+this.id);
     }
 
-    public AliasWrapper(CelldesignerCompartmentAlias alias, SpeciesWrapper speciesW) {
+    public AliasWrapper(CompartmentAlias alias, SpeciesWrapper speciesW) {
         this.aliasType = AliasType.COMPARTMENT;
-        this.bounds = alias.getCelldesignerBounds();
+        this.bounds = alias.getBounds();
         this.id = alias.getId();
         this.complexAlias = null;
         this.compartmentAlias = null;
@@ -98,11 +108,11 @@ public class AliasWrapper {
     public Point2D.Float getCenterPoint() {
         // TODO check if coords are center or corner (corner it seems)
         return new Point2D.Float(
-                Float.parseFloat(this.bounds.getX()) + Float.parseFloat(this.bounds.getW())/2,
-                Float.parseFloat(this.bounds.getY()) + Float.parseFloat(this.bounds.getH())/2);
+                this.bounds.getX().floatValue() + this.bounds.getW().floatValue() / 2,
+                this.bounds.getY().floatValue() + this.bounds.getH().floatValue() / 2);
     }
 
-    public CelldesignerBounds getBounds() {
+    public Bounds getBounds() {
         return bounds;
     }
 
