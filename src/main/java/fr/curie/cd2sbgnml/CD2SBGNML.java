@@ -412,8 +412,13 @@ public class CD2SBGNML extends GeneralConverter {
 
         if(species.getReferenceNotes() != null) {
             // TODO is piling up <html> elements in 1 note ok ?
-            glyph.getNotes().getAny().add(species.getReferenceNotes());
-            System.out.println("MULTIPLE NOTES "+glyph.getNotes().getAny());
+            if(glyph.getNotes() != null) {
+                glyph.getNotes().getAny().add(species.getReferenceNotes());
+                System.out.println("MULTIPLE NOTES "+glyph.getNotes().getAny());
+            }
+            else {
+                glyph.setNotes(getSBGNNotes(species.getReferenceNotes()));
+            }
         }
 
         if(species.isComplex()) {
@@ -836,8 +841,11 @@ public class CD2SBGNML extends GeneralConverter {
     public SBGNBase.Notes getSBGNNotes(Element notes) {
         SBGNBase.Notes newNotes = new SBGNBase.Notes();
         //System.out.println((Element) modelW.getModel().getNotes().getDomNode());
-        newNotes.getAny().add(notes);
-        return newNotes;
+        if(notes != null ){
+            newNotes.getAny().add(notes);
+            return newNotes;
+        }
+        return null;
     }
 
     /**

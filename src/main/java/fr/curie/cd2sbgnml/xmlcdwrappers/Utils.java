@@ -3,7 +3,6 @@ package fr.curie.cd2sbgnml.xmlcdwrappers;
 import com.sun.xml.internal.bind.marshaller.NamespacePrefixMapper;
 import org.apache.xmlbeans.XmlObject;
 import org.sbml._2001.ns.celldesigner.Notes;
-import org.sbml._2001.ns.celldesigner.Species;
 import org.sbml.sbml.level2.version4.SBase;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -19,21 +18,6 @@ public class Utils {
      * @param xml
      * @return
      */
-    public static Element getNotes(XmlObject xml) {
-        for(int i =0; i < xml.getDomNode().getChildNodes().getLength(); i++) {
-            Node n = xml.getDomNode().getChildNodes().item(i);
-             if((n.getNodeName().equals("notes") || n.getNodeName().equals("celldesigner_notes")) &&
-                    ((Element) n).getElementsByTagName("html") != null) {
-                Element notes = (Element)((Element) n).getElementsByTagName("html").item(0);
-                if(notes != null && !isNoteEmpty(notes)) {
-                    return notes;
-                }
-            }
-        }
-        return null;
-    }
-
-    // TODO check if ok
     public static Element getNotes(List<Element> xml) {
         for(Element e: xml) {
             if(e.getElementsByTagName("html") != null && !isNoteEmpty(e)) {
@@ -170,19 +154,6 @@ public class Utils {
      * @param annotationsXml
      * @return
      */
-    public static Element getRDFAnnotations(XmlObject annotationsXml) {
-        for(int i=0; i < annotationsXml.getDomNode().getChildNodes().getLength(); i++) {
-            Node n = annotationsXml.getDomNode().getChildNodes().item(i);
-            System.out.println("n name: "+n.getNodeName());
-            if(n.getNodeName().equals("rdf:RDF")) {
-                Element rdf = (Element) n;
-                return rdf;
-            }
-        }
-        return null;
-    }
-
-    // TODO verify it works ok
     public static Element getRDFAnnotations(List<Element> annotationsXml) {
         for(Element e: annotationsXml) {
             if(e.getTagName().equals("rdf:RDF")) {
