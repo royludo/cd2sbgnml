@@ -122,38 +122,19 @@ public class ReactantWrapper {
         this.positionIndex = index;
 
         // get reactanct's link anchor point
-        if(modification.getLinkTarget().size() > 0) {
-            // !!!!!!! limitation of the API here, getCelldesignerLinkAnchor() crashes !!!
+        if(modification.getLinkTarget().size() > 0
+                && modification.getLinkTarget().get(0).getLinkAnchor() != null) {
 
-            // TODO check and remove comments everywhere
-            if(modification.getLinkTarget().get(0).getLinkAnchor() != null
-                    && ! modification.getLinkTarget().get(0).getLinkAnchor().getPosition().equals("INACTIVE")) {
-                this.anchorPoint = AnchorPoint.valueOf(modification.getLinkTarget().get(0).getLinkAnchor().getPosition());
-            }
-            else {
-                this.anchorPoint = AnchorPoint.CENTER;
-            }
-            //this.anchorPoint = AnchorPoint.valueOf(
-             //       modification.getCelldesignerLinkTarget().getCelldesignerLinkAnchor()
-             //               getCelldesignerLinkAnchor().getPosition().toString());
-            /*for(int i=0; i < modification.getDomNode().getChildNodes().getLength(); i++) {
-                Node n = modification.getDomNode().getChildNodes().item(i);
-                if(n.getNodeName().equals("celldesigner_linkTarget")) {
-                    for(int j=0; j < n.getChildNodes().getLength(); j++) {
-                        Node n2 = n.getChildNodes().item(j);
-                        if(n2.getNodeName().equals("celldesigner_linkAnchor")) {
-                            try{
-                                this.anchorPoint = AnchorPoint.valueOf(n2.getAttributes().getNamedItem("position").getNodeValue());
-                            }
-                            // here the position can be INACTIVE
-                            catch(IllegalArgumentException e) {
-                                this.anchorPoint = AnchorPoint.CENTER;
-                            }
-                            break;
-                        }
-                    }
+                String position = modification.getLinkTarget().get(0).getLinkAnchor().getPosition();
+                /*
+                    In ACSN, it is possible to get an empty string for some modifications linkAnchor
+                 */
+                try {
+                    this.anchorPoint = AnchorPoint.valueOf(position);
+                } catch(IllegalArgumentException e) {
+                    logger.warn("Illegal linkAnchor position found: "+position+". CENTER will be used instead");
+                    this.anchorPoint = AnchorPoint.CENTER;
                 }
-            }*/
         }
         else {
             this.anchorPoint = AnchorPoint.CENTER;

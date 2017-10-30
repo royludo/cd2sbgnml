@@ -11,6 +11,12 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class CellDesignerSBFCModel implements GeneralModel {
 
@@ -29,24 +35,49 @@ public class CellDesignerSBFCModel implements GeneralModel {
 
 
     public Sbml getSbml() {
-        return sbml;
+        return this.sbml;
     }
 
     public void setModelFromFile(String s) throws ReadModelException {
-        File file = new File(s);
+        byte[] encoded = new byte[0];
+        try {
+            encoded = Files.readAllBytes(Paths.get(s));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String sbmlString = new String(encoded, StandardCharsets.UTF_8);
+        this.setModelFromString(sbmlString);
+    }
+
+    public void setModelFromString(String s) throws ReadModelException {
+        /*
+            ACSN and other maps don't have proper namespace: xmlns="http://www.sbml.org/sbml/level2"
+            we need to put a level here.
+         */
+        s = s.replaceFirst("xmlns=\"http://www.sbml.org/sbml/level2\"",
+                "xmlns=\"http://www.sbml.org/sbml/level2/version4\"");
+
+        /*
+            ACSN and other maps have their <celldesigner:extension> element removed, everywhere.
+         */
+        // if one extension is present, then consider the rest valid. If none, we need to add them.
+        if(! s.matches("<annotation>[\\n\\s]*<celldesigner:extension>")) {
+            System.out.println("ADD EXTENSION");
+            s = s.replaceAll("<annotation>", "<annotation><celldesigner:extension>");
+            s = s.replaceAll("</annotation>", "</celldesigner:extension></annotation>");
+        }
+
         JAXBContext jaxbContext = null;
         try {
             jaxbContext = JAXBContext.newInstance(Sbml.class);
             Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-            this.sbml = (Sbml) jaxbUnmarshaller.unmarshal(file);
+            this.sbml = (Sbml) jaxbUnmarshaller.unmarshal(new StringReader(s));
 
         } catch (JAXBException e) {
+            e.printStackTrace();
             throw new ReadModelException(e.getCause());
         }
-    }
 
-    public void setModelFromString(String s) throws ReadModelException {
-        //this.sbml = CellDesigner.loadCellDesignerFromText(s);
     }
 
     public void modelToFile(String s) throws WriteModelException {
