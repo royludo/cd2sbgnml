@@ -94,26 +94,31 @@ public class Process extends ReactionNodeModel {
          * for 0 and 1 (additional reactants and products) we need the exact point on the line of the process
          */
         if( index == 0) {
+            Point2D.Float absolute;
             if(this.isOnPolyline()) {
                 float distance = PROCESS_SIZE * (float) Math.sqrt(2) / 2; // diag distance of the process
-                return GeometryUtils.interpolationByDistance(this.getGlyph().getCenter(),
+                absolute = GeometryUtils.interpolationByDistance(this.getGlyph().getCenter(),
                         (Point2D.Float) this.getAxis().getP1(), distance);
             }
             else {
-                return GeometryUtils.interpolationByRatio(this.getGlyph().getCenter(),
+                absolute = GeometryUtils.interpolationByRatio(this.getGlyph().getCenter(),
                         (Point2D.Float) this.getAxis().getP1(), 0.2f);
             }
+            return absolute;
+
         }
         else if (index == 1) {
+            Point2D.Float absolute;
             if(this.isOnPolyline()) {
                 float distance = PROCESS_SIZE * (float) Math.sqrt(2) / 2; // diag distance of the process
-                return GeometryUtils.interpolationByDistance(this.getGlyph().getCenter(),
+                absolute =  GeometryUtils.interpolationByDistance(this.getGlyph().getCenter(),
                         (Point2D.Float) this.getAxis().getP2(), distance);
             }
             else {
-                return GeometryUtils.interpolationByRatio(this.getGlyph().getCenter(),
+                absolute =  GeometryUtils.interpolationByRatio(this.getGlyph().getCenter(),
                         (Point2D.Float) this.getAxis().getP2(), 0.2f);
             }
+            return absolute;
         }
         /**
          * for other anchor points, only get relative position to the center without taking the orientation of the

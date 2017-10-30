@@ -9,6 +9,8 @@ import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
 import org.sbml._2001.ns.celldesigner.Modification;
 import org.sbml.sbml.level2.version4.Reaction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -16,6 +18,8 @@ import java.util.*;
 
 
 public class GenericReactionModel {
+
+    private static final Logger logger = LoggerFactory.getLogger(GenericReactionModel.class);
 
     private List<ReactionNodeModel> reactionNodeModels;
     private List<ReactantModel> reactantModels;
@@ -370,6 +374,15 @@ public class GenericReactionModel {
         Point2D.Float absolutePoint = new Point2D.Float((float) editPoint.getX(), (float) editPoint.getY());
         for(AffineTransform t: GeometryUtils.getTransformsToGlobalCoords(origin, pX, pY)) {
             t.transform(absolutePoint, absolutePoint);
+        }
+
+        /*
+            In ACSN we can produce NaN here
+         */
+        if(Double.isNaN(absolutePoint.getX()) || Double.isNaN(absolutePoint.getY())) {
+            logger.error("NaN was produced as global coords for association glyph with coords: "+editPoint
+                    +" Local coordinates will be used instead, but they may be incorrect.");
+            absolutePoint = editPoint;
         }
 
         return absolutePoint;

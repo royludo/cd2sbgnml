@@ -1,5 +1,8 @@
 package fr.curie.cd2sbgnml.graphics;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.awt.*;
 import java.awt.geom.*;
 import java.util.AbstractMap.SimpleEntry;
@@ -8,6 +11,8 @@ import java.util.List;
 
 
 public class GeometryUtils {
+
+    private static final Logger logger = LoggerFactory.getLogger(GeometryUtils.class);
 
     /**
      * Given 3 points in global map coordinate, defining an origin and 2 unit vectors,
@@ -851,6 +856,11 @@ public class GeometryUtils {
      * return a point on the line defined by p1 and p2 that is ratio% away from p1
      */
     public static Point2D.Float interpolationByRatio(Point2D.Float p1, Point2D.Float p2 , float ratio) {
+        // corner case when the 2 points are the same
+        if(p1.distance(p2) == 0) {
+            logger.warn("Interpolation by ratio for a 0-length segment (2 same points given): "+p1+" "+p2);
+            return new Point2D.Float((float)p1.getX(), (float)p1.getY());
+        }
         float len = (float) p1.distance(p2);
         //double ratio = d/len;
         float x = ratio*p2.x + (1.0f - ratio)*p1.x;
@@ -863,6 +873,12 @@ public class GeometryUtils {
      * return a point on the line defined by p1 and p2 that as away from p1 by d units
      */
     public static Point2D.Float interpolationByDistance(Point2D.Float p1, Point2D.Float p2 , float d) {
+        // corner case when the 2 points are the same
+        if(p1.distance(p2) == 0) {
+            logger.warn("Interpolation by distance for a 0-length segment (2 same points given): "+p1+" "+p2);
+            return new Point2D.Float((float)p1.getX(), (float)p1.getY());
+        }
+
         float len = (float) p1.distance(p2);
         float ratio = d/len;
         float x = ratio*p2.x + (1.0f - ratio)*p1.x;

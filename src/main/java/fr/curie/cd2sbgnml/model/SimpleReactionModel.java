@@ -49,6 +49,7 @@ public class SimpleReactionModel extends GenericReactionModel{
             boolean isPolyline = absoluteEditPoints.size() > 2;
             Line2D.Float processAxis = new Line2D.Float(absoluteEditPoints.get(reactionW.getProcessSegmentIndex()),
                     absoluteEditPoints.get(reactionW.getProcessSegmentIndex() + 1));
+            // corner case when both points of axis are the same, center is the same
 
             String prId = "pr_"+UUID.randomUUID();
             Process process = new Process(

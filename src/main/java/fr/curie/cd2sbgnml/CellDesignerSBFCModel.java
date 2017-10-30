@@ -5,13 +5,14 @@ import org.sbfc.converter.exceptions.ReadModelException;
 import org.sbfc.converter.exceptions.WriteModelException;
 import org.sbfc.converter.models.GeneralModel;
 import org.sbml.sbml.level2.version4.Sbml;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
@@ -19,6 +20,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class CellDesignerSBFCModel implements GeneralModel {
+
+    private final Logger logger = LoggerFactory.getLogger(CellDesignerSBFCModel.class);
 
     private Sbml sbml;
 
@@ -54,15 +57,19 @@ public class CellDesignerSBFCModel implements GeneralModel {
             ACSN and other maps don't have proper namespace: xmlns="http://www.sbml.org/sbml/level2"
             we need to put a level here.
          */
-        s = s.replaceFirst("xmlns=\"http://www.sbml.org/sbml/level2\"",
-                "xmlns=\"http://www.sbml.org/sbml/level2/version4\"");
+        if(! s.matches("xmlns=\"http://www\\.sbml\\.org/sbml/level2\"")) {
+            logger.warn("Namespace definition was messed up, it has been set to: " +
+                    "xmlns=\"http://www.sbml.org/sbml/level2/version4\"");
+            s = s.replaceFirst("xmlns=\"http://www\\.sbml\\.org/sbml/level2\"",
+                    "xmlns=\"http://www.sbml.org/sbml/level2/version4\"");
+        }
 
         /*
             ACSN and other maps have their <celldesigner:extension> element removed, everywhere.
          */
         // if one extension is present, then consider the rest valid. If none, we need to add them.
         if(! s.matches("<annotation>[\\n\\s]*<celldesigner:extension>")) {
-            System.out.println("ADD EXTENSION");
+            logger.warn("<celldesigner:extension> elements are missing, they were added automatically.");
             s = s.replaceAll("<annotation>", "<annotation><celldesigner:extension>");
             s = s.replaceAll("</annotation>", "</celldesigner:extension></annotation>");
         }
