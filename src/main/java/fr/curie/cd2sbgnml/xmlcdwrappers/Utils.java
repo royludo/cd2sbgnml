@@ -1,6 +1,6 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
-import com.sun.xml.internal.bind.marshaller.NamespacePrefixMapper;
+import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 import org.apache.xmlbeans.XmlObject;
 import org.sbml._2001.ns.celldesigner.Notes;
 import org.sbml.sbml.level2.version4.SBase;
@@ -173,7 +173,7 @@ public class Utils {
         public DefaultNamespacePrefixMapper() {
             namespaceMap.put("http://www.sbml.org/2001/ns/celldesigner", "celldesigner");
 
-            namespaceMap.put("http://www.w3.org/1998/Math/MathML", "celldesigner");
+            namespaceMap.put("http://www.w3.org/1998/Math/MathML", "mathml");
 
         }
 
