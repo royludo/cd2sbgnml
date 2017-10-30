@@ -36,12 +36,8 @@ public class Utils {
     // TODO check if ok
     public static Element getNotes(List<Element> xml) {
         for(Element e: xml) {
-            if((e.getTagName().equals("notes") || e.getTagName().equals("celldesigner:notes")) &&
-                    e.getElementsByTagName("html") != null) {
-                Element notes = (Element) e.getElementsByTagName("html").item(0);
-                if(notes != null && !isNoteEmpty(notes)) {
-                    return notes;
-                }
+            if(e.getElementsByTagName("html") != null && !isNoteEmpty(e)) {
+                return e;
             }
         }
         return null;
@@ -88,7 +84,7 @@ public class Utils {
         }*/
 
         return (title == null || title.getChildNodes().getLength() == 0)
-                && (body == null && body.getChildNodes().getLength() == 0);
+                && (body == null || body.getChildNodes().getLength() == 0);
     }
 
     /**
