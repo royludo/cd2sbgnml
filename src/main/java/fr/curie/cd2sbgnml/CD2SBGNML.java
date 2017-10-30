@@ -413,7 +413,7 @@ public class CD2SBGNML extends GeneralConverter {
         if(species.getReferenceNotes() != null) {
             // TODO is piling up <html> elements in 1 note ok ?
             if(glyph.getNotes() != null) {
-                glyph.getNotes().getAny().add(species.getReferenceNotes());
+                glyph.getNotes().getAny().set(0, Utils.mergeHtmls(glyph.getNotes().getAny().get(0), species.getReferenceNotes()));
                 System.out.println("MULTIPLE NOTES "+glyph.getNotes().getAny());
             }
             else {

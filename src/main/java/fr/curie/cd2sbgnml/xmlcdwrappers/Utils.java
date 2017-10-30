@@ -42,6 +42,34 @@ public class Utils {
     }
 
     /**
+     * Will merge 2 notes defined by an html Element into one html element, by merging the body
+     * @param h1
+     * @param h2
+     * @return
+     */
+    public static Element mergeHtmls(Element h1, Element h2) {
+        if(h1 == null) {
+            return h2;
+        }
+
+        if(h2 == null) {
+            return h1;
+        }
+
+        Element body1 = (Element) h1.getElementsByTagName("body").item(0);
+        Element body2 = (Element) h2.getElementsByTagName("body").item(0);
+        Element newElement = (Element) h1.cloneNode(true);
+        Element newBody = (Element) newElement.getElementsByTagName("body").item(0);
+        newBody.setTextContent(
+                body1.getTextContent()
+                + "\n\n----- content merged by Celldesigner to SBGN-ML translation ------\n\n"
+                + body2.getTextContent()
+        );
+
+        return newElement;
+    }
+
+    /**
      * Celldesigner saves empty notes of the form
      *
      * <html>
