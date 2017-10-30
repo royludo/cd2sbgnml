@@ -229,7 +229,7 @@ public class ReactantWrapper {
 
     public static int getProcessAnchorIndex(Modification modif) {
         // in some cases targetLineIndex may not be present (see logic gates modifiers)
-        if(modif.getTargetLineIndex() != null) {
+        if(modif.getTargetLineIndex() == null) {
             return 0;
         }
         String targetLineIndex = modif.getTargetLineIndex();
