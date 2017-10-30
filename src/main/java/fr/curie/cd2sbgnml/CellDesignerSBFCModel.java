@@ -18,6 +18,8 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CellDesignerSBFCModel implements GeneralModel {
 
@@ -57,7 +59,9 @@ public class CellDesignerSBFCModel implements GeneralModel {
             ACSN and other maps don't have proper namespace: xmlns="http://www.sbml.org/sbml/level2"
             we need to put a level here.
          */
-        if(! s.matches("xmlns=\"http://www\\.sbml\\.org/sbml/level2\"")) {
+        Pattern p = Pattern.compile("xmlns=\"http://www\\.sbml\\.org/sbml/level2\"");
+        Matcher m = p.matcher(s);
+        if(m.find()) {
             logger.warn("Namespace definition was messed up, it has been set to: " +
                     "xmlns=\"http://www.sbml.org/sbml/level2/version4\"");
             s = s.replaceFirst("xmlns=\"http://www\\.sbml\\.org/sbml/level2\"",
@@ -68,15 +72,16 @@ public class CellDesignerSBFCModel implements GeneralModel {
             ACSN and other maps have their <celldesigner:extension> element removed, everywhere.
          */
         // if one extension is present, then consider the rest valid. If none, we need to add them.
-        if(! s.matches("<annotation>[\\n\\s]*<celldesigner:extension>")) {
+        Pattern p2 = Pattern.compile("<annotation>[\\n\\s]*<celldesigner:extension>");
+        Matcher m2 = p2.matcher(s);
+        if(!m2.find()) {
             logger.warn("<celldesigner:extension> elements are missing, they were added automatically.");
             s = s.replaceAll("<annotation>", "<annotation><celldesigner:extension>");
             s = s.replaceAll("</annotation>", "</celldesigner:extension></annotation>");
         }
 
-        JAXBContext jaxbContext = null;
         try {
-            jaxbContext = JAXBContext.newInstance(Sbml.class);
+            JAXBContext jaxbContext = JAXBContext.newInstance(Sbml.class);
             Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
             this.sbml = (Sbml) jaxbUnmarshaller.unmarshal(new StringReader(s));
 
