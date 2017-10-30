@@ -15,3 +15,6 @@
 #*******************************************************************************
 #!/bin/sh
 xjc -J-Duser.language=en -d src/main/java schema/CellDesigner.xsd schema/sbml-level-2-v4-wo-annotation.xsd schema/sbml-mathml.xsd schema/sbmlCellDesignerExtension_v4_2.xsd
+
+# remove the "Generated on: datetime" comments in all the classes that pollutes every commit
+find ./src/main/java/org -type f -exec sed -i -e '/\/\/ Generated on: /d' {} \;

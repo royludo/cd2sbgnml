@@ -1803,6 +1803,8 @@
     </xs:annotation>
     <xs:sequence>
       <xs:element name="linkAnchor" type="celldesigner:linkAnchor" minOccurs="0"/>
+      <xs:element name="connectScheme" type="celldesigner:connectScheme" minOccurs="0"/>
+      <xs:element name="editPoints" type="celldesigner:editPoints" minOccurs="0"/>
       <xs:element name="line" type="celldesigner:lineType2"/>
     </xs:sequence>
     <xs:attribute name="alias" use="required">
@@ -1833,6 +1835,8 @@
     </xs:annotation>
     <xs:sequence>
       <xs:element name="linkAnchor" type="celldesigner:linkAnchor" minOccurs="0"/>
+      <xs:element name="connectScheme" type="celldesigner:connectScheme" minOccurs="0"/>
+      <xs:element name="editPoints" type="celldesigner:editPoints" minOccurs="0"/>
       <xs:element name="line" type="celldesigner:lineType2"/>
     </xs:sequence>
     <xs:attribute name="alias" use="required">
@@ -1998,7 +2002,7 @@
         <xs:restriction base="xs:nonNegativeInteger"/>
       </xs:simpleType>
     </xs:attribute>
-    <xs:attribute name="modification">
+    <xs:attribute name="modificationType">
       <xs:simpleType>
         <xs:restriction base="xs:string">
           <xs:enumeration value="CATALYSIS"/>
