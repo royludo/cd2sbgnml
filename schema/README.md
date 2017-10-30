@@ -6,4 +6,10 @@ The xsd files in the `schema` directory comes from <https://github.com/funasoul/
    - `reactionAnnotationType`
    - `speciesReferenceAnnotationType`
    - `modelAnnotationType`
- 
+ * `font` was added to:
+   - `speciesAlias`
+   - `complesSpeciesAlias`
+ * `<editPoints>` and `<connectScheme>` were added to:
+   - `reactantLink`
+   - `productLink`
+ * For `modification` elements who are logic gates, the `modification` attribute was changed to `modificationType`
