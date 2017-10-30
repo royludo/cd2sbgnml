@@ -41,10 +41,12 @@ public class AliasWrapper {
         }
         this.isActive = alias.getActivity().equals("active");
         //this.addAliasInfo(alias.getDomNode());
-        this.info = new AliasInfoWrapper(
-                alias.getInfo().getAngle().floatValue(),
-                alias.getInfo().getPrefix(),
-                alias.getInfo().getLabel());
+        if(!alias.getInfo().getState().equals("empty")) {
+            this.info = new AliasInfoWrapper(
+                    alias.getInfo().getAngle().floatValue(),
+                    alias.getInfo().getPrefix(),
+                    alias.getInfo().getLabel());
+        }
         this.styleInfo = new StyleInfo(alias, speciesW.getId()+"_"+this.id);
 
     }
@@ -73,10 +75,12 @@ public class AliasWrapper {
         this.compartmentAlias = alias.getCompartmentAlias();
         this.isActive = alias.getActivity ().equals("active");
         //this.addAliasInfo(alias.getDomNode());
-        this.info = new AliasInfoWrapper(
-                alias.getInfo().getAngle().floatValue(),
-                alias.getInfo().getPrefix(),
-                alias.getInfo().getLabel());
+        if(!alias.getInfo().getState().equals("empty")) {
+            this.info = new AliasInfoWrapper(
+                    alias.getInfo().getAngle().floatValue(),
+                    alias.getInfo().getPrefix(),
+                    alias.getInfo().getLabel());
+        }
         this.styleInfo = new StyleInfo(alias, speciesW.getId()+"_"+this.id);
     }
 
