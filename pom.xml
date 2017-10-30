@@ -28,6 +28,7 @@
                 <inherited>false</inherited>
                 <executions>
                     <!-- cellDesignerParser -->
+                    <!--
                     <execution>
                         <id>install-cellDesignerParser</id>
                         <phase>clean</phase>
@@ -44,6 +45,7 @@
                             <goal>install-file</goal>
                         </goals>
                     </execution>
+                    -->
 
                     <!-- cellDesignerParser funasoul -->
                     <!--
