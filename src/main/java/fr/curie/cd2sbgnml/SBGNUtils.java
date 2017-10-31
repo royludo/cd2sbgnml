@@ -151,4 +151,25 @@ public class SBGNUtils {
         }
         return result;
     }
+
+    /**
+     * Return wether the glyph has at least one unit of information with label matching regexp.
+     * Case insensitive.
+     * @param glyph
+     * @param regexp
+     * @return
+     */
+    public static boolean hasUnitOfInfo(Glyph glyph, String regexp) {
+        Pattern p = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
+        for(Glyph subglyph: glyph.getGlyph()) {
+            if(subglyph.getClazz().equals("unit of information")) {
+                String info = subglyph.getLabel().getText();
+                Matcher m = p.matcher(info);
+                if(m.find()){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }

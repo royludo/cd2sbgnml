@@ -65,7 +65,7 @@ public class CompartmentModel {
         return new Point2D.Float(x, y);
     }
 
-    public SimpleEntry<Compartment, CompartmentAlias> getCDElements() {
+    public Compartment getCDCompartment() {
         Compartment compartment = new Compartment();
         compartment.setId(this.getId());
         compartment.setMetaid(this.getMetaid());
@@ -87,7 +87,10 @@ public class CompartmentModel {
         compartment.setNotes(notes);
 
         annotation.getAny().add(this.getAnnotations());
+        return compartment;
+    }
 
+    public CompartmentAlias getCDCompartmentAlias() {
 
         CompartmentAlias compAlias = new CompartmentAlias();
         compAlias.setId(this.getAliasId());
@@ -133,7 +136,7 @@ public class CompartmentModel {
         dbline.setInnerWidth(BigDecimal.valueOf(innerwidth));
 
 
-        return new SimpleEntry<>( compartment, compAlias);
+        return compAlias;
     }
 
     public String getId() {

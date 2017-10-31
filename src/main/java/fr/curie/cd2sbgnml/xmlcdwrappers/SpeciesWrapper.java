@@ -47,6 +47,14 @@ public class SpeciesWrapper {
     private List<AliasWrapper> aliases;
     private List<ResidueWrapper> residues;
 
+    public SpeciesWrapper(String id, String name, ReferenceType type) {
+        this.id = id;
+        this.name = name;
+        this.type = type;
+        this.aliases = new ArrayList<>();
+        this.residues = new ArrayList<>();
+    }
+
     public SpeciesWrapper(Species species, ModelWrapper modelW) {
         this.isIncludedSpecies = false;
         this.cdClass = species.getAnnotation().getExtension().getSpeciesIdentity().getClazz();
@@ -328,6 +336,77 @@ public class SpeciesWrapper {
         return mapOfReferenceModif;
     }
 
+    public Object getCDSpecies(String referenceId) {
+        if(this.isIncludedSpecies()) {
+            return this.getCDIncludedSpecies(referenceId);
+        }
+        else {
+            return this.getCDNormalSpecies(referenceId);
+        }
+    }
+
+    public Species getCDNormalSpecies(String referenceId) {
+        Species species = new Species();
+        species.setId(this.getId());
+        species.setMetaid(this.getId());
+        species.setName(this.getName());
+        species.setCompartment(this.getCompartment());
+        species.setInitialAmount(0d);
+
+        SpeciesAnnotationType speciesAnnot = new SpeciesAnnotationType();
+        species.setAnnotation(speciesAnnot);
+
+        SpeciesAnnotationType.Extension ext = new SpeciesAnnotationType.Extension();
+        speciesAnnot.setExtension(ext);
+        ext.setPositionToCompartment("inside");
+        ext.setSpeciesIdentity(getIdentity(referenceId));
+
+        return species;
+    }
+
+    public org.sbml._2001.ns.celldesigner.Species getCDIncludedSpecies(String referenceId) {
+        org.sbml._2001.ns.celldesigner.Species species = new org.sbml._2001.ns.celldesigner.Species();
+        species.setId(this.getId());
+        species.setName(this.getName());
+
+        org.sbml._2001.ns.celldesigner.Species.Annotation speciesAnnot = new org.sbml._2001.ns.celldesigner.Species.Annotation();
+        species.setAnnotation(speciesAnnot);
+
+        speciesAnnot.setComplexSpecies(this.getComplex());
+        speciesAnnot.setSpeciesIdentity(getIdentity(referenceId));
+
+        return species;
+    }
+
+    private SpeciesIdentity getIdentity(String referenceId) {
+        SpeciesIdentity ident = new SpeciesIdentity();
+        ident.setClazz(this.getCdClass());
+
+        if(this.getType() == null) {
+            ident.setName(this.getId());
+        }
+        else {
+            switch (this.getType()) {
+                case GENERIC:
+                case RECEPTOR:
+                case TRUNCATED:
+                case ION_CHANNEL:
+                    ident.setProteinReference(referenceId);
+                    break;
+                case RNA:
+                    ident.setRnaReference(referenceId);
+                    break;
+                case GENE:
+                    ident.setGeneReference(referenceId);
+                    break;
+                case ANTISENSE_RNA:
+                    ident.setAntisensernaReference(referenceId);
+                    break;
+            }
+        }
+        return ident;
+    }
+
     public boolean isIncludedSpecies() {
         return isIncludedSpecies;
     }
@@ -401,5 +480,65 @@ public class SpeciesWrapper {
 
     public Element getAnnotations() {
         return annotations;
+    }
+
+    public void setIncludedSpecies(boolean includedSpecies) {
+        isIncludedSpecies = includedSpecies;
+    }
+
+    public void setComplex(boolean complex) {
+        isComplex = complex;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setCompartment(String compartment) {
+        this.compartment = compartment;
+    }
+
+    public void setComplex(String complex) {
+        this.complex = complex;
+    }
+
+    public void setCdClass(String cdClass) {
+        this.cdClass = cdClass;
+    }
+
+    public void setMultimer(int multimer) {
+        this.multimer = multimer;
+    }
+
+    public void setStructuralState(String structuralState) {
+        this.structuralState = structuralState;
+    }
+
+    public void setType(ReferenceType type) {
+        this.type = type;
+    }
+
+    public void setNotes(Element notes) {
+        this.notes = notes;
+    }
+
+    public void setReferenceNotes(Element referenceNotes) {
+        this.referenceNotes = referenceNotes;
+    }
+
+    public void setAnnotations(Element annotations) {
+        this.annotations = annotations;
+    }
+
+    public void setAliases(List<AliasWrapper> aliases) {
+        this.aliases = aliases;
+    }
+
+    public void setResidues(List<ResidueWrapper> residues) {
+        this.residues = residues;
     }
 }

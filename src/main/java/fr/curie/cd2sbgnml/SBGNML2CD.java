@@ -1,6 +1,9 @@
 package fr.curie.cd2sbgnml;
 
 import fr.curie.cd2sbgnml.model.CompartmentModel;
+import fr.curie.cd2sbgnml.model.ReactantModel;
+import fr.curie.cd2sbgnml.xmlcdwrappers.AliasWrapper;
+import fr.curie.cd2sbgnml.xmlcdwrappers.SpeciesWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
 import org.sbfc.converter.GeneralConverter;
 import org.sbfc.converter.exceptions.ConversionException;
@@ -9,10 +12,14 @@ import org.sbfc.converter.models.GeneralModel;
 import org.sbgn.bindings.Glyph;
 import org.sbgn.bindings.Map;
 import org.sbgn.bindings.Sbgn;
+import org.sbgn.GlyphClazz;
 import org.sbml._2001.ns.celldesigner.*;
 import org.sbml.sbml.level2.version4.*;
 import org.sbml.sbml.level2.version4.ObjectFactory;
 import org.sbml.sbml.level2.version4.OriginalModel.ListOfCompartments;
+import org.sbml.sbml.level2.version4.OriginalModel.ListOfReactions;
+import org.sbml.sbml.level2.version4.OriginalModel.ListOfSpecies;
+import org.sbml.sbml.level2.version4.Species;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -28,6 +35,9 @@ import java.math.BigInteger;
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
+
+import static org.sbgn.GlyphClazz.COMPARTMENT;
+import static org.sbgn.GlyphClazz.MACROMOLECULE;
 
 
 public class SBGNML2CD extends GeneralConverter {
@@ -63,17 +73,175 @@ public class SBGNML2CD extends GeneralConverter {
 
         for(Glyph glyph: sbgnMap.getGlyph()){
             String clazz = glyph.getClazz();
-            switch (clazz) {
-                case "compartment":
+            switch (GlyphClazz.fromClazz(clazz)) {
+                case COMPARTMENT:
                     processCompartment(glyph);
                     break;
-
+                case MACROMOLECULE:
+                case MACROMOLECULE_MULTIMER:
+                case NUCLEIC_ACID_FEATURE:
+                case NUCLEIC_ACID_FEATURE_MULTIMER:
+                case SIMPLE_CHEMICAL:
+                case SIMPLE_CHEMICAL_MULTIMER:
+                case UNSPECIFIED_ENTITY:
+                case PHENOTYPE:
+                    processSpecies(glyph, false, false);
+                    break;
+                case COMPLEX:
+                case COMPLEX_MULTIMER:
+                    processSpecies(glyph, false, true);
+                    break;
             }
         }
 
 
 
         return sbml;
+    }
+
+    private void processSpecies(Glyph glyph, boolean isIncluded, boolean isComplex) {
+        String label = glyph.getLabel() == null ? "": glyph.getLabel().getText();
+
+        // first determine specific subtypes
+        SpeciesWrapper.ReferenceType subType = null;
+        if(!isComplex) {
+            switch(GlyphClazz.fromClazz(glyph.getClazz())) {
+                case MACROMOLECULE:
+                case MACROMOLECULE_MULTIMER:
+                    subType = SpeciesWrapper.ReferenceType.GENERIC; // default
+                    if(SBGNUtils.hasUnitOfInfo(glyph, "receptor")) {
+                        subType = SpeciesWrapper.ReferenceType.RECEPTOR;
+                    }
+                    if(SBGNUtils.hasUnitOfInfo(glyph, "ion channel")) {
+                        subType = SpeciesWrapper.ReferenceType.ION_CHANNEL;
+                    }
+                    if(SBGNUtils.hasUnitOfInfo(glyph, "truncated")) {
+                        subType = SpeciesWrapper.ReferenceType.TRUNCATED;
+                    }
+                    break;
+                case NUCLEIC_ACID_FEATURE:
+                case NUCLEIC_ACID_FEATURE_MULTIMER:
+                    subType = SpeciesWrapper.ReferenceType.GENE; // default
+                    if(SBGNUtils.hasUnitOfInfo(glyph, "rna")) {
+                        subType = SpeciesWrapper.ReferenceType.RNA;
+                    }
+                    if(SBGNUtils.hasUnitOfInfo(glyph, "antisense rna")) {
+                        subType = SpeciesWrapper.ReferenceType.ANTISENSE_RNA;
+                    }
+                    break;
+            }
+        }
+
+        // create associated reference type (protein, gene...)
+        // if no particular type, default to own id (for complex, simple molecules...)
+        String referenceId = glyph.getId();
+        if(subType != null) {
+            switch(subType) {
+                case GENERIC:
+                case RECEPTOR:
+                case ION_CHANNEL:
+                case TRUNCATED:
+                    Protein prot = new Protein();
+                    prot.setType(subType.toString());
+                    referenceId = "prot_"+glyph.getId();
+                    prot.setId(referenceId);
+                    prot.setName(label);
+                    sbml.getModel().getAnnotation().getExtension().getListOfProteins().getProtein().add(prot);
+                    break;
+                case GENE:
+                    Gene gene = new Gene();
+                    referenceId = "gene_"+glyph.getId();
+                    gene.setId(referenceId);
+                    gene.setName(label);
+                    gene.setType("GENE");
+                    sbml.getModel().getAnnotation().getExtension().getListOfGenes().getGene().add(gene);
+                    break;
+                case RNA:
+                    RNA rna = new RNA();
+                    referenceId = "rna_"+glyph.getId();
+                    rna.setId(referenceId);
+                    rna.setName(label);
+                    rna.setType("RNA");
+                    sbml.getModel().getAnnotation().getExtension().getListOfRNAs().getRNA().add(rna);
+                    break;
+                case ANTISENSE_RNA:
+                    AntisenseRNA asrna = new AntisenseRNA();
+                    referenceId = "asrna_"+glyph.getId();
+                    asrna.setId(referenceId);
+                    asrna.setName(label);
+                    asrna.setType("ANTISENSE_RNA");
+                    sbml.getModel().getAnnotation().getExtension().getListOfAntisenseRNAs().getAntisenseRNA().add(asrna);
+                    break;
+            }
+        }
+
+        // create the species + alias couple
+        SpeciesWrapper speciesW;
+        String aliasId = glyph.getId()+"_alias1";
+        AliasWrapper aliasW;
+        if(isComplex) {
+            speciesW = new SpeciesWrapper(glyph.getId(), label, null);
+            aliasW = new AliasWrapper(aliasId, AliasWrapper.AliasType.COMPLEX, speciesW);
+        }
+        else {
+            speciesW = new SpeciesWrapper(glyph.getId(), label, subType);
+            aliasW = new AliasWrapper(aliasId, AliasWrapper.AliasType.BASIC, speciesW);
+        }
+        speciesW.getAliases().add(aliasW);
+
+
+        // PROCESS SPECIES
+        // class
+        speciesW.setCdClass(ReactantModel.getCdClass(glyph.getClazz(), subType));
+        System.out.println("cd clazz: "+speciesW.getCdClass());
+
+        // compartmentRef
+        if(glyph.getCompartmentRef() != null) {
+            speciesW.setCompartment(((Glyph) glyph.getCompartmentRef()).getId());
+        }
+        else {
+            speciesW.setCompartment("default");
+        }
+
+        // add species to correct list
+        if(isIncluded) {
+            org.sbml._2001.ns.celldesigner.Species species = speciesW.getCDIncludedSpecies(referenceId);
+            sbml.getModel().getAnnotation().getExtension().getListOfIncludedSpecies().getSpecies().add(species);
+        }
+        else {
+            Species species = speciesW.getCDNormalSpecies(referenceId);
+            sbml.getModel().getListOfSpecies().getSpecies().add(species);
+        }
+
+        // PROCESS ALIAS
+        // compartmentRef
+        if(glyph.getCompartmentRef() != null) {
+            aliasW.setCompartmentAlias(((Glyph) glyph.getCompartmentRef()).getId());
+        }
+
+        Bounds bounds = new Bounds();
+        bounds.setX(BigDecimal.valueOf(glyph.getBbox().getX()- (float) mapBounds.getX()));
+        bounds.setY(BigDecimal.valueOf(glyph.getBbox().getY()- (float) mapBounds.getY()));
+        bounds.setW(BigDecimal.valueOf(glyph.getBbox().getW()));
+        bounds.setH(BigDecimal.valueOf(glyph.getBbox().getH()));
+        aliasW.setBounds(bounds);
+
+        // add alias to correct list
+        if(isComplex) {
+            ListOfComplexSpeciesAliases.ComplexSpeciesAlias complexSpeciesAlias = aliasW.getCDComplexSpeciesAlias();
+            sbml.getModel().getAnnotation().getExtension().getListOfComplexSpeciesAliases()
+                    .getComplexSpeciesAlias().add(complexSpeciesAlias);
+        }
+        else {
+            SpeciesAlias speciesAlias = aliasW.getCDSpeciesAlias();
+            sbml.getModel().getAnnotation().getExtension().getListOfSpeciesAliases().getSpeciesAlias().add(speciesAlias);
+        }
+
+
+
+
+
+
     }
 
     private void processCompartment(Glyph glyph) {
@@ -126,13 +294,10 @@ public class SBGNML2CD extends GeneralConverter {
             }
         }
 
-
-
-        SimpleEntry<Compartment, CompartmentAlias> cdElements = compM.getCDElements();
-        Compartment cdComp = cdElements.getKey();
-        CompartmentAlias cdCompAlias = cdElements.getValue();
-        sbml.getModel().getListOfCompartments().getCompartment().add(cdComp);
-        sbml.getModel().getAnnotation().getExtension().getListOfCompartmentAliases().getCompartmentAlias().add(cdCompAlias);
+        sbml.getModel().getListOfCompartments().getCompartment()
+                .add(compM.getCDCompartment());
+        sbml.getModel().getAnnotation().getExtension().getListOfCompartmentAliases().getCompartmentAlias()
+                .add(compM.getCDCompartmentAlias());
 
     }
 
@@ -187,6 +352,12 @@ public class SBGNML2CD extends GeneralConverter {
         defaultCompartment.setUnits("volume");
 
 
+        // pure sbml part
+        ListOfSpecies listOfSpecies = new ListOfSpecies();
+        model.setListOfSpecies(listOfSpecies);
+
+        ListOfReactions listOfReactions = new ListOfReactions();
+        model.setListOfReactions(listOfReactions);
 
         /*try {
             annotation.setXMLNode();

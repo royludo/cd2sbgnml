@@ -97,6 +97,34 @@ public class ReactantModel extends GenericReactionElement{
         throw new IllegalArgumentException("Could not infer SBGN class from species class: "+cdClass);
     }
 
+    public static String getCdClass(String sbgnClass, ReferenceType type) {
+        switch(sbgnClass) {
+            case "macromolecule":
+            case "macromolecule multimer":
+                return "PROTEIN";
+            case "nucleic acid feature":
+            case "nucleic acid feature multimer":
+                switch(type) {
+                    case RNA: return "RNA";
+                    case ANTISENSE_RNA: return "ANTISENSE_RNA";
+                    case GENE:
+                    default:
+                            return "GENE";
+                }
+            case "phenotype": return "PHENOTYPE";
+            case "simple chemical":
+            case "simple chemical multimer":
+                return "SIMPLE_MOLECULE";
+            case "unspecified entity": return "UNKNOWN";
+            case "complex":
+            case "complex multimer":
+                return "COMPLEX";
+            case "source and sink": return "DEGRADED";
+        }
+        throw new IllegalArgumentException("Could not infer CellDesigner class from: "+sbgnClass+" "+type+" . Valid " +
+                "glyph class must be provided.");
+    }
+
     /**
      * Get relative coordinate of an anchor point from center of the shape
      * @param anchorPoint
