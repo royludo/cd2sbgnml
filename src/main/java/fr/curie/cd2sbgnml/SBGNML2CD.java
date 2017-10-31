@@ -104,6 +104,8 @@ public class SBGNML2CD extends GeneralConverter {
 
         // first determine specific subtypes
         SpeciesWrapper.ReferenceType subType = null;
+        boolean ionFlag = false;
+        boolean drugFlag = false;
         if(!isComplex) {
             switch(GlyphClazz.fromClazz(glyph.getClazz())) {
                 case MACROMOLECULE:
@@ -127,6 +129,15 @@ public class SBGNML2CD extends GeneralConverter {
                     }
                     if(SBGNUtils.hasUnitOfInfo(glyph, "asrna")) {
                         subType = SpeciesWrapper.ReferenceType.ANTISENSE_RNA;
+                    }
+                    break;
+                case SIMPLE_CHEMICAL:
+                case SIMPLE_CHEMICAL_MULTIMER:
+                    if(SBGNUtils.hasUnitOfInfo(glyph, "ion")) {
+                        ionFlag = true;
+                    }
+                    if(SBGNUtils.hasUnitOfInfo(glyph, "drug")) {
+                        drugFlag = true;
                     }
                     break;
             }
@@ -192,7 +203,15 @@ public class SBGNML2CD extends GeneralConverter {
 
         // PROCESS SPECIES
         // class
-        speciesW.setCdClass(ReactantModel.getCdClass(glyph.getClazz(), subType));
+        if(ionFlag) {
+            speciesW.setCdClass("ION");
+        }
+        else if(drugFlag) {
+            speciesW.setCdClass("DRUG");
+        }
+        else {
+            speciesW.setCdClass(ReactantModel.getCdClass(glyph.getClazz(), subType));
+        }
         System.out.println("cd clazz: "+speciesW.getCdClass());
 
         // compartmentRef
