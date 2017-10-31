@@ -216,7 +216,7 @@ public class SBGNML2CD extends GeneralConverter {
         // PROCESS ALIAS
         // compartmentRef
         if(glyph.getCompartmentRef() != null) {
-            aliasW.setCompartmentAlias(((Glyph) glyph.getCompartmentRef()).getId());
+            aliasW.setCompartmentAlias(((Glyph) glyph.getCompartmentRef()).getId()+"_alias1"); // TODO get alias id properly
         }
 
         Bounds bounds = new Bounds();
