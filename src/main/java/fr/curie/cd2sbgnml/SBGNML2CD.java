@@ -125,7 +125,7 @@ public class SBGNML2CD extends GeneralConverter {
                     if(SBGNUtils.hasUnitOfInfo(glyph, "rna")) {
                         subType = SpeciesWrapper.ReferenceType.RNA;
                     }
-                    if(SBGNUtils.hasUnitOfInfo(glyph, "antisense rna")) {
+                    if(SBGNUtils.hasUnitOfInfo(glyph, "asrna")) {
                         subType = SpeciesWrapper.ReferenceType.ANTISENSE_RNA;
                     }
                     break;

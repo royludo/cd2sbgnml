@@ -16,6 +16,7 @@ import org.sbgn.bindings.Map;
 import org.sbml._2001.ns.celldesigner.Bounds;
 import org.sbml._2001.ns.celldesigner.CompartmentAlias;
 import org.sbml._2001.ns.celldesigner.ModelDisplay;
+import org.sbml._2001.ns.celldesigner.RNA;
 import org.sbml.sbml.level2.version4.Compartment;
 import org.sbml.sbml.level2.version4.Sbml;
 import org.slf4j.Logger;
@@ -583,6 +584,14 @@ public class CD2SBGNML extends GeneralConverter {
         else if(species.getType() == SpeciesWrapper.ReferenceType.TRUNCATED) {
             Glyph receptorUnitOfInfo = getUnitOfInfo("truncated", bboxRect, 90);
             glyph.getGlyph().add(receptorUnitOfInfo);
+        }
+        else if(species.getType() == SpeciesWrapper.ReferenceType.RNA) {
+            Glyph rnaUnitOfInfo = getUnitOfInfo("RNA", bboxRect, 90);
+            glyph.getGlyph().add(rnaUnitOfInfo);
+        }
+        else if(species.getType() == SpeciesWrapper.ReferenceType.ANTISENSE_RNA) {
+            Glyph rnaUnitOfInfo = getUnitOfInfo("asRNA", bboxRect, 90);
+            glyph.getGlyph().add(rnaUnitOfInfo);
         }
 
         glyph.setNotes(getSBGNNotes(species.getNotes()));
