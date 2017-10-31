@@ -146,7 +146,7 @@ public class AliasWrapper {
         bounds.setH(this.getBounds().getH());
 
         SpeciesAlias.Font font = new SpeciesAlias.Font();
-        font.setSize(12); // TODO adapt style
+        font.setSize((int) this.getStyleInfo().getFontSize());
         alias.setFont(font);
 
         View view = new View();
@@ -163,10 +163,10 @@ public class AliasWrapper {
         boxSize.setHeight(this.getBounds().getH());
 
         SingleLine singleLine = new SingleLine();
-        singleLine.setWidth(BigDecimal.valueOf(1));
+        singleLine.setWidth(BigDecimal.valueOf(this.getStyleInfo().getLineWidth()));
 
         Paint paint = new Paint();
-        paint.setColor("ffccffcc");
+        paint.setColor(this.getStyleInfo().getBgColor());
         paint.setScheme("Color");
 
         UsualView usualView = new UsualView();
@@ -205,7 +205,7 @@ public class AliasWrapper {
         bounds.setH(this.getBounds().getH());
 
         ComplexSpeciesAlias.Font font = new ComplexSpeciesAlias.Font();
-        font.setSize(12); // TODO adapt style
+        font.setSize((int) this.getStyleInfo().getFontSize());
         alias.setFont(font);
 
         View view = new View();
@@ -222,10 +222,10 @@ public class AliasWrapper {
         boxSize.setHeight(this.getBounds().getH());
 
         SingleLine singleLine = new SingleLine();
-        singleLine.setWidth(BigDecimal.valueOf(1));
+        singleLine.setWidth(BigDecimal.valueOf(this.getStyleInfo().getLineWidth()));
 
         Paint paint = new Paint();
-        paint.setColor("ffccffcc");
+        paint.setColor(this.getStyleInfo().getBgColor());
         paint.setScheme("Color");
 
         UsualView usualView = new UsualView();

@@ -226,6 +226,9 @@ public class SBGNML2CD extends GeneralConverter {
         bounds.setH(BigDecimal.valueOf(glyph.getBbox().getH()));
         aliasW.setBounds(bounds);
 
+        // style
+        aliasW.setStyleInfo(styleMap.get(glyph.getId()));
+
         // add alias to correct list
         if(isComplex) {
             ListOfComplexSpeciesAliases.ComplexSpeciesAlias complexSpeciesAlias = aliasW.getCDComplexSpeciesAlias();
