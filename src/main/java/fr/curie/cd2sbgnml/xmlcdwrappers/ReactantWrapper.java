@@ -28,6 +28,13 @@ public class ReactantWrapper {
     private AliasWrapper aliasW;
     //private LinkWrapper link;
     private AnchorPoint anchorPoint;
+
+    /**
+     * For reactantsWrapper that are NOT baseReactants or baseProducts. Those 2 have their lineWrapper defined
+     * in the reactionWrapper.
+     */
+    private LineWrapper lineWrapper;
+
     /**
      * The index of the reactant in the corresponding list (modification,  additional product...) in the
      * xml file
@@ -92,6 +99,10 @@ public class ReactantWrapper {
             }*/
         }
 
+        this.lineWrapper = new LineWrapper(reactantLink.getConnectScheme(),
+                reactantLink.getEditPoints(),
+                reactantLink.getLine());
+
     }
 
     private ReactantWrapper (ProductLink productLink, AliasWrapper aliasW, int index) {
@@ -113,6 +124,10 @@ public class ReactantWrapper {
                 }
             }*/
         }
+
+        this.lineWrapper = new LineWrapper(productLink.getConnectScheme(),
+                productLink.getEditPoints(),
+                productLink.getLine());
     }
 
     // used when guaranteed that modifier is single entity (= no logic gate)
@@ -139,6 +154,10 @@ public class ReactantWrapper {
         else {
             this.anchorPoint = AnchorPoint.CENTER;
         }
+
+        this.lineWrapper = new LineWrapper(modification.getConnectScheme(),
+                modification.getEditPoints(),
+                modification.getLine());
     }
 
     // used for modifiers linked to a logic gate
@@ -279,5 +298,13 @@ public class ReactantWrapper {
 
     public LogicGateWrapper getLogicGate() {
         return logicGate;
+    }
+
+    public LineWrapper getLineWrapper() {
+        return lineWrapper;
+    }
+
+    public void setLineWrapper(LineWrapper lineWrapper) {
+        this.lineWrapper = lineWrapper;
     }
 }

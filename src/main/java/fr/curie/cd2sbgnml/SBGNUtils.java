@@ -2,6 +2,9 @@ package fr.curie.cd2sbgnml;
 
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
 import jdk.nashorn.internal.runtime.regexp.joni.Regex;
+import org.sbgn.ArcClazz;
+import org.sbgn.GlyphClazz;
+import org.sbgn.bindings.Arc;
 import org.sbgn.bindings.Bbox;
 import org.sbgn.bindings.Glyph;
 import org.slf4j.Logger;
@@ -170,6 +173,92 @@ public class SBGNUtils {
                 }
             }
         }
+        return false;
+    }
+
+    /**
+     * Given a list of arcs all belonging to the same reaction (= attached to the same process glyph),
+     * determines wether the reaction is reversible or not.
+     * It is considered reversible if no consumption arc is present.
+     * @param arcs a list of arcs all having the same process as source or target
+     * @return
+     */
+    public static boolean isReactionReversible(List<Arc> arcs) {
+        for(Arc arc: arcs){
+            ArcClazz clazz = ArcClazz.fromClazz(arc.getClazz());
+            if(clazz == ArcClazz.CONSUMPTION) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Returns a list of 3 lists containing:
+     *  0 - the reactants consumed by the reaction
+     *  1 - the products of the reaction
+     *  2 - all other types of interactions (catalysis, stimulation...)
+     * @param arcs a list of arcs all having the same process as source or target
+     * @return list of 3 lists of arcs
+     */
+    public static List<List<Arc>> getReactantTypes(List<Arc> arcs) {
+        List<List<Arc>> result = new ArrayList<>();
+        List<Arc> products = new ArrayList<>();
+        List<Arc> reactants = new ArrayList<>();
+        List<Arc> modifiers = new ArrayList<>();
+        for(Arc arc: arcs){
+            ArcClazz clazz = ArcClazz.fromClazz(arc.getClazz());
+            switch(clazz) {
+                case CONSUMPTION: reactants.add(arc); break;
+                case PRODUCTION: products.add(arc); break;
+                default: modifiers.add(arc);
+            }
+        }
+        result.add(reactants);
+        result.add(products);
+        result.add(modifiers);
+        return result;
+    }
+
+    /**
+     * might be too complicated for now
+     * @param process
+     * @param reactants
+     * @param products
+     * @return
+     */
+    public static boolean isReactionAssociation(Glyph process, List<Arc> reactants, List<Arc> products) {
+        if(process.getClazz().equals("association")) { // trivial case of specific process node
+            return true;
+        }
+
+        // we need at least 2 reactants to be associated
+        // TODO what about reversible associations with only products ?
+        /*if(reactants.size() < 2) {
+            return false;
+        }*/
+
+        // TODO better check
+        // we need at least 1 complex as output
+        /*Glyph complex = null;
+        for(Arc arc: products) {
+            // can ports be involved here ?
+            Glyph product = (Glyph) arc.getTarget();
+        }*/
+
+        return false;
+    }
+
+    public static boolean isReactionDissociation(Glyph process, List<Arc> reactants, List<Arc> products) {
+        if(process.getClazz().equals("dissociation")) { // trivial case of specific process node
+            return true;
+        }
+
+        // we need at least 2 products to be dissociated
+        if(products.size() < 2) {
+            return false;
+        }
+
         return false;
     }
 }

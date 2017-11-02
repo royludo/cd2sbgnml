@@ -3,16 +3,17 @@ package fr.curie.cd2sbgnml;
 import fr.curie.cd2sbgnml.model.CompartmentModel;
 import fr.curie.cd2sbgnml.model.ReactantModel;
 import fr.curie.cd2sbgnml.xmlcdwrappers.AliasWrapper;
+import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
+import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper.ReactionType;
 import fr.curie.cd2sbgnml.xmlcdwrappers.SpeciesWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
 import org.sbfc.converter.GeneralConverter;
 import org.sbfc.converter.exceptions.ConversionException;
 import org.sbfc.converter.exceptions.ReadModelException;
 import org.sbfc.converter.models.GeneralModel;
-import org.sbgn.bindings.Glyph;
-import org.sbgn.bindings.Map;
-import org.sbgn.bindings.Sbgn;
+import org.sbgn.bindings.*;
 import org.sbgn.GlyphClazz;
+import org.sbgn.bindings.Map;
 import org.sbml._2001.ns.celldesigner.*;
 import org.sbml.sbml.level2.version4.*;
 import org.sbml.sbml.level2.version4.ObjectFactory;
@@ -20,6 +21,8 @@ import org.sbml.sbml.level2.version4.OriginalModel.ListOfCompartments;
 import org.sbml.sbml.level2.version4.OriginalModel.ListOfReactions;
 import org.sbml.sbml.level2.version4.OriginalModel.ListOfSpecies;
 import org.sbml.sbml.level2.version4.Species;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -32,14 +35,15 @@ import java.awt.geom.Rectangle2D;
 import java.lang.annotation.Annotation;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.AbstractMap;
+import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.HashMap;
 
 import static org.sbgn.GlyphClazz.*;
 
 
 public class SBGNML2CD extends GeneralConverter {
+
+    final Logger logger = LoggerFactory.getLogger(SBGNML2CD.class);
 
     /**
      * Global translation factors that are to be applied to all elements
@@ -48,6 +52,21 @@ public class SBGNML2CD extends GeneralConverter {
     Sbml sbml;
     boolean mapHasStyle;
     java.util.Map<String, StyleInfo> styleMap;
+
+    /**
+     * This map indexes all the arcs connected to each process node.
+     */
+    java.util.Map<String, List<Arc>> processToArcs;
+
+    /**
+     * Those 2 maps index the source and target glyph attached to each link.
+     */
+    java.util.Map<String, Glyph> arcToSource;
+    java.util.Map<String, Glyph> arcToTarget;
+
+    java.util.Map<String, Glyph> idToGlyph;
+
+    java.util.Map<String, Glyph> portToGlyph;
 
 
     public Sbml toCD(Sbgn sbgn) {
@@ -58,15 +77,8 @@ public class SBGNML2CD extends GeneralConverter {
         // init celldesigner file
         sbml = this.initFile(sbgnMap);
 
-        // parse all the style info
-        styleMap = new HashMap<>();
-        mapHasStyle = false;
-        for(Element e: sbgnMap.getExtension().getAny()) {
-            if(e.getTagName().equals("renderInformation")) {
-                styleMap = SBGNUtils.mapStyleinfo(e);
-                mapHasStyle = true;
-            }
-        }
+        // init the index maps
+        this.buildMaps(sbgnMap);
 
 
 
@@ -84,11 +96,19 @@ public class SBGNML2CD extends GeneralConverter {
                 case SIMPLE_CHEMICAL_MULTIMER:
                 case UNSPECIFIED_ENTITY:
                 case PHENOTYPE:
+                case SOURCE_AND_SINK:
                     processSpecies(glyph, false, false, null, null);
                     break;
                 case COMPLEX:
                 case COMPLEX_MULTIMER:
                     processSpecies(glyph, false, true, null, null);
+                    break;
+                case PROCESS:
+                case OMITTED_PROCESS:
+                case UNCERTAIN_PROCESS:
+                case ASSOCIATION:
+                case DISSOCIATION:
+                    processReaction(glyph);
                     break;
             }
         }
@@ -96,6 +116,65 @@ public class SBGNML2CD extends GeneralConverter {
 
 
         return sbml;
+    }
+
+    private void processReaction(Glyph processGlyph) {
+        List<Arc> connectedArcs = processToArcs.get(processGlyph.getId());
+        System.out.println(">>>>process: "+processGlyph.getId());
+        for(Arc arc: connectedArcs) {
+            System.out.println(arc.getId()+" "+arc.getClazz());
+        }
+
+        boolean isReversible = SBGNUtils.isReactionReversible(connectedArcs);
+        ReactionType reactionCDClass = ReactionType.STATE_TRANSITION; // default to basic reaction type
+        System.out.println("reversible "+isReversible);
+
+        /*
+            We need to determine the base class of the reaction here, wether it's an association or dissociation.
+            What happens when 2 complexes are associated together in a super complex ?
+            Rely on the name of the glyphs being the same after they are inside the produced complex.
+            For now, only basic checks in place.
+         */
+        List<List<Arc>> tmp = SBGNUtils.getReactantTypes(connectedArcs);
+        List<Arc> reactants = tmp.get(0);
+        List<Arc> products = tmp.get(1);
+        List<Arc> modifiers = tmp.get(2);
+        /*
+         * The arcs (and glyphs) that we will consider as basis of the reaction, for CellDesigner structure.
+         * Normally 1 of each, 2 for the association/dissociation reactions.
+         * They are arbitrarily chosen among the reactants/products.
+         */
+        List<Arc> baseReactants = new ArrayList<>();
+        List<Arc> baseProducts = new ArrayList<>();
+        if(SBGNUtils.isReactionAssociation(processGlyph, reactants, products)) {
+            reactionCDClass = ReactionType.HETERODIMER_ASSOCIATION;
+            baseReactants.add(reactants.get(0));
+            if(reactants.size() <= 1) {
+                logger.warn("An association with only 1 or less reactant was detected, this probably shouldn't happen");
+            }
+            else {
+                baseReactants.add(reactants.get(1));
+            }
+            baseProducts.add(products.get(0));
+
+        }
+        else if(SBGNUtils.isReactionDissociation(processGlyph, reactants, products)) {
+            reactionCDClass = ReactionType.DISSOCIATION;
+        }
+        else {
+            switch(GlyphClazz.fromClazz(processGlyph.getClazz())) {
+                case OMITTED_PROCESS:
+                    reactionCDClass = ReactionType.KNOWN_TRANSITION_OMITTED;
+                    break;
+                case UNCERTAIN_PROCESS:
+                    reactionCDClass = ReactionType.UNKNOWN_TRANSITION;
+                    break;
+            }
+        }
+
+
+
+
     }
 
     private void processSpecies(Glyph glyph, boolean isIncluded, boolean isComplex,
@@ -432,6 +511,69 @@ public class SBGNML2CD extends GeneralConverter {
         sbmlDocument.setSbml(sbml);*/
 
         return sbml;
+    }
+
+    private void buildMaps(Map map) {
+
+        idToGlyph = new HashMap<>();
+        arcToSource = new HashMap<>();
+        arcToTarget = new HashMap<>();
+        processToArcs = new HashMap<>();
+        portToGlyph = new HashMap<>();
+
+        // parse all the style info
+        styleMap = new HashMap<>();
+        mapHasStyle = false;
+        for(Element e: map.getExtension().getAny()) {
+            if(e.getTagName().equals("renderInformation")) {
+                styleMap = SBGNUtils.mapStyleinfo(e);
+                mapHasStyle = true;
+            }
+        }
+
+        for(Glyph g: map.getGlyph()) {
+            GlyphClazz clazz = GlyphClazz.fromClazz(g.getClazz());
+            idToGlyph.put(g.getId(), g);
+            for(Port p: g.getPort()) {
+                portToGlyph.put(p.getId(), g);
+            }
+            if(clazz == PROCESS || clazz == UNCERTAIN_PROCESS || clazz == OMITTED_PROCESS
+                    || clazz == ASSOCIATION || clazz == DISSOCIATION) {
+                processToArcs.put(g.getId(), new ArrayList<>());
+            }
+        }
+
+        for(Arc arc: map.getArc()) {
+            Glyph sourceGlyph;
+            Glyph targetGlyph;
+            if(arc.getSource() instanceof Port) {
+                Port p = (Port) arc.getSource();
+                sourceGlyph = portToGlyph.get(p.getId());
+                arcToSource.put(arc.getId(), sourceGlyph);
+            }
+            else { // glyph itself
+                sourceGlyph = (Glyph) arc.getSource();
+                arcToSource.put(arc.getId(), sourceGlyph);
+            }
+
+            if(arc.getTarget() instanceof Port) {
+                Port p = (Port) arc.getTarget();
+                targetGlyph = portToGlyph.get(p.getId());
+                arcToTarget.put(arc.getId(), targetGlyph);
+            }
+            else { // glyph itself
+                targetGlyph = (Glyph) arc.getTarget();
+                arcToTarget.put(arc.getId(), targetGlyph);
+            }
+
+            if(processToArcs.containsKey(sourceGlyph.getId())){
+                processToArcs.get(sourceGlyph.getId()).add(arc);
+            }
+            if(processToArcs.containsKey(targetGlyph.getId())){
+                processToArcs.get(targetGlyph.getId()).add(arc);
+            }
+        }
+
     }
 
 

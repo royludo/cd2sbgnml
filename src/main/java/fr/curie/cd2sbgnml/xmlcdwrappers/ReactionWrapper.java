@@ -18,6 +18,9 @@ public class ReactionWrapper {
 
     private static final Logger logger = LoggerFactory.getLogger(ReactionWrapper.class);
 
+    public enum ReactionType { STATE_TRANSITION, HETERODIMER_ASSOCIATION, DISSOCIATION,
+        KNOWN_TRANSITION_OMITTED, UNKNOWN_TRANSITION}
+
     private String id;
     private List<ReactantWrapper> baseReactants;
     private List<ReactantWrapper> baseProducts;
@@ -30,6 +33,7 @@ public class ReactionWrapper {
     private String reactionType;
     private boolean hasProcess;
     private boolean isReversible;
+    private LineWrapper lineWrapper;
 
     public ReactionWrapper (Reaction reaction, ModelWrapper modelW) {
         this.id = reaction.getId();
@@ -45,6 +49,9 @@ public class ReactionWrapper {
         this.reactionType = reaction.getAnnotation().getExtension().getReactionType();
         this.hasProcess = hasProcess(reaction);
         this.isReversible = reaction.isReversible(); //  reaction.isSetReversible() ? Boolean.parseBoolean(reaction.getReversible()) : true;
+        this.lineWrapper = new LineWrapper(reaction.getAnnotation().getExtension().getConnectScheme(),
+                reaction.getAnnotation().getExtension().getEditPoints(),
+                reaction.getAnnotation().getExtension().getLine());
 
         // fill the corresponding lists
         SimpleEntry<List<ReactantWrapper>, List<LogicGateWrapper>> wrapperListTuple = ReactantWrapper.fromReaction(reaction, modelW);
