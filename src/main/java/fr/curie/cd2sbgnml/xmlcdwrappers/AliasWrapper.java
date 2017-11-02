@@ -137,6 +137,9 @@ public class AliasWrapper {
         alias.setSpecies(this.getSpeciesId());
         alias.setCompartmentAlias(this.getCompartmentAlias());
         alias.setActivity("inactive");
+        if(this.getComplexAlias() != null) {
+            alias.setComplexSpeciesAlias(this.getComplexAlias());
+        }
 
         Bounds bounds = new Bounds();
         alias.setBounds(bounds);
@@ -196,6 +199,9 @@ public class AliasWrapper {
         alias.setSpecies(this.getSpeciesId());
         alias.setCompartmentAlias(this.getCompartmentAlias());
         alias.setActivity("inactive");
+        if(this.getComplexAlias() != null) {
+            alias.setComplexSpeciesAlias(this.getComplexAlias());
+        }
 
         Bounds bounds = new Bounds();
         alias.setBounds(bounds);

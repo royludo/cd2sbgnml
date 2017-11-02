@@ -36,8 +36,7 @@ import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 
-import static org.sbgn.GlyphClazz.COMPARTMENT;
-import static org.sbgn.GlyphClazz.MACROMOLECULE;
+import static org.sbgn.GlyphClazz.*;
 
 
 public class SBGNML2CD extends GeneralConverter {
@@ -85,11 +84,11 @@ public class SBGNML2CD extends GeneralConverter {
                 case SIMPLE_CHEMICAL_MULTIMER:
                 case UNSPECIFIED_ENTITY:
                 case PHENOTYPE:
-                    processSpecies(glyph, false, false);
+                    processSpecies(glyph, false, false, null, null);
                     break;
                 case COMPLEX:
                 case COMPLEX_MULTIMER:
-                    processSpecies(glyph, false, true);
+                    processSpecies(glyph, false, true, null, null);
                     break;
             }
         }
@@ -99,9 +98,11 @@ public class SBGNML2CD extends GeneralConverter {
         return sbml;
     }
 
-    private void processSpecies(Glyph glyph, boolean isIncluded, boolean isComplex) {
+    private void processSpecies(Glyph glyph, boolean isIncluded, boolean isComplex,
+                                String parentSpeciesId, String parentAliasId) {
         String label = glyph.getLabel() == null ? "": glyph.getLabel().getText();
 
+        System.out.println(glyph.getClazz()+" "+isIncluded+" "+isComplex);
         // first determine specific subtypes
         SpeciesWrapper.ReferenceType subType = null;
         boolean ionFlag = false;
@@ -224,6 +225,7 @@ public class SBGNML2CD extends GeneralConverter {
 
         // add species to correct list
         if(isIncluded) {
+            speciesW.setComplex(parentSpeciesId);
             org.sbml._2001.ns.celldesigner.Species species = speciesW.getCDIncludedSpecies(referenceId);
             sbml.getModel().getAnnotation().getExtension().getListOfIncludedSpecies().getSpecies().add(species);
         }
@@ -248,6 +250,10 @@ public class SBGNML2CD extends GeneralConverter {
         // style
         aliasW.setStyleInfo(styleMap.get(glyph.getId()));
 
+        if(isIncluded) {
+            aliasW.setComplexAlias(parentAliasId);
+        }
+
         // add alias to correct list
         if(isComplex) {
             ListOfComplexSpeciesAliases.ComplexSpeciesAlias complexSpeciesAlias = aliasW.getCDComplexSpeciesAlias();
@@ -259,9 +265,20 @@ public class SBGNML2CD extends GeneralConverter {
             sbml.getModel().getAnnotation().getExtension().getListOfSpeciesAliases().getSpeciesAlias().add(speciesAlias);
         }
 
-
-
-
+        // recursively process included glyphs
+        for(Glyph subglyph: glyph.getGlyph()) {
+            // only concerned about EPN subunits
+            if(! subglyph.getClazz().equals("unit of information")
+                    && ! subglyph.getClazz().equals("state variable")
+                    && ! subglyph.getClazz().equals("entity")) {
+                GlyphClazz subClazz = GlyphClazz.fromClazz(subglyph.getClazz());
+                boolean isSubGlyphComplex = false;
+                if(subClazz == COMPLEX || subClazz == COMPLEX_MULTIMER) {
+                    isSubGlyphComplex = true;
+                }
+                processSpecies(subglyph, true, isSubGlyphComplex, glyph.getId(), aliasId);
+            }
+        }
 
 
     }
