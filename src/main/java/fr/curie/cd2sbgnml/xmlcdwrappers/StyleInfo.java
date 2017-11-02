@@ -88,14 +88,12 @@ public class StyleInfo {
 
     /**
      * Base reaction link style.
-     * @param reaction
      * @param refId
      */
-    public StyleInfo(Reaction reaction, String refId) {
+    public StyleInfo(float width, String color, String refId) {
         this.refId = refId;
-        Line line = reaction.getAnnotation().getExtension().getLine();
-        this.lineWidth = line.getWidth().floatValue();
-        this.lineColor = line.getColor().toLowerCase();
+        this.lineWidth = width;
+        this.lineColor = color;
         this.bgColor = DEFAULT_BG_COLOR;
         this.fontSize = DEFAULT_FONT_SIZE;
         this.id = generateStyleId();

@@ -3,33 +3,31 @@ package fr.curie.cd2sbgnml.xmlcdwrappers;
 
 import org.sbml._2001.ns.celldesigner.Modification;
 
-public class LogicGateWrapper {
+public class LogicGateWrapper extends ReactantWrapper {
 
     public enum LogicGateType {AND, OR, NOT, UNKNOWN}
 
     private LogicGateType type;
-    private String modificationType;
-    private Modification modification;
-
-    /**
-     * The index of the reactant in the corresponding list (modification,  additional product...) in the
-     * xml file
-     */
-    private int positionIndex;
+    private String modifiers;
+    private String aliases;
+    private ReactantWrapper.ModificationLinkType logicGateModificationType;
 
     public LogicGateWrapper(Modification modif, int i) {
-        this.positionIndex = i;
+        super(modif, null, i);
+
+        this.setPositionIndex(i);
+        this.modifiers = modif.getModifiers();
+        this.aliases = modif.getAliases();
         System.out.println("LOGIC MODIFICAITON "+modif.getModificationType());
-        this.modificationType = modif.getModificationType();
-        switch (modif.getType()) {
-            case "BOOLEAN_LOGIC_GATE_OR": this.type = LogicGateType.OR; break;
-            case "BOOLEAN_LOGIC_GATE_AND": this.type = LogicGateType.AND; break;
-            case "BOOLEAN_LOGIC_GATE_NOT": this.type = LogicGateType.NOT; break;
-            case "BOOLEAN_LOGIC_GATE_UNKNOWN": this.type = LogicGateType.UNKNOWN; break;
+        this.logicGateModificationType = ModificationLinkType.valueOf(modif.getModificationType());
+        switch (ModificationLinkType.valueOf(modif.getType())) {
+            case BOOLEAN_LOGIC_GATE_OR: this.type = LogicGateType.OR; break;
+            case BOOLEAN_LOGIC_GATE_AND: this.type = LogicGateType.AND; break;
+            case BOOLEAN_LOGIC_GATE_NOT: this.type = LogicGateType.NOT; break;
+            case BOOLEAN_LOGIC_GATE_UNKNOWN: this.type = LogicGateType.UNKNOWN; break;
             default:
                 throw new IllegalArgumentException("Modification type: "+modif.getType()+" is not a logic gate type.");
         }
-        this.modification = modif;
     }
 
     public LogicGateType getType() {
@@ -37,14 +35,30 @@ public class LogicGateWrapper {
     }
 
     public String getModificationType() {
-        return modificationType;
+        return this.logicGateModificationType.toString();
     }
 
-    public int getPositionIndex() {
-        return positionIndex;
+    public void setType(LogicGateType type) {
+        this.type = type;
     }
 
-    public Modification getModification() {
-        return modification;
+    public String getModifiers() {
+        return modifiers;
+    }
+
+    public void setModifiers(String modifiers) {
+        this.modifiers = modifiers;
+    }
+
+    public String getAliases() {
+        return aliases;
+    }
+
+    public void setAliases(String aliases) {
+        this.aliases = aliases;
+    }
+
+    public void setLogicGateModificationType(ModificationLinkType logicGateModificationType) {
+        this.logicGateModificationType = logicGateModificationType;
     }
 }

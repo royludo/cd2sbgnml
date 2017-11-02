@@ -22,12 +22,28 @@ public class ReactantWrapper {
     private static final Logger logger = LoggerFactory.getLogger(ReactantWrapper.class);
 
     public enum ReactantType {BASE_REACTANT, BASE_PRODUCT, ADDITIONAL_REACTANT, ADDITIONAL_PRODUCT, MODIFICATION}
+    public enum ModificationLinkType {
+        CATALYSIS, UNKNOWN_CATALYSIS,
+        INHIBITION, UNKNOWN_INHIBITION,
+        TRANSPORT,
+        HETERODIMER_ASSOCIATION, DISSOCIATION,
+        TRANSCRIPTIONAL_ACTIVATION, TRANSCRIPTIONAL_INHIBITION,
+        TRANSLATIONAL_ACTIVATION, TRANSLATIONAL_INHIBITION,
+        PHYSICAL_STIMULATION, MODULATION, TRIGGER,
+        REDUCED_TRIGGER, NEGATIVE_INFLUENCE,
+        BOOLEAN_LOGIC_GATE_OR,
+        BOOLEAN_LOGIC_GATE_AND,
+        BOOLEAN_LOGIC_GATE_NOT,
+        BOOLEAN_LOGIC_GATE_UNKNOWN
+    }
 
 
     private ReactantType reactantType;
     private AliasWrapper aliasW;
-    //private LinkWrapper link;
     private AnchorPoint anchorPoint;
+    private ModificationLinkType modificationLinkType;
+    private String targetLineIndex;
+
 
     /**
      * For reactantsWrapper that are NOT baseReactants or baseProducts. Those 2 have their lineWrapper defined
@@ -81,6 +97,7 @@ public class ReactantWrapper {
         this.reactantType = ReactantType.ADDITIONAL_REACTANT;
         this.aliasW = aliasW;
         this.positionIndex = index;
+        this.targetLineIndex = reactantLink.getTargetLineIndex();
 
         // get reactanct's link anchor point
         this.anchorPoint = AnchorPoint.CENTER; // default to center
@@ -109,6 +126,7 @@ public class ReactantWrapper {
         this.reactantType = ReactantType.ADDITIONAL_PRODUCT;
         this.aliasW = aliasW;
         this.positionIndex = index;
+        this.targetLineIndex = productLink.getTargetLineIndex();
 
         // get reactanct's link anchor point
         this.anchorPoint = AnchorPoint.CENTER; // default to center
@@ -131,10 +149,12 @@ public class ReactantWrapper {
     }
 
     // used when guaranteed that modifier is single entity (= no logic gate)
-    private ReactantWrapper (Modification modification, AliasWrapper aliasW, int index) {
+    protected ReactantWrapper (Modification modification, AliasWrapper aliasW, int index) {
         this.reactantType = ReactantType.MODIFICATION;
         this.aliasW = aliasW;
         this.positionIndex = index;
+        this.targetLineIndex = modification.getTargetLineIndex();
+        this.modificationLinkType = ModificationLinkType.valueOf(modification.getType());
 
         // get reactanct's link anchor point
         if(modification.getLinkTarget().size() > 0
@@ -255,6 +275,46 @@ public class ReactantWrapper {
         return Integer.parseInt(targetLineIndex.split(",")[1]);
     }
 
+    public int getProcessAnchorIndex() {
+        // in some cases targetLineIndex may not be present (see logic gates modifiers)
+        if(this.getTargetLineIndex() == null) {
+            return 0;
+        }
+        String targetLineIndex = this.getTargetLineIndex();
+        return Integer.parseInt(targetLineIndex.split(",")[1]);
+    }
+
+    public List<Point2D.Float> getEditPointsForBranch(int b) {
+        List<Point2D.Float> editPoints = this.getLineWrapper().getEditPoints();
+        int num0 = this.getLineWrapper().getNum0();
+        int num1 = this.getLineWrapper().getNum1();
+        int num2 = this.getLineWrapper().getNum2();
+
+        List<Point2D.Float> finalEditPoints = new ArrayList<>();
+        switch(b) {
+            case 0:
+                for(int i=0; i < num0; i++) {
+                    finalEditPoints.add(editPoints.get(i));
+                }
+                break;
+            case 1:
+                for(int i=num0; i < num0 + num1; i++) {
+                    finalEditPoints.add(editPoints.get(i));
+                }
+                break;
+            case 2:
+                // don't go to the end of edit points list, last one may be
+                // for association/dissociation point or for logic gate
+                for(int i=num0 + num1; i < num0 + num1 + num2; i++) {
+                    finalEditPoints.add(editPoints.get(i));
+                }
+                break;
+            default:
+                throw new RuntimeException("Value: "+b+" not allowed for branch index. Authorized values: 0, 1, 2.");
+        }
+        return finalEditPoints;
+    }
+
     public static boolean isLogicGate(Modification modif) {
         return modif.getModifiers().split(",").length > 1;
     }
@@ -306,5 +366,41 @@ public class ReactantWrapper {
 
     public void setLineWrapper(LineWrapper lineWrapper) {
         this.lineWrapper = lineWrapper;
+    }
+
+    public ModificationLinkType getModificationLinkType() {
+        return modificationLinkType;
+    }
+
+    public void setModificationLinkType(ModificationLinkType modificationLinkType) {
+        this.modificationLinkType = modificationLinkType;
+    }
+
+    public String getTargetLineIndex() {
+        return targetLineIndex;
+    }
+
+    public void setTargetLineIndex(String targetLineIndex) {
+        this.targetLineIndex = targetLineIndex;
+    }
+
+    public void setReactantType(ReactantType reactantType) {
+        this.reactantType = reactantType;
+    }
+
+    public void setAliasW(AliasWrapper aliasW) {
+        this.aliasW = aliasW;
+    }
+
+    public void setAnchorPoint(AnchorPoint anchorPoint) {
+        this.anchorPoint = anchorPoint;
+    }
+
+    public void setPositionIndex(int positionIndex) {
+        this.positionIndex = positionIndex;
+    }
+
+    public void setLogicGate(LogicGateWrapper logicGate) {
+        this.logicGate = logicGate;
     }
 }

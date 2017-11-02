@@ -5,8 +5,10 @@ import org.sbml._2001.ns.celldesigner.Modification;
 import org.sbml._2001.ns.celldesigner.ProductLink;
 import org.sbml._2001.ns.celldesigner.ReactantLink;
 import org.sbml.sbml.level2.version4.Reaction;
+import org.sbml.sbml.level2.version4.SBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import java.awt.geom.Point2D;
@@ -28,16 +30,16 @@ public class ReactionWrapper {
     private List<ReactantWrapper> additionalProducts;
     private List<ReactantWrapper> modifiers;
     private List<LogicGateWrapper> logicGates;
-    private Reaction reaction;
     private int processSegmentIndex;
     private String reactionType;
     private boolean hasProcess;
     private boolean isReversible;
     private LineWrapper lineWrapper;
+    private SBase.Notes notes;
+    private Element annotations;
 
     public ReactionWrapper (Reaction reaction, ModelWrapper modelW) {
         this.id = reaction.getId();
-        this.reaction = reaction;
 
         this.baseReactants = new ArrayList<>();
         this.baseProducts = new ArrayList<>();
@@ -52,6 +54,8 @@ public class ReactionWrapper {
         this.lineWrapper = new LineWrapper(reaction.getAnnotation().getExtension().getConnectScheme(),
                 reaction.getAnnotation().getExtension().getEditPoints(),
                 reaction.getAnnotation().getExtension().getLine());
+        this.notes = reaction.getNotes();
+        this.annotations = Utils.getRDFAnnotations(reaction.getAnnotation().getAny());
 
         // fill the corresponding lists
         SimpleEntry<List<ReactantWrapper>, List<LogicGateWrapper>> wrapperListTuple = ReactantWrapper.fromReaction(reaction, modelW);
@@ -222,6 +226,37 @@ public class ReactionWrapper {
         return finalEditPoints;
     }
 
+    public List<Point2D.Float> getEditPointsForBranch(int b) {
+        List<Point2D.Float> editPoints = this.getLineWrapper().getEditPoints();
+        int num0 = this.getLineWrapper().getNum0();
+        int num1 = this.getLineWrapper().getNum1();
+        int num2 = this.getLineWrapper().getNum2();
+
+        List<Point2D.Float> finalEditPoints = new ArrayList<>();
+        switch(b) {
+            case 0:
+                for(int i=0; i < num0; i++) {
+                    finalEditPoints.add(editPoints.get(i));
+                }
+                break;
+            case 1:
+                for(int i=num0; i < num0 + num1; i++) {
+                    finalEditPoints.add(editPoints.get(i));
+                }
+                break;
+            case 2:
+                // don't go to the end of edit points list, last one may be
+                // for association/dissociation point or for logic gate
+                for(int i=num0 + num1; i < num0 + num1 + num2; i++) {
+                    finalEditPoints.add(editPoints.get(i));
+                }
+                break;
+            default:
+                throw new RuntimeException("Value: "+b+" not allowed for branch index. Authorized values: 0, 1, 2.");
+        }
+        return finalEditPoints;
+    }
+
     /**
      * get edit points for the modifier located at position: index in the xml list of modifiers
      * @param reaction
@@ -243,6 +278,27 @@ public class ReactionWrapper {
         if(modif.getEditPoints() != null) { // && !modif.getEditPoints().getStringValue().equals("")) {
             List<String> editPointString = modif.getEditPoints();
             return parseEditPointsString(editPointString);
+        }
+        else {
+            return new ArrayList<>();
+        }
+
+    }
+
+    public List<Point2D.Float> getEditPointsForModifier() {
+        //Modification modif = reaction.getAnnotation().
+         //       getExtension().getListOfModification().getModification().get(index);
+
+        if(this.getLineWrapper().getEditPoints().size() == 0) {
+            return new ArrayList<>();
+        }
+
+        /*
+        In ACSN some isseteditPoints can return true without having any editpoints, and then return empty string
+         */
+        // TODO check if ok
+        if(this.getLineWrapper().getEditPoints().size() > 0) { // && !modif.getEditPoints().getStringValue().equals("")) {
+            return this.getLineWrapper().getEditPoints();
         }
         else {
             return new ArrayList<>();
@@ -296,14 +352,6 @@ public class ReactionWrapper {
         return id;
     }
 
-    public ConnectScheme getBaseConnectScheme() {
-        return this.getReaction().getAnnotation().getExtension().getConnectScheme();
-    }
-
-    public Reaction getReaction() {
-        return reaction;
-    }
-
     public List<ReactantWrapper> getBaseReactants() {
         return baseReactants;
     }
@@ -338,5 +386,21 @@ public class ReactionWrapper {
 
     public boolean isReversible() {
         return isReversible;
+    }
+
+    public LineWrapper getLineWrapper() {
+        return lineWrapper;
+    }
+
+    public void setLineWrapper(LineWrapper lineWrapper) {
+        this.lineWrapper = lineWrapper;
+    }
+
+    public SBase.Notes getNotes() {
+        return notes;
+    }
+
+    public Element getAnnotations() {
+        return annotations;
     }
 }

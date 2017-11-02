@@ -28,7 +28,7 @@ public class SimpleReactionModel extends GenericReactionModel{
         Point2D.Float baseLinkStartPoint = startModel.getAbsoluteAnchorCoordinate(startR.getAnchorPoint());
         Point2D.Float baseLinkEndPoint = endModel.getAbsoluteAnchorCoordinate(endR.getAnchorPoint());
 
-        List<Point2D.Float> editPoints = ReactionWrapper.getBaseEditPoints(reactionW.getReaction());
+        List<Point2D.Float> editPoints = reactionW.getLineWrapper().getEditPoints();
         List<AffineTransform> transformList = GeometryUtils.getTransformsToGlobalCoords(baseLinkStartPoint, baseLinkEndPoint);
 
         List<Point2D.Float> absoluteEditPoints = new ArrayList<>();
@@ -58,7 +58,8 @@ public class SimpleReactionModel extends GenericReactionModel{
                     processAxis,
                     isPolyline,
                     // style info of the process should inherit from style of the line it's on
-                    new StyleInfo(reactionW.getReaction(), prId));
+                    new StyleInfo(reactionW.getLineWrapper().getLineWidth(),
+                            reactionW.getLineWrapper().getLineColor(), prId));
 
             AbstractMap.SimpleEntry<List<Point2D.Float>, List<Point2D.Float>> subLinesTuple =
                     GeometryUtils.splitPolylineAtSegment(absoluteEditPoints, reactionW.getProcessSegmentIndex());
@@ -87,12 +88,14 @@ public class SimpleReactionModel extends GenericReactionModel{
             String l1Id = "cons_" + UUID.randomUUID();
             LinkModel l1 = new LinkModel(startModel, process, new Link(subLinesTuple1),
                     l1Id, "consumption",
-                    new StyleInfo(reactionW.getReaction(), l1Id));
+                    new StyleInfo(reactionW.getLineWrapper().getLineWidth(),
+                            reactionW.getLineWrapper().getLineColor(), l1Id));
 
             String l2Id = "prod_" + UUID.randomUUID();
             LinkModel l2 = new LinkModel(process, endModel, new Link(subLinesTuple2),
                     l2Id, LinkModel.getSbgnClass(reactionW.getReactionType()),
-                    new StyleInfo(reactionW.getReaction(), l2Id));
+                    new StyleInfo(reactionW.getLineWrapper().getLineWidth(),
+                            reactionW.getLineWrapper().getLineColor(), l2Id));
 
             /*System.out.println("process coords "+process.getGlyph().getCenter());
             System.out.println("original edit points "+absoluteEditPoints);
@@ -119,7 +122,8 @@ public class SimpleReactionModel extends GenericReactionModel{
             String linkid = "direct_" + UUID.randomUUID();
             LinkModel l1 = new LinkModel(startModel, endModel, new Link(absoluteEditPoints),
                     linkid, LinkModel.getSbgnClass(reactionW.getReactionType()),
-                    new StyleInfo(reactionW.getReaction(), linkid));
+                    new StyleInfo(reactionW.getLineWrapper().getLineWidth(),
+                            reactionW.getLineWrapper().getLineColor(), linkid));
 
             // add everything to the reaction lists
             this.getReactantModels().add(startModel);

@@ -3,6 +3,7 @@ package fr.curie.cd2sbgnml.model;
 import fr.curie.cd2sbgnml.graphics.AnchorPoint;
 import fr.curie.cd2sbgnml.graphics.GeometryUtils;
 import fr.curie.cd2sbgnml.graphics.Link;
+import fr.curie.cd2sbgnml.xmlcdwrappers.LineWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
@@ -28,8 +29,10 @@ public class AssociationReactionModel extends GenericReactionModel {
         ReactantModel startModel1 = new ReactantModel(this, startR2);
         ReactantModel endModel = new ReactantModel(this, endR);
 
+        LineWrapper lineW = reactionW.getLineWrapper();
+
         // list edit points
-        List<Point2D.Float> editPoints = ReactionWrapper.getBaseEditPoints(reactionW.getReaction());
+        List<Point2D.Float> editPoints = reactionW.getLineWrapper().getEditPoints();
 
         // process association point
         Point2D.Float assocGlyphLocalCoords = editPoints.get(editPoints.size() - 1); // last point listed in xml
@@ -59,7 +62,7 @@ public class AssociationReactionModel extends GenericReactionModel {
         Collections.reverse(absoluteEditPoints0);
         String link0Id = "cons_" + UUID.randomUUID();
         LinkModel link0 = new LinkModel(startModel0, association, new Link(absoluteEditPoints0),
-                link0Id, "consumption", new StyleInfo(reactionW.getReaction(), link0Id));
+                link0Id, "consumption", new StyleInfo(lineW.getLineWidth(), lineW.getLineColor(), link0Id));
         /*link0.setSbgnSpacePointList(
                 link0.getNormalizedEndPoints(
                         startR1.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
@@ -69,7 +72,7 @@ public class AssociationReactionModel extends GenericReactionModel {
         Collections.reverse(absoluteEditPoints1);
         String link1Id = "cons_" + UUID.randomUUID();
         LinkModel link1 = new LinkModel(startModel1, association, new Link(absoluteEditPoints1),
-                link1Id, "consumption", new StyleInfo(reactionW.getReaction(), link1Id));
+                link1Id, "consumption", new StyleInfo(lineW.getLineWidth(), lineW.getLineColor(), link1Id));
         /*link1.setSbgnSpacePointList(
                 link1.getNormalizedEndPoints(
                         startR2.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
@@ -109,7 +112,8 @@ public class AssociationReactionModel extends GenericReactionModel {
                     prId,
                     processAxis,
                     isPolyline,
-                    new StyleInfo(reactionW.getReaction(), prId));
+                    new StyleInfo(lineW.getLineWidth(),
+                            lineW.getLineColor(), prId));
 
             AbstractMap.SimpleEntry<List<Point2D.Float>, List<Point2D.Float>> subLinesTuple =
                     GeometryUtils.splitPolylineAtSegment(absoluteEditPoints2, reactionW.getProcessSegmentIndex());
@@ -145,11 +149,13 @@ public class AssociationReactionModel extends GenericReactionModel {
 
             String l21Id = "cons_" + UUID.randomUUID();
             LinkModel l21 = new LinkModel(association, process, new Link(normalizedSubLinesTuple1),
-                    l21Id, "consumption", new StyleInfo(reactionW.getReaction(), l21Id));
+                    l21Id, "consumption", new StyleInfo(lineW.getLineWidth(),
+                    lineW.getLineColor(), l21Id));
 
             String l22Id = "prod_" + UUID.randomUUID();
             LinkModel l22 = new LinkModel(process, endModel, new Link(normalizedSubLinesTuple2),
-                    l22Id, "production", new StyleInfo(reactionW.getReaction(), l22Id));
+                    l22Id, "production", new StyleInfo(lineW.getLineWidth(),
+                    lineW.getLineColor(), l22Id));
             System.out.println("link edit points: "+link0.getLink().getEditPoints()+" "+l21.getLink().getStart()+" "+l21.getLink().getEditPoints());
 
             // merge links to get rid of association glyph

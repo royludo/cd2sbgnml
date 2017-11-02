@@ -18,7 +18,7 @@ public class LineWrapper {
     private String lineColor;
     private String lineType;
 
-    private List<Point2D> editPoints;
+    private List<Point2D.Float> editPoints;
     private int num0, num1, num2;
     private int tShapeIndex;
 
@@ -41,7 +41,7 @@ public class LineWrapper {
 
     public LineWrapper(ConnectScheme connectScheme, List<String> editPoints, Line line) {
         this(connectScheme, line.getWidth().floatValue(), line.getColor(), null);
-        List<Point2D> pointList = new ArrayList<>();
+        List<Point2D.Float> pointList = new ArrayList<>();
         if(editPoints != null) {
             for (String pointString : editPoints) {
                 String[] tmp = pointString.split(",");
@@ -68,7 +68,7 @@ public class LineWrapper {
                 this.tShapeIndex = editPoints.getTShapeIndex();
             }
             if(editPoints.getValue() != null) { // should never be null
-                List<Point2D> pointList = new ArrayList<>();
+                List<Point2D.Float> pointList = new ArrayList<>();
                 for (String pointString : editPoints.getValue()) {
                     String[] tmp = pointString.split(",");
                     float x = Float.parseFloat(tmp[0]);
@@ -114,11 +114,14 @@ public class LineWrapper {
         this.lineType = lineType;
     }
 
-    public List<Point2D> getEditPoints() {
+    public List<Point2D.Float> getEditPoints() {
+        if(editPoints == null) {
+            return new ArrayList<>();
+        }
         return editPoints;
     }
 
-    public void setEditPoints(List<Point2D> editPoints) {
+    public void setEditPoints(List<Point2D.Float> editPoints) {
         this.editPoints = editPoints;
     }
 
