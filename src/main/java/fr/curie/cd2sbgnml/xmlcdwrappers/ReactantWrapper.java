@@ -62,6 +62,12 @@ public class ReactantWrapper {
      */
     private LogicGateWrapper logicGate;
 
+
+    public ReactantWrapper (AliasWrapper aliasW, ReactantType type) {
+        this.aliasW = aliasW;
+        this.reactantType = type;
+    }
+
     private ReactantWrapper (BaseReactant baseReactant, AliasWrapper aliasW) {
         this.reactantType = ReactantType.BASE_REACTANT;
         this.aliasW = aliasW;
@@ -313,6 +319,35 @@ public class ReactantWrapper {
                 throw new RuntimeException("Value: "+b+" not allowed for branch index. Authorized values: 0, 1, 2.");
         }
         return finalEditPoints;
+    }
+
+    public Object getCDElement() {
+        switch(this.reactantType) {
+            case BASE_REACTANT:
+                BaseReactant baseReactant = new BaseReactant();
+                baseReactant.setSpecies(this.getAliasW().getSpeciesW().getId());
+                baseReactant.setAlias(this.getAliasW().getId());
+                if(this.getAnchorPoint() != AnchorPoint.CENTER) { // no linkAnchor when center
+                    LinkAnchor linkAnchor = new LinkAnchor();
+                    linkAnchor.setPosition("N");
+                    baseReactant.setLinkAnchor(linkAnchor);
+                }
+                return baseReactant;
+            case BASE_PRODUCT:
+                BaseProduct baseProduct = new BaseProduct();
+                baseProduct.setSpecies(this.getAliasW().getSpeciesW().getId());
+                baseProduct.setAlias(this.getAliasW().getId());
+                if(this.getAnchorPoint() != AnchorPoint.CENTER) { // no linkAnchor when center
+                    LinkAnchor linkAnchor = new LinkAnchor();
+                    linkAnchor.setPosition("N");
+                    baseProduct.setLinkAnchor(linkAnchor);
+                }
+                return baseProduct;
+            case ADDITIONAL_REACTANT: return null;
+            case ADDITIONAL_PRODUCT: return null;
+            case MODIFICATION: return null;
+        }
+        throw new RuntimeException("Reactant type was not defined properly.");
     }
 
     public static boolean isLogicGate(Modification modif) {

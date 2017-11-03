@@ -1,11 +1,10 @@
 package fr.curie.cd2sbgnml;
 
-import fr.curie.cd2sbgnml.xmlcdwrappers.CompartmentWrapper;
+import fr.curie.cd2sbgnml.graphics.AnchorPoint;
+import fr.curie.cd2sbgnml.xmlcdwrappers.*;
 import fr.curie.cd2sbgnml.model.ReactantModel;
-import fr.curie.cd2sbgnml.xmlcdwrappers.AliasWrapper;
+import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper.ReactantType;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper.ReactionType;
-import fr.curie.cd2sbgnml.xmlcdwrappers.SpeciesWrapper;
-import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
 import org.sbfc.converter.GeneralConverter;
 import org.sbfc.converter.exceptions.ConversionException;
 import org.sbfc.converter.exceptions.ReadModelException;
@@ -43,6 +42,10 @@ public class SBGNML2CD extends GeneralConverter {
     Sbml sbml;
     boolean mapHasStyle;
     java.util.Map<String, StyleInfo> styleMap;
+    /**
+     * Keep track of created aliasWrappers to be referred to.
+     */
+    java.util.Map<String, AliasWrapper> aliasWrapperMap;
 
     /**
      * This map indexes all the arcs connected to each process node.
@@ -126,10 +129,11 @@ public class SBGNML2CD extends GeneralConverter {
             Rely on the name of the glyphs being the same after they are inside the produced complex.
             For now, only basic checks in place.
          */
-        List<List<Arc>> tmp = SBGNUtils.getReactantTypes(connectedArcs);
+        List<List<Arc>> tmp = SBGNUtils.getReactantTypes(connectedArcs, isReversible);
         List<Arc> reactants = tmp.get(0);
         List<Arc> products = tmp.get(1);
         List<Arc> modifiers = tmp.get(2);
+        System.out.println("connected glyphs: "+reactants.size()+" "+products.size()+" "+modifiers.size());
         /*
          * The arcs (and glyphs) that we will consider as basis of the reaction, for CellDesigner structure.
          * Normally 1 of each, 2 for the association/dissociation reactions.
@@ -151,6 +155,14 @@ public class SBGNML2CD extends GeneralConverter {
         }
         else if(SBGNUtils.isReactionDissociation(processGlyph, reactants, products)) {
             reactionCDClass = ReactionType.DISSOCIATION;
+            baseProducts.add(products.get(0));
+            if(products.size() <= 1) {
+                logger.warn("A dissociation with only 1 or less product was detected, this probably shouldn't happen");
+            }
+            else {
+                baseProducts.add(products.get(1));
+            }
+            baseReactants.add(reactants.get(0));
         }
         else {
             switch(GlyphClazz.fromClazz(processGlyph.getClazz())) {
@@ -161,7 +173,43 @@ public class SBGNML2CD extends GeneralConverter {
                     reactionCDClass = ReactionType.UNKNOWN_TRANSITION;
                     break;
             }
+            if(reactants.size() > 0)
+                baseReactants.add(reactants.get(0));
+            if(products.size() > 0)
+                baseProducts.add(products.get(0));
         }
+
+        // process base reactants and products
+        List<ReactantWrapper> baseReactantW = new ArrayList<>();
+        List<ReactantWrapper> baseProductW = new ArrayList<>();
+        for(Arc arc: baseReactants) {
+            Glyph g;
+            if(isReversible) { // what is considered reactant was previously a product
+                g = arcToTarget.get(arc.getId());
+            }
+            else {
+                g = arcToSource.get(arc.getId());
+            }
+            AliasWrapper aliasW = aliasWrapperMap.get(g.getId()+"_alias1");
+            System.out.println("Base reactant: "+g.getId()+" "+g.getClazz());
+            ReactantWrapper baseWrapper = new ReactantWrapper(aliasW, ReactantType.BASE_REACTANT);
+            baseWrapper.setAnchorPoint(AnchorPoint.CENTER); // TODO better compute where is the anchor
+            baseReactantW.add(baseWrapper);
+        }
+        for(Arc arc: baseProducts) {
+            Glyph g = arcToTarget.get(arc.getId());
+            AliasWrapper aliasW = aliasWrapperMap.get(g.getId()+"_alias1");
+            System.out.println("Base product: "+g.getId()+" "+g.getClazz());
+            ReactantWrapper baseWrapper = new ReactantWrapper(aliasW, ReactantType.BASE_PRODUCT);
+            baseWrapper.setAnchorPoint(AnchorPoint.CENTER); // TODO better compute where is the anchor
+            baseProductW.add(baseWrapper);
+        }
+
+        ReactionWrapper reactionW = new ReactionWrapper(processGlyph.getId().replaceAll("-","_"),
+                reactionCDClass, baseReactantW, baseProductW);
+        reactionW.setReversible(isReversible);
+
+        sbml.getModel().getListOfReactions().getReaction().add(reactionW.getCDReaction());
 
 
 
@@ -334,6 +382,7 @@ public class SBGNML2CD extends GeneralConverter {
             SpeciesAlias speciesAlias = aliasW.getCDSpeciesAlias();
             sbml.getModel().getAnnotation().getExtension().getListOfSpeciesAliases().getSpeciesAlias().add(speciesAlias);
         }
+        aliasWrapperMap.put(aliasW.getId(), aliasW);
 
         // recursively process included glyphs
         for(Glyph subglyph: glyph.getGlyph()) {
@@ -511,6 +560,7 @@ public class SBGNML2CD extends GeneralConverter {
         arcToTarget = new HashMap<>();
         processToArcs = new HashMap<>();
         portToGlyph = new HashMap<>();
+        aliasWrapperMap = new HashMap<>();
 
         // parse all the style info
         styleMap = new HashMap<>();

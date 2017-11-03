@@ -198,10 +198,15 @@ public class SBGNUtils {
      *  0 - the reactants consumed by the reaction
      *  1 - the products of the reaction
      *  2 - all other types of interactions (catalysis, stimulation...)
+     *
+     *  If the reaction is reversible, then no consumption arc is present. But CellDesigner still needs
+     *  a base reactant and base product. So we arbitrarily select one arc of the reaction to be a base
+     *  reactant arc, and another one to be the base products. This choice shouldn't impact anything.
+     *
      * @param arcs a list of arcs all having the same process as source or target
      * @return list of 3 lists of arcs
      */
-    public static List<List<Arc>> getReactantTypes(List<Arc> arcs) {
+    public static List<List<Arc>> getReactantTypes(List<Arc> arcs, boolean isReversible) {
         List<List<Arc>> result = new ArrayList<>();
         List<Arc> products = new ArrayList<>();
         List<Arc> reactants = new ArrayList<>();
@@ -214,6 +219,15 @@ public class SBGNUtils {
                 default: modifiers.add(arc);
             }
         }
+
+        if(isReversible) {
+            // transfer one product to the reactant list
+            System.out.println("Transfer element");
+            System.out.println(reactants.size()+" "+products.size()+" "+modifiers.size());
+            reactants.add(products.remove(0));
+            System.out.println(reactants.size()+" "+products.size()+" "+modifiers.size());
+        }
+
         result.add(reactants);
         result.add(products);
         result.add(modifiers);

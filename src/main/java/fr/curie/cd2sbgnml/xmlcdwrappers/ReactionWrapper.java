@@ -1,11 +1,8 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
-import org.sbml._2001.ns.celldesigner.ConnectScheme;
-import org.sbml._2001.ns.celldesigner.Modification;
-import org.sbml._2001.ns.celldesigner.ProductLink;
-import org.sbml._2001.ns.celldesigner.ReactantLink;
-import org.sbml.sbml.level2.version4.Reaction;
-import org.sbml.sbml.level2.version4.SBase;
+import org.sbml._2001.ns.celldesigner.*;
+import org.sbml._2001.ns.celldesigner.ReactionAnnotationType.Extension;
+import org.sbml.sbml.level2.version4.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -31,12 +28,24 @@ public class ReactionWrapper {
     private List<ReactantWrapper> modifiers;
     private List<LogicGateWrapper> logicGates;
     private int processSegmentIndex;
-    private String reactionType;
+    private String reactionType; // TODO change to ReactionType
     private boolean hasProcess;
     private boolean isReversible;
     private LineWrapper lineWrapper;
     private SBase.Notes notes;
     private Element annotations;
+
+    public ReactionWrapper (String id, ReactionType type,
+                            List<ReactantWrapper> baseReactants, List<ReactantWrapper> baseProducts) {
+        this.id = id;
+        this.reactionType = type.toString();
+        this.baseReactants = baseReactants;
+        this.baseProducts = baseProducts;
+        this.additionalProducts = new ArrayList<>();
+        this.additionalReactants = new ArrayList<>();
+        this.modifiers = new ArrayList<>();
+        this.logicGates = new ArrayList<>();
+    }
 
     public ReactionWrapper (Reaction reaction, ModelWrapper modelW) {
         this.id = reaction.getId();
@@ -333,6 +342,92 @@ public class ReactionWrapper {
 
     }
 
+    public Reaction getCDReaction() {
+        Reaction reaction = new Reaction();
+        reaction.setId(this.getId());
+        reaction.setMetaid(this.getId());
+        reaction.setReversible(this.isReversible());
+
+        // init base lists
+        ListOfSpeciesReferences listOfReactants = new ListOfSpeciesReferences();
+        reaction.setListOfReactants(listOfReactants);
+        ListOfSpeciesReferences listOfProducts = new ListOfSpeciesReferences();
+        reaction.setListOfProducts(listOfProducts);
+        ListOfModifierSpeciesReferences listOfModifiers = new ListOfModifierSpeciesReferences();
+        reaction.setListOfModifiers(listOfModifiers);
+
+        // init annotation part
+        ReactionAnnotationType annotation = new ReactionAnnotationType();
+        reaction.setAnnotation(annotation);
+
+        Extension ext = new Extension();
+        annotation.setExtension(ext);
+
+        ext.setReactionType(this.getReactionType());
+
+        BaseReactants baseReactants = new BaseReactants();
+        ext.setBaseReactants(baseReactants);
+        for(ReactantWrapper reactantWrapper: this.getBaseReactants()) {
+            BaseReactant baseReactant = (BaseReactant) reactantWrapper.getCDElement();
+            baseReactants.getBaseReactant().add(baseReactant);
+
+            // create associated speciesReference for the sbml list
+            SpeciesReference speciesReference = new SpeciesReference();
+            speciesReference.setSpecies(reactantWrapper.getAliasW().getSpeciesW().getId());
+            speciesReference.setMetaid(reactantWrapper.getAliasW().getSpeciesW().getId());
+
+            SpeciesReferenceAnnotationType speciesRefAnnotation = new SpeciesReferenceAnnotationType();
+            speciesReference.setAnnotation(speciesRefAnnotation);
+
+            SpeciesReferenceAnnotationType.Extension speciesRefExt = new SpeciesReferenceAnnotationType.Extension();
+            speciesRefAnnotation.setExtension(speciesRefExt);
+
+            speciesRefExt.setAlias(reactantWrapper.getAliasW().getId());
+
+            listOfReactants.getSpeciesReference().add(speciesReference);
+        }
+
+        BaseProducts baseProducts = new BaseProducts();
+        ext.setBaseProducts(baseProducts);
+        for(ReactantWrapper reactantWrapper: this.getBaseProducts()) {
+            BaseProduct baseProduct = (BaseProduct) reactantWrapper.getCDElement();
+            baseProducts.getBaseProduct().add(baseProduct);
+
+            // create associated speciesReference for the sbml list
+            SpeciesReference speciesReference = new SpeciesReference();
+            speciesReference.setSpecies(reactantWrapper.getAliasW().getSpeciesW().getId());
+            speciesReference.setMetaid(reactantWrapper.getAliasW().getSpeciesW().getId());
+
+            SpeciesReferenceAnnotationType speciesRefAnnotation = new SpeciesReferenceAnnotationType();
+            speciesReference.setAnnotation(speciesRefAnnotation);
+
+            SpeciesReferenceAnnotationType.Extension speciesRefExt = new SpeciesReferenceAnnotationType.Extension();
+            speciesRefAnnotation.setExtension(speciesRefExt);
+
+            speciesRefExt.setAlias(reactantWrapper.getAliasW().getId());
+
+            listOfProducts.getSpeciesReference().add(speciesReference);
+        }
+
+        if(this.getAdditionalReactants().size() > 0) {
+            ListOfReactantLinks listOfReactantLinks = new ListOfReactantLinks();
+            ext.setListOfReactantLinks(listOfReactantLinks);
+        }
+
+        if(this.getAdditionalProducts().size() > 0) {
+            ListOfProductLinks listOfProductLinks = new ListOfProductLinks();
+            ext.setListOfProductLinks(listOfProductLinks);
+        }
+
+        if(this.getModifiers().size() > 0) {
+            ListOfModification listOfModification = new ListOfModification();
+            ext.setListOfModification(listOfModification);
+        }
+
+
+        return reaction;
+    }
+
 
     public boolean hasProcess(){
         return this.hasProcess;
@@ -402,5 +497,33 @@ public class ReactionWrapper {
 
     public Element getAnnotations() {
         return annotations;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setProcessSegmentIndex(int processSegmentIndex) {
+        this.processSegmentIndex = processSegmentIndex;
+    }
+
+    public void setReactionType(String reactionType) {
+        this.reactionType = reactionType;
+    }
+
+    public void setHasProcess(boolean hasProcess) {
+        this.hasProcess = hasProcess;
+    }
+
+    public void setReversible(boolean reversible) {
+        isReversible = reversible;
+    }
+
+    public void setNotes(SBase.Notes notes) {
+        this.notes = notes;
+    }
+
+    public void setAnnotations(Element annotations) {
+        this.annotations = annotations;
     }
 }
