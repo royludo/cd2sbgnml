@@ -1,9 +1,6 @@
-package fr.curie.cd2sbgnml.model;
+package fr.curie.cd2sbgnml.xmlcdwrappers;
 
 import fr.curie.cd2sbgnml.graphics.GeometryUtils;
-import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
-import net.sf.saxon.om.NamePool;
-import org.sbfc.converter.models.SBGNModel;
 import org.sbml._2001.ns.celldesigner.*;
 import org.sbml.sbml.level2.version4.Compartment;
 import org.sbml.sbml.level2.version4.SBase;
@@ -14,13 +11,10 @@ import org.w3c.dom.Element;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.AbstractMap;
-import java.util.AbstractMap.SimpleEntry;
 
-public class CompartmentModel {
+public class CompartmentWrapper {
 
-    private final Logger logger = LoggerFactory.getLogger(CompartmentModel.class);
+    private final Logger logger = LoggerFactory.getLogger(CompartmentWrapper.class);
 
     private String id;
     private String metaid;
@@ -39,7 +33,7 @@ public class CompartmentModel {
     private float infoAngle = -1.57f;
 
 
-    public CompartmentModel(String id, String name, Rectangle2D bbox) {
+    public CompartmentWrapper(String id, String name, Rectangle2D bbox) {
         this.id = id;
         this.name = name;
         this.bbox = bbox;

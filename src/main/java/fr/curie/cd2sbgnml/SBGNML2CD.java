@@ -1,9 +1,8 @@
 package fr.curie.cd2sbgnml;
 
-import fr.curie.cd2sbgnml.model.CompartmentModel;
+import fr.curie.cd2sbgnml.xmlcdwrappers.CompartmentWrapper;
 import fr.curie.cd2sbgnml.model.ReactantModel;
 import fr.curie.cd2sbgnml.xmlcdwrappers.AliasWrapper;
-import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper.ReactionType;
 import fr.curie.cd2sbgnml.xmlcdwrappers.SpeciesWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
@@ -16,27 +15,19 @@ import org.sbgn.GlyphClazz;
 import org.sbgn.bindings.Map;
 import org.sbml._2001.ns.celldesigner.*;
 import org.sbml.sbml.level2.version4.*;
-import org.sbml.sbml.level2.version4.ObjectFactory;
 import org.sbml.sbml.level2.version4.OriginalModel.ListOfCompartments;
 import org.sbml.sbml.level2.version4.OriginalModel.ListOfReactions;
 import org.sbml.sbml.level2.version4.OriginalModel.ListOfSpecies;
 import org.sbml.sbml.level2.version4.Species;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import sun.java2d.pipe.SpanShapeRenderer;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.stream.XMLStreamException;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.lang.annotation.Annotation;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
-import java.util.AbstractMap.SimpleEntry;
 
 import static org.sbgn.GlyphClazz.*;
 
@@ -365,7 +356,7 @@ public class SBGNML2CD extends GeneralConverter {
     private void processCompartment(Glyph glyph) {
 
         String label = glyph.getLabel() == null ? "": glyph.getLabel().getText();
-        CompartmentModel compM = new CompartmentModel(
+        CompartmentWrapper compM = new CompartmentWrapper(
                 glyph.getId(),
                 label,
                 new Rectangle2D.Float(
