@@ -189,6 +189,7 @@ public class AliasWrapper {
         Info info = new Info();
         info.setState("empty");
         info.setAngle(BigDecimal.valueOf(-1.57));
+        alias.setInfo(info);
 
         return alias;
     }
@@ -251,6 +252,7 @@ public class AliasWrapper {
         Info info = new Info();
         info.setState("empty");
         info.setAngle(BigDecimal.valueOf(-1.57));
+        alias.setInfo(info);
 
         return alias;
     }

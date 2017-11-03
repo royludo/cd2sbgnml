@@ -4,9 +4,7 @@ import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
 import jdk.nashorn.internal.runtime.regexp.joni.Regex;
 import org.sbgn.ArcClazz;
 import org.sbgn.GlyphClazz;
-import org.sbgn.bindings.Arc;
-import org.sbgn.bindings.Bbox;
-import org.sbgn.bindings.Glyph;
+import org.sbgn.bindings.*;
 import org.sbml._2001.ns.celldesigner.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +14,7 @@ import org.w3c.dom.NodeList;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.*;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -95,7 +94,7 @@ public class SBGNUtils {
             for(String refId: idList) {
                 StyleInfo styleInfo = new StyleInfo(refId);
 
-                if(g.getAttribute("fontSize") != null) {
+                if(g.getAttribute("fontSize") != null && !g.getAttribute("fontSize").isEmpty()) {
                     styleInfo.setFontSize(Float.parseFloat(g.getAttribute("fontSize")));
                 }
 
@@ -107,7 +106,7 @@ public class SBGNUtils {
                     styleInfo.setLineColor(colorMap.get(g.getAttribute("stroke")));
                 }
 
-                if(g.getAttribute("fill") != null) {
+                if(g.getAttribute("fill") != null && !g.getAttribute("fill").isEmpty()) {
                     styleInfo.setBgColor(colorMap.get(g.getAttribute("fill")));
                 }
 
@@ -298,5 +297,57 @@ public class SBGNUtils {
         if(reverse)
             Collections.reverse(points);
         return points;
+    }
+
+
+    public static void sanitizeSubGlyphs(List<Glyph> subglyphs) {
+        for(Glyph g: subglyphs) {
+            System.out.println("Replace id: "+g.getId());
+            g.setId(g.getId().replaceAll("-", "_"));
+            sanitizeSubGlyphs(g.getGlyph());
+        }
+    }
+
+    /**
+     * CellDesigner doesn't like ids with '-' we need to go over all the sbgn and change that to '_'
+     *
+     * @param sbgn
+     * @return
+     */
+    public static Sbgn sanitizeIds(Sbgn sbgn) {
+        for(Glyph g: sbgn.getMap().get(0).getGlyph()){
+
+            System.out.println("Replace id: "+g.getId());
+            g.setId(g.getId().replaceAll("-", "_"));
+
+            sanitizeSubGlyphs(g.getGlyph());
+
+            if(g.getPort().size() > 0) {
+                for(Port p: g.getPort()) {
+                    System.out.println("Replace id: "+p.getId());
+                    p.setId(p.getId().replaceAll("-", "_"));
+                }
+            }
+        }
+
+        /* source and target are reference to objects, probably useless to update
+        for(Arc a: sbgn.getMap().get(0).getArc()) {
+
+        }*/
+
+        // change ids in style
+        for(Element e: sbgn.getMap().get(0).getExtension().getAny()) {
+            if(e.getTagName().equals("renderInformation")) {
+                NodeList nodeList = e.getElementsByTagName("style");
+
+                for(int i=0; i < nodeList.getLength(); i++) {
+                    Element e2 = (Element) nodeList.item(i);
+                    System.out.println("Replace id: "+e2.getAttribute("idList"));
+                    e2.setAttribute("idList", e2.getAttribute("idList").replaceAll("-", "_"));
+                }
+            }
+        }
+
+        return sbgn;
     }
 }

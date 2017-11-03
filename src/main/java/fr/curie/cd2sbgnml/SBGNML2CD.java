@@ -68,6 +68,8 @@ public class SBGNML2CD extends GeneralConverter {
 
     public Sbml toCD(Sbgn sbgn) {
 
+        sbgn = SBGNUtils.sanitizeIds(sbgn);
+
         // consider only the first map
         Map sbgnMap = sbgn.getMap().get(0);
 
@@ -79,8 +81,10 @@ public class SBGNML2CD extends GeneralConverter {
 
 
 
+        // first pass for EPNs
         for(Glyph glyph: sbgnMap.getGlyph()){
             String clazz = glyph.getClazz();
+            //glyph.setId(glyph.getId().replaceAll("-", "_")); // not enough, ids also in style, and arcs
             switch (GlyphClazz.fromClazz(clazz)) {
                 case COMPARTMENT:
                     processCompartment(glyph);
@@ -100,6 +104,14 @@ public class SBGNML2CD extends GeneralConverter {
                 case COMPLEX_MULTIMER:
                     processSpecies(glyph, false, true, null, null);
                     break;
+            }
+        }
+
+        // 2nd pass for process/reactions
+        for(Glyph glyph: sbgnMap.getGlyph()){
+            String clazz = glyph.getClazz();
+            //glyph.setId(glyph.getId().replaceAll("-", "_")); // not enough
+            switch (GlyphClazz.fromClazz(clazz)) {
                 case PROCESS:
                 case OMITTED_PROCESS:
                 case UNCERTAIN_PROCESS:

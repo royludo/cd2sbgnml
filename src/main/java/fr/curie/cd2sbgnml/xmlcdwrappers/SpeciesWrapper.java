@@ -32,7 +32,7 @@ public class SpeciesWrapper {
     private boolean isIncludedSpecies;
     private boolean isComplex;
 
-    private String id;
+    private String id; // caution, celldesigner doesn't like - in ids
     private String name;
     private String compartment;
     private String complex;
@@ -383,7 +383,7 @@ public class SpeciesWrapper {
         ident.setClazz(this.getCdClass());
 
         if(this.getType() == null) {
-            ident.setName(this.getId());
+            ident.setName(this.getName());
         }
         else {
             switch (this.getType()) {

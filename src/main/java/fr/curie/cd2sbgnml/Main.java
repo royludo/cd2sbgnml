@@ -62,7 +62,7 @@ public class Main {
             e.printStackTrace();
         }*/
 
-        if(true) {
+        if(false) {
             CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
             try {
                 cdModel.setModelFromFile("samples/reaction.xml");
@@ -76,19 +76,18 @@ public class Main {
             } catch (JAXBException e) {
                 e.printStackTrace();
             }
-
-            System.out.println("VALIDATION");
-            try {
-                SbgnUtil.isValid(new File("samples/out.sbgnml"));
-            } catch (JAXBException e) {
-                e.printStackTrace();
-            } catch (SAXException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
 
+        System.out.println("VALIDATION");
+        try {
+            SbgnUtil.isValid(new File("samples/out.sbgnml"));
+        } catch (JAXBException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 
         System.out.println("CONVERT BACK TO CD");
