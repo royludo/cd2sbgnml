@@ -1,5 +1,6 @@
 package fr.curie.cd2sbgnml.graphics;
 
+import com.beust.jcommander.internal.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,6 +8,7 @@ import java.awt.*;
 import java.awt.geom.*;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -15,10 +17,13 @@ public class GeometryUtils {
     private static final Logger logger = LoggerFactory.getLogger(GeometryUtils.class);
 
     /**
-     * Given 3 points in global map coordinate, defining an origin and 2 unit vectors,
+     * Given 2 points in global map coordinate, defining an origin and a unit vector,
      * returns a list of transforms that can be applied to convert local coordinates (in the space
-     * defined by those 3 points) to global coordinates (same system the 3 points are provided with).
-
+     * defined by those 2 points) to global coordinates (same system the 2 points are provided with).
+     *
+     * The y is considered to be perpendicular to x, pointing to the right of x (with a global system having a
+     * y axis pointing down).
+     *
      * @return list of AffineTransform that, if applied in order on a local coordinates, yield the global coordinates.
      */
     public static List<AffineTransform> getTransformsToGlobalCoords(Point2D origin, Point2D px) {//, Point2D py) {
@@ -66,6 +71,33 @@ public class GeometryUtils {
         return tList;
     }
 
+    /**
+     * just reverse the order and invert each transform
+     * @param origin
+     * @param px
+     * @return
+     */
+    public static List<AffineTransform> getTransformsToLocalCoords(Point2D origin, Point2D px) {
+        List<AffineTransform> initTransforms = getTransformsToGlobalCoords(origin, px);
+        List<AffineTransform> finalTransforms = new ArrayList<>(initTransforms.size());
+        for(AffineTransform t: initTransforms) {
+            try {
+                finalTransforms.add(t.createInverse());
+            } catch (NoninvertibleTransformException e) {
+                e.printStackTrace();
+            }
+        }
+        Collections.reverse(finalTransforms);
+        return finalTransforms;
+    }
+
+    /**
+     * Given 3 points in global map coordinate, defining an origin and 2 unit vectors,
+     * returns a list of transforms that can be applied to convert local coordinates (in the space
+     * defined by those 3 points) to global coordinates (same system the 3 points are provided with).
+
+     * @return list of AffineTransform that, if applied in order on a local coordinates, yield the global coordinates.
+     */
     public static List<AffineTransform> getTransformsToGlobalCoords(Point2D origin, Point2D px, Point2D py) {
 
         // copy points to avoid altering them
@@ -1160,5 +1192,81 @@ public class GeometryUtils {
      */
     public static float lineSlope(Point2D p1, Point2D p2) {
         return (float) ((p1.getY() - p2.getY()) / (p1.getX() - p2.getX()));
+    }
+
+    /**
+     * Get relative coordinate of an anchor point from center of the shape
+     * @param anchorPoint
+     * @return
+     */
+    public static Point2D.Float getRelativeAnchorCoordinate(CdShape shape, float width, float height, AnchorPoint anchorPoint) {
+
+        Point2D.Float relativeAnchorPoint;
+        if(anchorPoint != AnchorPoint.CENTER) {
+            float angle = GeometryUtils.perimeterAnchorPointToAngle(anchorPoint);
+            // ellipse shapes
+            switch(shape) {
+                case ELLIPSE:
+                case CIRCLE:
+                    relativeAnchorPoint = GeometryUtils.ellipsePerimeterPointFromAngle(
+                            width, height, angle);
+                    break;
+                case PHENOTYPE:
+                    relativeAnchorPoint = GeometryUtils.getRelativePhenotypeAnchorPosition(
+                            anchorPoint, width, height);
+                    break;
+                case LEFT_PARALLELOGRAM:
+                    relativeAnchorPoint = GeometryUtils.getRelativeLeftParallelogramAnchorPosition(
+                            anchorPoint, width, height);
+                    break;
+                case RIGHT_PARALLELOGRAM:
+                    relativeAnchorPoint = GeometryUtils.getRelativeRightParallelogramAnchorPosition(
+                            anchorPoint, width, height);
+                    break;
+                case RECEPTOR:
+                    relativeAnchorPoint = GeometryUtils.getRelativeReceptorAnchorPosition(
+                            anchorPoint, width, height);
+                    break;
+                case TRUNCATED:
+                default: // RECTANGLE as default
+                    relativeAnchorPoint = GeometryUtils.getRelativeRectangleAnchorPosition(
+                            anchorPoint, width, height);
+            }
+        }
+        else {
+            relativeAnchorPoint = new Point2D.Float(0,0);
+        }
+        return relativeAnchorPoint;
+    }
+
+    /**
+     * Approximate a point on/near a shape, to a CellDesigner anchor point.
+     * @param p
+     * @param bbox
+     * @param shape
+     * @return
+     */
+    public static AnchorPoint getNearestAnchorPoint(Point2D.Float p, Rectangle2D.Float bbox, CdShape shape) {
+        Point2D.Float currentRelativeAnchor, resultRelativePos = new Point2D.Float();
+        AnchorPoint result = AnchorPoint.CENTER;
+        Point2D.Float relativeP  = new Point2D.Float(
+                (float) (p.getX() - bbox.getX() - bbox.getWidth() / 2),
+                (float) (p.getY() - bbox.getY() - bbox.getHeight() / 2)
+        );
+        System.out.println("Nearest anchro point: "+p+" "+relativeP+" "+bbox+" "+shape);
+        double minDist = Double.MAX_VALUE;
+        for(AnchorPoint a:AnchorPoint.values()){
+            currentRelativeAnchor = getRelativeAnchorCoordinate(shape,
+                    (float) bbox.getWidth(), (float) bbox.getHeight(), a);
+            System.out.println(currentRelativeAnchor);
+            double dist = relativeP.distance(currentRelativeAnchor);
+            if(dist < minDist) {
+                minDist = dist;
+                resultRelativePos = currentRelativeAnchor;
+                result = a;
+            }
+        }
+        System.out.println("Result: "+result+" "+resultRelativePos+" "+minDist);
+        return result;
     }
 }

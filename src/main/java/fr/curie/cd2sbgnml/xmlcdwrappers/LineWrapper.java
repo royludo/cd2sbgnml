@@ -5,6 +5,7 @@ import org.sbml._2001.ns.celldesigner.*;
 import javax.sound.sampled.Port;
 import java.awt.geom.Point2D;
 import java.io.StringWriter;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -88,6 +89,49 @@ public class LineWrapper {
         this.connectPolicy = connectScheme.getConnectPolicy();
         this.rectangleIndex = connectScheme.getRectangleIndex();
         this.lineDirectionList = connectScheme.getListOfLineDirection().getLineDirection();
+    }
+
+    public ConnectScheme getCDConnectScheme() {
+        ConnectScheme connectScheme = new ConnectScheme();
+        ListOfLineDirection listOfLineDirection = new ListOfLineDirection();
+        for(LineDirection ld: this.getLineDirectionList()) {
+            listOfLineDirection.getLineDirection().add(ld);
+        }
+        connectScheme.setListOfLineDirection(listOfLineDirection);
+        connectScheme.setRectangleIndex(this.getRectangleIndex());
+        connectScheme.setConnectPolicy(this.getConnectPolicy());
+        return connectScheme;
+    }
+
+    public Line getCDLine() {
+        Line line = new Line();
+        line.setColor(this.getLineColor());
+        line.setWidth(BigDecimal.valueOf(this.getLineWidth()));
+        return line;
+    }
+
+    public LineType2 getCDLineType2() {
+        LineType2 line = new LineType2();
+        line.setColor(this.getLineColor());
+        line.setWidth(BigDecimal.valueOf(this.getLineWidth()));
+        line.setType(this.getLineType());
+        return line;
+    }
+
+    public EditPoints getCDEditPoints(boolean isBranchType){
+        EditPoints editPoints = new EditPoints();
+        if(isBranchType) {
+            editPoints.setNum0((short) this.getNum0());
+            editPoints.setNum1((short) this.getNum1());
+            editPoints.setNum2((short) this.getNum2());
+            editPoints.setTShapeIndex((short) this.gettShapeIndex());
+        }
+
+        for(Point2D.Float p: this.getEditPoints()){
+            editPoints.getValue().add(p.getX()+","+p.getY());
+        }
+
+        return editPoints;
     }
 
     public float getLineWidth() {

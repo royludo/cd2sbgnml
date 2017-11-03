@@ -131,44 +131,12 @@ public class ReactantModel extends GenericReactionElement{
      * @return
      */
     public Point2D.Float getRelativeAnchorCoordinate(AnchorPoint anchorPoint) {
-
-        Point2D.Float relativeAnchorPoint;
-        if(anchorPoint != AnchorPoint.CENTER) {
-            float angle = GeometryUtils.perimeterAnchorPointToAngle(anchorPoint);
-            // ellipse shapes
-            switch(this.getGlyph().getCdShape()) {
-                case ELLIPSE:
-                case CIRCLE:
-                    relativeAnchorPoint = GeometryUtils.ellipsePerimeterPointFromAngle(
-                            this.getGlyph().getWidth(), this.getGlyph().getHeight(), angle);
-                    break;
-                case PHENOTYPE:
-                    relativeAnchorPoint = GeometryUtils.getRelativePhenotypeAnchorPosition(
-                            anchorPoint, this.getGlyph().getWidth(), this.getGlyph().getHeight());
-                    System.out.println("PHENOTYPE "+this.getGlyph().getWidth()+" "+this.getGlyph().getHeight()+" "+relativeAnchorPoint);
-                    break;
-                case LEFT_PARALLELOGRAM:
-                    relativeAnchorPoint = GeometryUtils.getRelativeLeftParallelogramAnchorPosition(
-                            anchorPoint, this.getGlyph().getWidth(), this.getGlyph().getHeight());
-                    break;
-                case RIGHT_PARALLELOGRAM:
-                    relativeAnchorPoint = GeometryUtils.getRelativeRightParallelogramAnchorPosition(
-                            anchorPoint, this.getGlyph().getWidth(), this.getGlyph().getHeight());
-                    break;
-                case RECEPTOR:
-                    relativeAnchorPoint = GeometryUtils.getRelativeReceptorAnchorPosition(
-                            anchorPoint, this.getGlyph().getWidth(), this.getGlyph().getHeight());
-                    break;
-                case TRUNCATED:
-                default: // RECTANGLE as default
-                    relativeAnchorPoint = GeometryUtils.getRelativeRectangleAnchorPosition(
-                            anchorPoint, this.getGlyph().getWidth(), this.getGlyph().getHeight());
-            }
-        }
-        else {
-            relativeAnchorPoint = new Point2D.Float(0,0);
-        }
-        return relativeAnchorPoint;
+        return GeometryUtils.getRelativeAnchorCoordinate(
+                this.getGlyph().getCdShape(),
+                this.getGlyph().getWidth(),
+                this.getGlyph().getHeight(),
+                anchorPoint
+        );
     }
 
     public Point2D.Float getAbsoluteAnchorCoordinate(AnchorPoint anchorPoint) {

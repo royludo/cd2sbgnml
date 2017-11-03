@@ -329,7 +329,7 @@ public class ReactantWrapper {
                 baseReactant.setAlias(this.getAliasW().getId());
                 if(this.getAnchorPoint() != AnchorPoint.CENTER) { // no linkAnchor when center
                     LinkAnchor linkAnchor = new LinkAnchor();
-                    linkAnchor.setPosition("N");
+                    linkAnchor.setPosition(this.getAnchorPoint().toString());
                     baseReactant.setLinkAnchor(linkAnchor);
                 }
                 return baseReactant;
@@ -339,7 +339,7 @@ public class ReactantWrapper {
                 baseProduct.setAlias(this.getAliasW().getId());
                 if(this.getAnchorPoint() != AnchorPoint.CENTER) { // no linkAnchor when center
                     LinkAnchor linkAnchor = new LinkAnchor();
-                    linkAnchor.setPosition("N");
+                    linkAnchor.setPosition(this.getAnchorPoint().toString());
                     baseProduct.setLinkAnchor(linkAnchor);
                 }
                 return baseProduct;

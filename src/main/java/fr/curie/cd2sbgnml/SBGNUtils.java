@@ -7,11 +7,13 @@ import org.sbgn.GlyphClazz;
 import org.sbgn.bindings.Arc;
 import org.sbgn.bindings.Bbox;
 import org.sbgn.bindings.Glyph;
+import org.sbml._2001.ns.celldesigner.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -274,5 +276,27 @@ public class SBGNUtils {
         }
 
         return false;
+    }
+
+    /**
+     * Return a list of the start, intermediate and end points of an arc.
+     * @param arc
+     * @return
+     */
+    public static List<Point2D.Float> getPoints(Arc arc, boolean reverse) {
+        List<Point2D.Float> points = new ArrayList<>();
+        float startX = arc.getStart().getX();
+        float startY = arc.getStart().getY();
+        points.add(new Point2D.Float(startX, startY));
+        for(Arc.Next n: arc.getNext()){
+            points.add(new Point2D.Float(n.getX(), n.getY()));
+        }
+        float endX = arc.getEnd().getX();
+        float endY = arc.getEnd().getY();
+        points.add(new Point2D.Float(endX, endY));
+
+        if(reverse)
+            Collections.reverse(points);
+        return points;
     }
 }

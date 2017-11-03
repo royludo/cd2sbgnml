@@ -365,6 +365,14 @@ public class ReactionWrapper {
 
         ext.setReactionType(this.getReactionType());
 
+        ext.setConnectScheme(this.getLineWrapper().getCDConnectScheme());
+        ext.setLine(this.getLineWrapper().getCDLine());
+        boolean isBranchType =
+                ReactionType.valueOf(this.getReactionType()) == ReactionType.HETERODIMER_ASSOCIATION
+                || ReactionType.valueOf(this.getReactionType()) == ReactionType.DISSOCIATION;
+        ext.setEditPoints(this.getLineWrapper().getCDEditPoints(isBranchType));
+
+        // base reactant list
         BaseReactants baseReactants = new BaseReactants();
         ext.setBaseReactants(baseReactants);
         for(ReactantWrapper reactantWrapper: this.getBaseReactants()) {
@@ -387,6 +395,7 @@ public class ReactionWrapper {
             listOfReactants.getSpeciesReference().add(speciesReference);
         }
 
+        // base product list
         BaseProducts baseProducts = new BaseProducts();
         ext.setBaseProducts(baseProducts);
         for(ReactantWrapper reactantWrapper: this.getBaseProducts()) {
