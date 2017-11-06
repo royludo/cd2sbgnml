@@ -1,7 +1,9 @@
 package fr.curie.cd2sbgnml;
 
 import fr.curie.cd2sbgnml.graphics.AnchorPoint;
+import fr.curie.cd2sbgnml.graphics.CdShape;
 import fr.curie.cd2sbgnml.graphics.GeometryUtils;
+import fr.curie.cd2sbgnml.graphics.Link;
 import fr.curie.cd2sbgnml.xmlcdwrappers.*;
 import fr.curie.cd2sbgnml.model.ReactantModel;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper.ReactantType;
@@ -80,11 +82,14 @@ public class SBGNML2CD extends GeneralConverter {
         this.buildMaps(sbgnMap);
 
 
+        /*
+            Order of the glyphs and processes isn't guaranteed. We need to make a first pass to convert and
+            layout all the glyph entities first. And then process the reaction through the process glyphs.
+         */
 
         // first pass for EPNs
         for(Glyph glyph: sbgnMap.getGlyph()){
             String clazz = glyph.getClazz();
-            //glyph.setId(glyph.getId().replaceAll("-", "_")); // not enough, ids also in style, and arcs
             switch (GlyphClazz.fromClazz(clazz)) {
                 case COMPARTMENT:
                     processCompartment(glyph);
@@ -110,7 +115,6 @@ public class SBGNML2CD extends GeneralConverter {
         // 2nd pass for process/reactions
         for(Glyph glyph: sbgnMap.getGlyph()){
             String clazz = glyph.getClazz();
-            //glyph.setId(glyph.getId().replaceAll("-", "_")); // not enough
             switch (GlyphClazz.fromClazz(clazz)) {
                 case PROCESS:
                 case OMITTED_PROCESS:
@@ -129,6 +133,10 @@ public class SBGNML2CD extends GeneralConverter {
 
     private void processReaction(Glyph processGlyph) {
         List<Arc> connectedArcs = processToArcs.get(processGlyph.getId());
+        Point2D.Float processCoords = new Point2D.Float(
+                processGlyph.getBbox().getX(),
+                processGlyph.getBbox().getY()
+        );
         System.out.println(">>>>process: "+processGlyph.getId());
         for(Arc arc: connectedArcs) {
             System.out.println(arc.getId()+" "+arc.getClazz());
@@ -154,30 +162,29 @@ public class SBGNML2CD extends GeneralConverter {
          * Normally 1 of each, 2 for the association/dissociation reactions.
          * They are arbitrarily chosen among the reactants/products.
          */
-        List<Arc> baseReactants = new ArrayList<>();
-        List<Arc> baseProducts = new ArrayList<>();
+        List<Arc> baseReactantArcs = new ArrayList<>();
+        List<Arc> baseProductArcs = new ArrayList<>();
         if(SBGNUtils.isReactionAssociation(processGlyph, reactants, products)) {
             reactionCDClass = ReactionType.HETERODIMER_ASSOCIATION;
-            baseReactants.add(reactants.get(0));
+            baseReactantArcs.add(reactants.get(0));
             if(reactants.size() <= 1) {
                 logger.warn("An association with only 1 or less reactant was detected, this probably shouldn't happen");
             }
             else {
-                baseReactants.add(reactants.get(1));
+                baseReactantArcs.add(reactants.get(1));
             }
-            baseProducts.add(products.get(0));
-
+            baseProductArcs.add(products.get(0));
         }
         else if(SBGNUtils.isReactionDissociation(processGlyph, reactants, products)) {
             reactionCDClass = ReactionType.DISSOCIATION;
-            baseProducts.add(products.get(0));
+            baseProductArcs.add(products.get(0));
             if(products.size() <= 1) {
                 logger.warn("A dissociation with only 1 or less product was detected, this probably shouldn't happen");
             }
             else {
-                baseProducts.add(products.get(1));
+                baseProductArcs.add(products.get(1));
             }
-            baseReactants.add(reactants.get(0));
+            baseReactantArcs.add(reactants.get(0));
         }
         else {
             switch(GlyphClazz.fromClazz(processGlyph.getClazz())) {
@@ -189,17 +196,17 @@ public class SBGNML2CD extends GeneralConverter {
                     break;
             }
             if(reactants.size() > 0)
-                baseReactants.add(reactants.get(0));
+                baseReactantArcs.add(reactants.get(0));
             if(products.size() > 0)
-                baseProducts.add(products.get(0));
+                baseProductArcs.add(products.get(0));
         }
 
         // process base reactants and products
-        List<ReactantWrapper> baseReactantW = new ArrayList<>();
+        List<ReactantWrapper> baseReactantsW = new ArrayList<>();
         List<Glyph> baseReactantGlyphs = new ArrayList<>();
-        List<ReactantWrapper> baseProductW = new ArrayList<>();
+        List<ReactantWrapper> baseProductsW = new ArrayList<>();
         List<Glyph> baseProductGlyphs = new ArrayList<>();
-        for(Arc arc: baseReactants) {
+        for(Arc arc: baseReactantArcs) {
             Glyph g;
             if(isReversible) { // what is considered reactant was previously a product
                 g = arcToTarget.get(arc.getId());
@@ -210,40 +217,239 @@ public class SBGNML2CD extends GeneralConverter {
             AliasWrapper aliasW = aliasWrapperMap.get(g.getId()+"_alias1");
             System.out.println("Base reactant: "+g.getId()+" "+g.getClazz());
             ReactantWrapper baseWrapper = new ReactantWrapper(aliasW, ReactantType.BASE_REACTANT);
-            baseWrapper.setAnchorPoint(AnchorPoint.CENTER); // TODO better compute where is the anchor
-            baseReactantW.add(baseWrapper);
+            baseWrapper.setAnchorPoint(AnchorPoint.CENTER); // set to CENTER for now, but better computed after
+
+            baseReactantsW.add(baseWrapper);
             baseReactantGlyphs.add(g);
         }
-        for(Arc arc: baseProducts) {
+        for(Arc arc: baseProductArcs) {
             Glyph g = arcToTarget.get(arc.getId());
             AliasWrapper aliasW = aliasWrapperMap.get(g.getId()+"_alias1");
             System.out.println("Base product: "+g.getId()+" "+g.getClazz());
             ReactantWrapper baseWrapper = new ReactantWrapper(aliasW, ReactantType.BASE_PRODUCT);
-            baseWrapper.setAnchorPoint(AnchorPoint.CENTER); // TODO better compute where is the anchor
-            baseProductW.add(baseWrapper);
+            baseWrapper.setAnchorPoint(AnchorPoint.CENTER); // set to CENTER for now, but better computed after
+
+            baseProductsW.add(baseWrapper);
             baseProductGlyphs.add(g);
         }
 
         ReactionWrapper reactionW = new ReactionWrapper(processGlyph.getId().replaceAll("-","_"),
-                reactionCDClass, baseReactantW, baseProductW);
+                reactionCDClass, baseReactantsW, baseProductsW);
         reactionW.setReversible(isReversible);
 
         // geometry operations to get corrects reaction links
-        if(reactionCDClass == ReactionType.HETERODIMER_ASSOCIATION
-                || reactionCDClass == ReactionType.DISSOCIATION) {
+        if(reactionCDClass == ReactionType.HETERODIMER_ASSOCIATION) {
+            System.out.println("ASSOCIATION REACTION");
+
+            // set basic variables
+            ReactantWrapper baseReactantW0 = baseReactantsW.get(0);
+            Glyph baseReactantGlyph0 = baseReactantGlyphs.get(0);
+
+            ReactantWrapper baseReactantW1 = baseReactantsW.get(1);
+            Glyph baseReactantGlyph1 = baseReactantGlyphs.get(1);
+
+            ReactantWrapper baseProductW = baseProductsW.get(0);
+            Glyph baseProductGlyph = baseProductGlyphs.get(0);
+
+            // get point lists in correct order
+            // apply the mapBounds correction to each point of the arc to get consistent coords
+            List<Point2D.Float> reactantPoints0 = applyCorrection(SBGNUtils.getPoints(baseReactantArcs.get(0)),
+                    (float) mapBounds.getX(),(float) mapBounds.getY());
+            List<Point2D.Float> reactantPoints1 = applyCorrection(SBGNUtils.getPoints(baseReactantArcs.get(1)),
+                    (float) mapBounds.getX(),(float) mapBounds.getY());
+            if(isReversible) {
+                Collections.reverse(reactantPoints0);
+                Collections.reverse(reactantPoints1);
+            }
+            Link reactantLink0 = new Link(reactantPoints0);
+            Link reactantLink1 = new Link(reactantPoints1);
+            Link productLink = new Link(applyCorrection(SBGNUtils.getPoints(baseProductArcs.get(0)),
+                    (float) mapBounds.getX(),(float) mapBounds.getY()));
+
+            // infer best anchorpoints possible
+            Rectangle2D.Float baseRect0 = SBGNUtils.getRectangleFromGlyph(baseReactantGlyph0);
+            baseRect0.setRect(
+                    baseRect0.getX() - mapBounds.getX(),
+                    baseRect0.getY() - mapBounds.getY(),
+                    baseRect0.getWidth(),
+                    baseRect0.getHeight());
+            AnchorPoint startAnchor0 = inferAnchorPoint(reactantLink0.getStart(), baseReactantW0, baseRect0);
+            baseReactantW0.setAnchorPoint(startAnchor0);
+
+            Rectangle2D.Float baseRect1 = SBGNUtils.getRectangleFromGlyph(baseReactantGlyph1);
+            baseRect1.setRect(
+                    baseRect1.getX() - mapBounds.getX(),
+                    baseRect1.getY() - mapBounds.getY(),
+                    baseRect1.getWidth(),
+                    baseRect1.getHeight());
+            AnchorPoint startAnchor1 = inferAnchorPoint(reactantLink1.getStart(), baseReactantW1, baseRect1);
+            baseReactantW1.setAnchorPoint(startAnchor1);
+
+            Rectangle2D.Float productRect = SBGNUtils.getRectangleFromGlyph(baseProductGlyph);
+            productRect.setRect(
+                    productRect.getX() - mapBounds.getX(),
+                    productRect.getY() - mapBounds.getY(),
+                    productRect.getWidth(),
+                    productRect.getHeight());
+            AnchorPoint endAnchor = inferAnchorPoint(productLink.getEnd(), baseProductW, productRect);
+            baseProductW.setAnchorPoint(endAnchor);
+
+            // compute exact final points from the inferred anchor
+            Point2D.Float finalStartPoint0 = getFinalpoint(
+                    baseReactantW0.getAnchorPoint(),
+                    baseReactantW0,
+                    baseRect0);
+            Point2D.Float finalStartPoint1 = getFinalpoint(
+                    baseReactantW1.getAnchorPoint(),
+                    baseReactantW1,
+                    baseRect1);
+            Point2D.Float finalEndPoint = getFinalpoint(
+                    baseProductW.getAnchorPoint(),
+                    baseProductW,
+                    productRect);
+
+            // define association glyph absolute point
+            /*
+                If there are ports, consider association to be on the first port, that way all the links are
+                already pointing to it.
+                If no ports, consider the Celldesigner association glyph to be on the process, and move the process
+                a bit. Not too far because it will shift all the additional links and modification links.
+              */
+            Point2D.Float absAssocPoint = null;
+            if(processGlyph.getPort().size() > 0) {
+                // we need to get the port that is on the opposite side of the product
+                Port oppositePort = (Port) baseProductArcs.get(0).getSource();
+                Port consumptionPort = null;
+                for(Port p: processGlyph.getPort()){
+                    if(p != oppositePort) {
+                        consumptionPort = p;
+                        break;
+                    }
+                }
+                absAssocPoint = new Point2D.Float(
+                        consumptionPort.getX() - (float) mapBounds.getX(),
+                        consumptionPort.getY() - (float) mapBounds.getY());
+
+            }
+            else {
+                absAssocPoint = new Point2D.Float(
+                        (float) (processCoords.getX() - mapBounds.getX()),
+                        (float) (processCoords.getY() - mapBounds.getY())
+                );
+            }
+
+            // compute association glyph relative point
+            System.out.println("Coordinate system: "+baseReactantW0.getCenterPoint()+" "+
+                    baseReactantW1.getCenterPoint()+" "+baseProductW.getCenterPoint());
+            Point2D.Float localAssocPoint = GeometryUtils.convertPoints(
+                    Collections.singletonList(absAssocPoint),
+                    GeometryUtils.getTransformsToLocalCoords(
+                            baseReactantW0.getCenterPoint(),
+                            baseReactantW1.getCenterPoint(),
+                            baseProductW.getCenterPoint()
+                    )).get(0);
+            System.out.println("Assoc coords: "+absAssocPoint+" -> "+localAssocPoint);
+
+            /*  compute branch edit points
+                reverse points for consumption because CellDesigner consider all branches to start from association
+                glyph. Don't reverse points for reversible reactions, as the production arcs already point to the right
+                direction.
+            */
+            System.out.println("Original branch 0: "+reactantLink0.getAllPoints());
+            List<Point2D.Float> editpoints0 = reactantLink0.getEditPoints();
+            Point2D.Float targetPoint;
+            if(!isReversible) {
+                Collections.reverse(editpoints0);
+                targetPoint = reactantLink0.getStart();
+            } else {
+                targetPoint = reactantLink0.getEnd();
+            }
+            System.out.println("Edit points 0 from assoc: "+editpoints0);
+            List<Point2D.Float> localEditPoints0 = GeometryUtils.convertPoints(
+                    editpoints0,
+                    GeometryUtils.getTransformsToLocalCoords(
+                            absAssocPoint,
+                            finalStartPoint0
+                    ));
+            System.out.println("Branch 0: "+reactantLink0.getEditPoints()+" -> "+localEditPoints0);
+
+            List<Point2D.Float> editpoints1 = reactantLink1.getEditPoints();
+            if(!isReversible) {
+                Collections.reverse(editpoints1);
+                targetPoint = reactantLink1.getStart();
+            } else {
+                targetPoint = reactantLink1.getEnd();
+            }
+            List<Point2D.Float> localEditPoints1 = GeometryUtils.convertPoints(
+                    editpoints1,
+                    GeometryUtils.getTransformsToLocalCoords(
+                            absAssocPoint,
+                            finalStartPoint1
+                    ));
+            System.out.println("Branch 1: "+reactantLink1.getEditPoints()+" -> "+localEditPoints1);
+
+            List<Point2D.Float> localEditPoints2 = GeometryUtils.convertPoints(
+                    productLink.getEditPoints(),
+                    GeometryUtils.getTransformsToLocalCoords(
+                            absAssocPoint,
+                            finalEndPoint
+                    ));
+            System.out.println("Branch 2: "+productLink.getEditPoints()+" -> "+localEditPoints2);
+
+            // finally set up the xml elements and add to reactions
+            int num0 = localEditPoints0.size();
+            int num1 = localEditPoints1.size();
+            int num2 = localEditPoints2.size();
+            List<Integer> segmentCountList = Arrays.asList(num0+1, num1+1, num2+1);
+
+            ConnectScheme connectScheme = getBranchConnectScheme(segmentCountList);
+
+            Line line = new Line();
+            line.setWidth(BigDecimal.valueOf(1));
+            line.setColor("ff000000");
+
+            List<String> editPointString = new ArrayList<>();
+            List<Point2D.Float> mergedList = new ArrayList<>();
+            mergedList.addAll(localEditPoints0);
+            mergedList.addAll(localEditPoints1);
+            mergedList.addAll(localEditPoints2);
+            mergedList.add(localAssocPoint);
+            for(Point2D.Float p: mergedList) {
+                editPointString.add(p.getX()+","+p.getY());
+            }
+
+            LineWrapper lineWrapper = new LineWrapper(connectScheme, editPointString, line);
+            lineWrapper.setNum0(num0);
+            lineWrapper.setNum1(num1);
+            lineWrapper.setNum2(num2);
+            lineWrapper.settShapeIndex(0);
+
+            reactionW.setLineWrapper(lineWrapper);
+
+        }
+        else if(reactionCDClass == ReactionType.DISSOCIATION) {
             // TODO
+            System.out.println("DISSOCIATION REACTION");
+            return;
         }
         else {
-            List<Point2D.Float> reactantPoints = SBGNUtils.getPoints(baseReactants.get(0), isReversible);
-            //Glyph baseReactantGlyph = baseReactantGlyphs.get(0);
-            List<Point2D.Float> productPoints = SBGNUtils.getPoints(baseProducts.get(0), false);
-            //Glyph baseProductGlyph = baseProductGlyphs.get(0);
+            ReactantWrapper baseReactantW = baseReactantsW.get(0);
+            Glyph baseReactantGlyph = baseReactantGlyphs.get(0);
+            ReactantWrapper baseProductW = baseProductsW.get(0);
+            Glyph baseProductGlyph = baseProductGlyphs.get(0);
+
+            // get the consumption and production arc's points and merge them together
+            List<Point2D.Float> reactantPoints = SBGNUtils.getPoints(baseReactantArcs.get(0));
+            if(isReversible)
+                Collections.reverse(reactantPoints);
+            List<Point2D.Float> productPoints = SBGNUtils.getPoints(baseProductArcs.get(0));
             // TODO what if both go the center of the process ?
             List<Point2D.Float> completeLinkPoints = new ArrayList<>(reactantPoints);
             completeLinkPoints.addAll(productPoints);
             System.out.println("Base link points: "+completeLinkPoints);
 
-            // gather only edit points
+            // gather only edit points, as they are the one who will undergo transformations into local
+            // coordinate system
             List<Point2D.Float> editPointsOnly;
             if(completeLinkPoints.size() > 2) {
                 editPointsOnly = completeLinkPoints.subList(1, completeLinkPoints.size() - 1);
@@ -256,48 +462,40 @@ public class SBGNML2CD extends GeneralConverter {
             Point2D.Float endPoint = completeLinkPoints.get(completeLinkPoints.size() - 1);
 
             // infer best anchorpoints possible
-            AnchorPoint startAnchor = GeometryUtils.getNearestAnchorPoint(
-                    startPoint,
-                    new Rectangle2D.Float(
-                            baseReactantGlyphs.get(0).getBbox().getX(),
-                            baseReactantGlyphs.get(0).getBbox().getY(),
-                            baseReactantGlyphs.get(0).getBbox().getW(),
-                            baseReactantGlyphs.get(0).getBbox().getH()
-                    ),
-                    ReactantModel.getCdShape(
-                            baseReactantW.get(0).getAliasW().getSpeciesW().getCdClass(),
-                            baseReactantW.get(0).getAliasW().getSpeciesW().getType())
-            );
-            baseReactantW.get(0).setAnchorPoint(startAnchor);
+            AnchorPoint startAnchor = inferAnchorPoint(startPoint, baseReactantW,
+                    SBGNUtils.getRectangleFromGlyph(baseReactantGlyphs.get(0)));
+            baseReactantW.setAnchorPoint(startAnchor);
 
-            AnchorPoint endAnchor = GeometryUtils.getNearestAnchorPoint(
-                    endPoint,
-                    new Rectangle2D.Float(
-                            baseProductGlyphs.get(0).getBbox().getX(),
-                            baseProductGlyphs.get(0).getBbox().getY(),
-                            baseProductGlyphs.get(0).getBbox().getW(),
-                            baseProductGlyphs.get(0).getBbox().getH()
-                    ),
-                    ReactantModel.getCdShape(
-                            baseProductW.get(0).getAliasW().getSpeciesW().getCdClass(),
-                            baseProductW.get(0).getAliasW().getSpeciesW().getType())
-            );
-            baseProductW.get(0).setAnchorPoint(endAnchor);
-
-
+            AnchorPoint endAnchor = inferAnchorPoint(endPoint, baseProductW,
+                    SBGNUtils.getRectangleFromGlyph(baseProductGlyphs.get(0)));
+            baseProductW.setAnchorPoint(endAnchor);
 
             /*
-                Here we need to compute the exact 2 end points first = the 2 points where CellDesigner will
-                put our endpoints in the end.
-                if not, the link will be distorted.
+                Here we need to compute the exact start and end points first = the 2 points where CellDesigner will
+                put our endpoints in the end = the points located precisely and the previously computed anchor points.
+                if not, the links will be distorted.
              */
+            Point2D.Float finalStartPoint = getFinalpoint(
+                    baseReactantW.getAnchorPoint(),
+                    baseReactantW,
+                    SBGNUtils.getRectangleFromGlyph(baseReactantGlyph));
+            Point2D.Float finalEndPoint = getFinalpoint(
+                    baseProductW.getAnchorPoint(),
+                    baseProductW,
+                    SBGNUtils.getRectangleFromGlyph(baseProductGlyph));
+
             List<Point2D.Float> localEditPoints = GeometryUtils.convertPoints(
                     editPointsOnly,
                     GeometryUtils.getTransformsToLocalCoords(
-                            completeLinkPoints.get(0),
-                            completeLinkPoints.get(completeLinkPoints.size() - 1)
+                            finalStartPoint,
+                            finalEndPoint
                     ));
-            System.out.println("Local edit points"+localEditPoints);
+            System.out.println("Local edit points "+localEditPoints);
+
+
+            /*
+                Finally build the appropriate xml elements and pass it to the reaction
+             */
 
             int segmentCount = completeLinkPoints.size() - 1;
             int processSegmentIndex = reactantPoints.size() - 1;
@@ -347,6 +545,26 @@ public class SBGNML2CD extends GeneralConverter {
             lineDirection.setIndex((short) i);
             lineDirection.setValue("unknown");
             listOfLineDirection.getLineDirection().add(lineDirection);
+        }
+
+        return connectScheme;
+    }
+
+    private ConnectScheme getBranchConnectScheme(List<Integer> segmentCountlist) {
+        ConnectScheme connectScheme = new ConnectScheme();
+        connectScheme.setConnectPolicy("direct");
+
+        ListOfLineDirection listOfLineDirection = new ListOfLineDirection();
+        connectScheme.setListOfLineDirection(listOfLineDirection);
+
+        for(int i=0; i < segmentCountlist.size(); i++) {
+            for(int j=0; j < segmentCountlist.get(i); j++) {
+                LineDirection lineDirection = new LineDirection();
+                lineDirection.setArm((short) i);
+                lineDirection.setIndex((short) j);
+                lineDirection.setValue("unknown");
+                listOfLineDirection.getLineDirection().add(lineDirection);
+            }
         }
 
         return connectScheme;
@@ -751,6 +969,44 @@ public class SBGNML2CD extends GeneralConverter {
             }
         }
 
+    }
+
+    public static AnchorPoint inferAnchorPoint(Point2D.Float p, ReactantWrapper reactantW, Rectangle2D.Float rect) {
+        SpeciesWrapper speciesW = reactantW.getAliasW().getSpeciesW();
+        CdShape baseProductShape = ReactantModel.getCdShape(
+                speciesW.getCdClass(),
+                speciesW.getType());
+        AnchorPoint a = GeometryUtils.getNearestAnchorPoint(
+                p,
+                rect,
+                baseProductShape
+        );
+        return a;
+    }
+
+    public static Point2D.Float getFinalpoint(AnchorPoint a, ReactantWrapper reactantW, Rectangle2D.Float r) {
+        SpeciesWrapper speciesW = reactantW.getAliasW().getSpeciesW();
+        CdShape baseProductShape = ReactantModel.getCdShape(
+                speciesW.getCdClass(),
+                speciesW.getType());
+        return GeometryUtils.getAbsoluteAnchorPoint(
+                baseProductShape,
+                r,
+                a);
+    }
+
+    /**
+     * Apply correcting factor inplace to a the coordinates of a list of points
+     * @param points
+     * @param xdiff
+     * @param ydiff
+     * @return
+     */
+    public static List<Point2D.Float> applyCorrection(List<Point2D.Float> points, float xdiff, float ydiff) {
+        for(Point2D.Float p: points) {
+            p.setLocation(p.getX() - xdiff, p.getY() - ydiff);
+        }
+        return points;
     }
 
 

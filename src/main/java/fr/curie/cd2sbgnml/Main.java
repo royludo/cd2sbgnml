@@ -65,7 +65,7 @@ public class Main {
         if(false) {
             CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
             try {
-                cdModel.setModelFromFile("samples/reaction.xml");
+                cdModel.setModelFromFile("samples/anchorPoints.xml");
                 //System.out.println(cdModel.modelToString());
             } catch (ReadModelException e) {
                 e.printStackTrace();

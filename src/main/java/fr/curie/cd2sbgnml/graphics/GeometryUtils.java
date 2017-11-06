@@ -79,8 +79,17 @@ public class GeometryUtils {
      */
     public static List<AffineTransform> getTransformsToLocalCoords(Point2D origin, Point2D px) {
         List<AffineTransform> initTransforms = getTransformsToGlobalCoords(origin, px);
-        List<AffineTransform> finalTransforms = new ArrayList<>(initTransforms.size());
-        for(AffineTransform t: initTransforms) {
+        return reverseTransforms(initTransforms);
+    }
+
+    public static List<AffineTransform> getTransformsToLocalCoords(Point2D origin, Point2D px, Point2D py) {
+        List<AffineTransform> initTransforms = getTransformsToGlobalCoords(origin, px, py);
+        return reverseTransforms(initTransforms);
+    }
+
+    public static List<AffineTransform> reverseTransforms(List<AffineTransform> transforms) {
+        List<AffineTransform> finalTransforms = new ArrayList<>(transforms.size());
+        for(AffineTransform t: transforms) {
             try {
                 finalTransforms.add(t.createInverse());
             } catch (NoninvertibleTransformException e) {
@@ -1237,6 +1246,18 @@ public class GeometryUtils {
             relativeAnchorPoint = new Point2D.Float(0,0);
         }
         return relativeAnchorPoint;
+    }
+
+    public static Point2D.Float getAbsoluteAnchorPoint(CdShape shape, Rectangle2D.Float bbox, AnchorPoint anchorPoint) {
+        Point2D.Float relativePoint = getRelativeAnchorCoordinate(
+                shape,
+                (float) bbox.getWidth(),
+                (float) bbox.getHeight(),
+                anchorPoint);
+        return new Point2D.Float(
+                (float) (relativePoint.getX() + bbox.getX() + bbox.getWidth() / 2),
+                (float) (relativePoint.getY() + bbox.getY() + bbox.getHeight() / 2)
+        );
     }
 
     /**

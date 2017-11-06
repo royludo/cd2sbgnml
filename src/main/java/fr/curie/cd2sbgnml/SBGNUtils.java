@@ -11,9 +11,11 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.*;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -243,6 +245,7 @@ public class SBGNUtils {
      * @return
      */
     public static boolean isReactionAssociation(Glyph process, List<Arc> reactants, List<Arc> products) {
+        System.out.println("isASSociation ? "+process.getClazz());
         if(process.getClazz().equals("association")) { // trivial case of specific process node
             return true;
         }
@@ -282,7 +285,7 @@ public class SBGNUtils {
      * @param arc
      * @return
      */
-    public static List<Point2D.Float> getPoints(Arc arc, boolean reverse) {
+    public static List<Point2D.Float> getPoints(Arc arc) {
         List<Point2D.Float> points = new ArrayList<>();
         float startX = arc.getStart().getX();
         float startY = arc.getStart().getY();
@@ -294,8 +297,6 @@ public class SBGNUtils {
         float endY = arc.getEnd().getY();
         points.add(new Point2D.Float(endX, endY));
 
-        if(reverse)
-            Collections.reverse(points);
         return points;
     }
 
@@ -310,6 +311,10 @@ public class SBGNUtils {
 
     /**
      * CellDesigner doesn't like ids with '-' we need to go over all the sbgn and change that to '_'
+     * This is because SBML ids aren't defined as xsd:id.
+     *
+     * See:
+     * http://sbml.org/Special/specifications/sbml-level-2/version-1/html/sbml-level-2.html#SECTION00034000000000000000
      *
      * @param sbgn
      * @return
@@ -349,5 +354,19 @@ public class SBGNUtils {
         }
 
         return sbgn;
+    }
+
+    /**
+     * Converts an SBGN glyph's bbox to a Rectangle2D
+     * @param g
+     * @return
+     */
+    public static Rectangle2D.Float getRectangleFromGlyph(Glyph g) {
+        return new Rectangle2D.Float(
+                g.getBbox().getX(),
+                g.getBbox().getY(),
+                g.getBbox().getW(),
+                g.getBbox().getH()
+        );
     }
 }
