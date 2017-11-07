@@ -25,9 +25,9 @@ public class AssociationReactionModel extends GenericReactionModel {
         ReactantWrapper startR2 = reactionW.getBaseReactants().get(1);
         ReactantWrapper endR = reactionW.getBaseProducts().get(0);
 
-        ReactantModel startModel0 = new ReactantModel(this, startR1);
-        ReactantModel startModel1 = new ReactantModel(this, startR2);
-        ReactantModel endModel = new ReactantModel(this, endR);
+        ReactantModel startModel0 = new ReactantModel(startR1);
+        ReactantModel startModel1 = new ReactantModel(startR2);
+        ReactantModel endModel = new ReactantModel(endR);
 
         LineWrapper lineW = reactionW.getLineWrapper();
 

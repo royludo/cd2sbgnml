@@ -25,9 +25,9 @@ public class DissociationReactionModel extends GenericReactionModel{
         ReactantWrapper endR1 = reactionW.getBaseProducts().get(0);
         ReactantWrapper endR2 = reactionW.getBaseProducts().get(1);
 
-        ReactantModel startModel = new ReactantModel(this, startR);
-        ReactantModel endModel1 = new ReactantModel(this, endR1);
-        ReactantModel endModel2 = new ReactantModel(this, endR2);
+        ReactantModel startModel = new ReactantModel(startR);
+        ReactantModel endModel1 = new ReactantModel(endR1);
+        ReactantModel endModel2 = new ReactantModel(endR2);
 
         LineWrapper lineW = reactionW.getLineWrapper();
 

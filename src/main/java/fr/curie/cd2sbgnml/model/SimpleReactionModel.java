@@ -22,8 +22,8 @@ public class SimpleReactionModel extends GenericReactionModel{
         ReactantWrapper startR = reactionW.getBaseReactants().get(0);
         ReactantWrapper endR = reactionW.getBaseProducts().get(0);
 
-        ReactantModel startModel = new ReactantModel(this, startR);
-        ReactantModel endModel = new ReactantModel(this, endR);
+        ReactantModel startModel = new ReactantModel(startR);
+        ReactantModel endModel = new ReactantModel(endR);
 
         Point2D.Float baseLinkStartPoint = startModel.getAbsoluteAnchorCoordinate(startR.getAnchorPoint());
         Point2D.Float baseLinkEndPoint = endModel.getAbsoluteAnchorCoordinate(endR.getAnchorPoint());

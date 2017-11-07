@@ -125,7 +125,7 @@ public class GenericReactionModel {
             // simple case, no logic gate
             System.out.println("modifier: "+reactantW.getAliasW().getId());
 
-            ReactantModel modifModel = new ReactantModel(this, reactantW);
+            ReactantModel modifModel = new ReactantModel(reactantW);
 
             //Reaction reaction = reactionW.getReaction();
             int modifIndex = reactantW.getPositionIndex();
@@ -197,7 +197,7 @@ public class GenericReactionModel {
 
     public void addAdditionalReactants(ReactionWrapper reactionW, Process process) {
         for(ReactantWrapper reactantW: reactionW.getAdditionalReactants()) {
-            ReactantModel reactantModel = new ReactantModel(this, reactantW);
+            ReactantModel reactantModel = new ReactantModel(reactantW);
 
             List<AffineTransform> transformList =
                     GeometryUtils.getTransformsToGlobalCoords(
@@ -246,7 +246,7 @@ public class GenericReactionModel {
 
     public void addAdditionalProducts(ReactionWrapper reactionW, Process process) {
         for(ReactantWrapper reactantW: reactionW.getAdditionalProducts()) {
-            ReactantModel reactantModel = new ReactantModel(this, reactantW);
+            ReactantModel reactantModel = new ReactantModel(reactantW);
 
             List<AffineTransform> transformList =
                     GeometryUtils.getTransformsToGlobalCoords(
