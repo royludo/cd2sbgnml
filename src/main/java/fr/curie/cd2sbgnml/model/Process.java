@@ -24,23 +24,14 @@ public class Process extends ReactionNodeModel {
      */
     private Line2D.Float axis;
 
-    /**
-     * If the process is part of a polyline, then the 0 and 1 anchor points are put very close to the process
-     * glyph.
-     * If the process lies on a single direct segment, those anchor points are located at a distance of 10% of the
-     * segment's length from the process.
-     */
-    private boolean onPolyline;
-
     public Process(Glyph glyph, String id,
-                   Line2D.Float axis, boolean onPolyline, StyleInfo styleInfo) {
+                   Line2D.Float axis, StyleInfo styleInfo) {
         super(glyph, id, PROCESS_SIZE, PORT_DISTANCE_RATIO, styleInfo);
         this.axis = axis;
-        this.onPolyline = onPolyline;
     }
 
     public Process(Point2D.Float centerCoords,
-                   String id, Line2D.Float axis, boolean onPolyline, StyleInfo styleInfo) {
+                   String id, Line2D.Float axis, StyleInfo styleInfo) {
         super(new Glyph(
                     centerCoords,
                     PROCESS_SIZE,
@@ -49,7 +40,6 @@ public class Process extends ReactionNodeModel {
                     SbgnShape.RECTANGLE),
                 id, PROCESS_SIZE, PORT_DISTANCE_RATIO, styleInfo);
         this.axis = axis;
-        this.onPolyline = onPolyline;
     }
 
     /**
@@ -62,21 +52,11 @@ public class Process extends ReactionNodeModel {
         float halfSize = PROCESS_SIZE / 2;
         switch(index) {
             case 0:
-                if(this.isOnPolyline()) {
-                    return new Point2D.Float(-halfSize, 0);
-                }
-                else {
-                    float distance = (float) this.getAxis().getP1().distance(this.getAxis().getP2()) * 0.2f;
-                    return new Point2D.Float(-distance, 0);
-                }
+                float distance = (float) this.getAxis().getP1().distance(this.getAxis().getP2()) * 0.2f;
+                return new Point2D.Float(-distance, 0);
             case 1:
-                if(this.isOnPolyline()) {
-                    return new Point2D.Float(halfSize, 0);
-                }
-                else {
-                    float distance = (float) this.getAxis().getP1().distance(this.getAxis().getP2()) * 0.2f;
-                    return new Point2D.Float(distance, 0);
-                }
+                distance = (float) this.getAxis().getP1().distance(this.getAxis().getP2()) * 0.2f;
+                return new Point2D.Float(distance, 0);
             case 2: return new Point2D.Float(0, -halfSize);
             case 3: return new Point2D.Float(0, halfSize);
             case 4: return new Point2D.Float(-halfSize, -halfSize);
@@ -95,36 +75,21 @@ public class Process extends ReactionNodeModel {
          */
         if( index == 0) {
             Point2D.Float absolute;
-            if(this.isOnPolyline()) {
-                float distance = PROCESS_SIZE * (float) Math.sqrt(2) / 2; // diag distance of the process
-                absolute = GeometryUtils.interpolationByDistance(this.getGlyph().getCenter(),
-                        (Point2D.Float) this.getAxis().getP1(), distance);
-            }
-            else {
                 absolute = GeometryUtils.interpolationByRatio(this.getGlyph().getCenter(),
                         (Point2D.Float) this.getAxis().getP1(), 0.2f);
-            }
             return absolute;
 
         }
         else if (index == 1) {
             Point2D.Float absolute;
-            if(this.isOnPolyline()) {
-                float distance = PROCESS_SIZE * (float) Math.sqrt(2) / 2; // diag distance of the process
-                absolute =  GeometryUtils.interpolationByDistance(this.getGlyph().getCenter(),
-                        (Point2D.Float) this.getAxis().getP2(), distance);
-            }
-            else {
-                absolute =  GeometryUtils.interpolationByRatio(this.getGlyph().getCenter(),
+            absolute =  GeometryUtils.interpolationByRatio(this.getGlyph().getCenter(),
                         (Point2D.Float) this.getAxis().getP2(), 0.2f);
-            }
             return absolute;
         }
         /**
          * for other anchor points, only get relative position to the center without taking the orientation of the
-         * process. This leads to inversion ofthe top and bottom of anchor points in the case of the process' reaction
+         * process. This leads to inversion of the top and bottom of anchor points in the case of the process' reaction
          * going from right to left.
-         * TODO take process orientation in count
          */
         else {
             Point2D p2AtOrigin = new Point2D.Double(this.getAxis().getP2().getX() - this.getGlyph().getCenter().getX(),
@@ -173,10 +138,6 @@ public class Process extends ReactionNodeModel {
 
     public Line2D.Float getAxis() {
         return axis;
-    }
-
-    public boolean isOnPolyline() {
-        return onPolyline;
     }
 
 

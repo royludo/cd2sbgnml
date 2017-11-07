@@ -46,7 +46,6 @@ public class SimpleReactionModel extends GenericReactionModel{
 
         if(this.hasProcess()) {
 
-            boolean isPolyline = absoluteEditPoints.size() > 2;
             Line2D.Float processAxis = new Line2D.Float(absoluteEditPoints.get(reactionW.getProcessSegmentIndex()),
                     absoluteEditPoints.get(reactionW.getProcessSegmentIndex() + 1));
             // corner case when both points of axis are the same, center is the same
@@ -56,7 +55,6 @@ public class SimpleReactionModel extends GenericReactionModel{
                     GeometryUtils.getMiddleOfPolylineSegment(absoluteEditPoints, reactionW.getProcessSegmentIndex()),
                     prId,
                     processAxis,
-                    isPolyline,
                     // style info of the process should inherit from style of the line it's on
                     new StyleInfo(reactionW.getLineWrapper().getLineWidth(),
                             reactionW.getLineWrapper().getLineColor(), prId));

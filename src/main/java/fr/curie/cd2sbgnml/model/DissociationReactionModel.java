@@ -102,8 +102,6 @@ public class DissociationReactionModel extends GenericReactionModel{
             System.out.println("association process segment "+reactionW.getProcessSegmentIndex());
             System.out.println("absolutepoints "+absoluteEditPoints0);
 
-            boolean isPolyline = absoluteEditPoints0.size() > 2 ||
-                    absoluteEditPoints1.size() > 2 ||absoluteEditPoints2.size() > 2;
             Line2D.Float processAxis = new Line2D.Float(absoluteEditPoints0.get(absoluteEditPoints0.size() - 2 - reactionW.getProcessSegmentIndex()),
                     absoluteEditPoints0.get(absoluteEditPoints0.size() - 1 - reactionW.getProcessSegmentIndex()));
             /*
@@ -119,7 +117,6 @@ public class DissociationReactionModel extends GenericReactionModel{
                             absoluteEditPoints0.size() - 2 - reactionW.getProcessSegmentIndex()),
                     prId,
                     processAxis,
-                    isPolyline,
                     new StyleInfo(lineW.getLineWidth(), lineW.getLineColor(), prId));
 
             AbstractMap.SimpleEntry<List<Point2D.Float>, List<Point2D.Float>> subLinesTuple =

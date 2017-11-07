@@ -96,8 +96,6 @@ public class AssociationReactionModel extends GenericReactionModel {
             System.out.println("association process segment "+reactionW.getProcessSegmentIndex());
             System.out.println("absolutepoints2 "+absoluteEditPoints2);
 
-            boolean isPolyline = absoluteEditPoints0.size() > 2 ||
-                    absoluteEditPoints1.size() > 2 ||absoluteEditPoints2.size() > 2;
             Line2D.Float processAxis = new Line2D.Float(absoluteEditPoints2.get(reactionW.getProcessSegmentIndex()),
                     absoluteEditPoints2.get(reactionW.getProcessSegmentIndex() + 1));
 
@@ -111,7 +109,6 @@ public class AssociationReactionModel extends GenericReactionModel {
                     GeometryUtils.getMiddleOfPolylineSegment(absoluteEditPoints2, reactionW.getProcessSegmentIndex()),
                     prId,
                     processAxis,
-                    isPolyline,
                     new StyleInfo(lineW.getLineWidth(),
                             lineW.getLineColor(), prId));
 

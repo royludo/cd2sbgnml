@@ -256,7 +256,6 @@ public class SBGNML2CD extends GeneralConverter {
                 reactionCDClass, baseReactantsW, baseProductsW);
         reactionW.setReversible(isReversible);
         Line2D.Float processLine;
-        boolean isProcessOnPolyline;
 
         // geometry operations to get corrects reaction links
         if(reactionCDClass == ReactionType.HETERODIMER_ASSOCIATION) {
@@ -413,14 +412,12 @@ public class SBGNML2CD extends GeneralConverter {
                         absAssocPoint,
                         productLink.getEditPoints().get(0)
                 );
-                isProcessOnPolyline = true;
             }
             else {
                 processLine = new Line2D.Float(
                         absAssocPoint,
                         finalEndPoint
                 );
-                isProcessOnPolyline = false;
             }
 
             // finally set up the xml elements and add to reactions
@@ -609,14 +606,12 @@ public class SBGNML2CD extends GeneralConverter {
                         editpoints0.get(0),
                         absDissocPoint
                 );
-                isProcessOnPolyline = true;
             }
             else {
                 processLine = new Line2D.Float(
                         finalStartPoint,
                         absDissocPoint
                 );
-                isProcessOnPolyline = false;
             }
 
 
@@ -717,14 +712,12 @@ public class SBGNML2CD extends GeneralConverter {
                         completeLinkPoints.get(reactantPoints.size() - 1),
                         completeLinkPoints.get(reactantPoints.size())
                 );
-                isProcessOnPolyline = true;
             }
             else {
                 processLine = new Line2D.Float(
                         finalStartPoint,
                         finalEndPoint
                 );
-                isProcessOnPolyline = false;
             }
 
 
@@ -758,7 +751,6 @@ public class SBGNML2CD extends GeneralConverter {
                 GeometryUtils.getMiddle((Point2D.Float) processLine.getP1(),(Point2D.Float) processLine.getP2()),
                 processGlyph.getId(),
                 processLine,
-                isProcessOnPolyline,
                 new StyleInfo(processGlyph.getId())
         );
         System.out.println("anchors 0 and 1: "+pr.getAbsoluteAnchorCoords(0)+" "+pr.getAbsoluteAnchorCoords(1));
