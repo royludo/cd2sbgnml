@@ -349,7 +349,8 @@ public class SpeciesWrapper {
         Species species = new Species();
         species.setId(this.getId());
         species.setMetaid(this.getId());
-        species.setName(this.getName());
+        // CellDesigner always wants a name in the element even if the name is empty (example: degraded)
+        species.setName(this.getName().isEmpty() ? this.getId() : this.getName());
         species.setCompartment(this.getCompartment());
         species.setInitialAmount(0d);
 
@@ -367,7 +368,7 @@ public class SpeciesWrapper {
     public org.sbml._2001.ns.celldesigner.Species getCDIncludedSpecies(String referenceId) {
         org.sbml._2001.ns.celldesigner.Species species = new org.sbml._2001.ns.celldesigner.Species();
         species.setId(this.getId());
-        species.setName(this.getName());
+        species.setName(this.getName().isEmpty() ? this.getId() : this.getName());
 
         org.sbml._2001.ns.celldesigner.Species.Annotation speciesAnnot = new org.sbml._2001.ns.celldesigner.Species.Annotation();
         species.setAnnotation(speciesAnnot);
@@ -383,7 +384,7 @@ public class SpeciesWrapper {
         ident.setClazz(this.getCdClass());
 
         if(this.getType() == null) {
-            ident.setName(this.getName());
+            ident.setName(this.getName().isEmpty() ? this.getId() : this.getName());
         }
         else {
             switch (this.getType()) {
