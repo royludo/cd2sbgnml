@@ -341,14 +341,16 @@ public class SBGNUtils {
         }*/
 
         // change ids in style
-        for(Element e: sbgn.getMap().get(0).getExtension().getAny()) {
-            if(e.getTagName().equals("renderInformation")) {
-                NodeList nodeList = e.getElementsByTagName("style");
+        if(sbgn.getMap().get(0).getExtension() != null) {
+            for (Element e : sbgn.getMap().get(0).getExtension().getAny()) {
+                if (e.getTagName().equals("renderInformation")) {
+                    NodeList nodeList = e.getElementsByTagName("style");
 
-                for(int i=0; i < nodeList.getLength(); i++) {
-                    Element e2 = (Element) nodeList.item(i);
-                    System.out.println("Replace id: "+e2.getAttribute("idList"));
-                    e2.setAttribute("idList", e2.getAttribute("idList").replaceAll("-", "_"));
+                    for (int i = 0; i < nodeList.getLength(); i++) {
+                        Element e2 = (Element) nodeList.item(i);
+                        System.out.println("Replace id: " + e2.getAttribute("idList"));
+                        e2.setAttribute("idList", e2.getAttribute("idList").replaceAll("-", "_"));
+                    }
                 }
             }
         }

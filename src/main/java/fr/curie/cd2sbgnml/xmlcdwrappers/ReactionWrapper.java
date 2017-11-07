@@ -428,6 +428,9 @@ public class ReactionWrapper {
 
         if(this.getAdditionalProducts().size() > 0) {
             ListOfProductLinks listOfProductLinks = new ListOfProductLinks();
+            for(ReactantWrapper w: this.getAdditionalProducts()) {
+                listOfProductLinks.getProductLink().add((ProductLink) w.getCDElement());
+            }
             ext.setListOfProductLinks(listOfProductLinks);
         }
 

@@ -333,6 +333,8 @@ public class ReactantWrapper {
                     baseReactant.setLinkAnchor(linkAnchor);
                 }
                 return baseReactant;
+
+
             case BASE_PRODUCT:
                 BaseProduct baseProduct = new BaseProduct();
                 baseProduct.setSpecies(this.getAliasW().getSpeciesW().getId());
@@ -343,6 +345,8 @@ public class ReactantWrapper {
                     baseProduct.setLinkAnchor(linkAnchor);
                 }
                 return baseProduct;
+
+
             case ADDITIONAL_REACTANT:
                 ReactantLink reactantLink = new ReactantLink();
                 reactantLink.setReactant(this.getAliasW().getSpeciesW().getId());
@@ -361,7 +365,28 @@ public class ReactantWrapper {
                 }
 
                 return reactantLink;
-            case ADDITIONAL_PRODUCT: return null;
+
+
+            case ADDITIONAL_PRODUCT:
+                ProductLink productLink = new ProductLink();
+                productLink.setProduct(this.getAliasW().getSpeciesW().getId());
+                productLink.setAlias(this.getAliasW().getId());
+                if(this.getAnchorPoint() != AnchorPoint.CENTER) { // no linkAnchor when center
+                    LinkAnchor linkAnchor = new LinkAnchor();
+                    linkAnchor.setPosition(this.getAnchorPoint().toString());
+                    productLink.setLinkAnchor(linkAnchor);
+                }
+                productLink.setTargetLineIndex(this.getTargetLineIndex());
+
+                productLink.setConnectScheme(this.getLineWrapper().getCDConnectScheme());
+                productLink.setLine(this.getLineWrapper().getCDLineType2());
+                if(this.getLineWrapper().getEditPoints().size() > 0) {
+                    productLink.setEditPoints(this.getLineWrapper().getCDEditPoints(false));
+                }
+
+                return productLink;
+
+
             case MODIFICATION: return null;
         }
         throw new RuntimeException("Reactant type was not defined properly.");

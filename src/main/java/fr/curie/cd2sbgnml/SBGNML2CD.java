@@ -822,6 +822,69 @@ public class SBGNML2CD extends GeneralConverter {
 
         }
 
+
+        for(i=0; i < additionalProductArcs.size(); i++) {
+            Arc additionalArc = additionalProductArcs.get(i);
+            ReactantWrapper additionalW = additionalProductsW.get(i);
+            Glyph additionalGlyph = additionalProductGlyphs.get(i);
+
+            additionalW.setTargetLineIndex("-1,1");
+
+            List<Point2D.Float> additionalProdPoints = SBGNUtils.getPoints(additionalArc);
+
+            // gather only edit points, as they are the one who will undergo transformations into local
+            // coordinate system
+            List<Point2D.Float> editPointsOnly;
+            if(additionalProdPoints.size() > 2) {
+                editPointsOnly = additionalProdPoints.subList(1, additionalProdPoints.size() - 1);
+            }
+            else {
+                editPointsOnly = new ArrayList<>();
+            }
+            Point2D.Float endPoint = additionalProdPoints.get(additionalProdPoints.size() - 1);
+
+            // infer best anchorpoints possible
+            AnchorPoint endAnchor = inferAnchorPoint(endPoint, additionalW,
+                    SBGNUtils.getRectangleFromGlyph(additionalGlyph));
+            additionalW.setAnchorPoint(endAnchor);
+
+            Point2D.Float finalEndPoint = getFinalpoint(
+                    additionalW.getAnchorPoint(),
+                    additionalW,
+                    SBGNUtils.getRectangleFromGlyph(additionalGlyph));
+
+            // infer coordinates for the process' anchor point 0
+            Point2D.Float anchor1 = pr.getAbsoluteAnchorCoords(1);
+
+            List<Point2D.Float> localEditPoints = GeometryUtils.convertPoints(
+                    editPointsOnly,
+                    GeometryUtils.getTransformsToLocalCoords(
+                            anchor1,
+                            finalEndPoint
+                    ));
+            System.out.println("Local edit points "+localEditPoints);
+
+            int segmentCount = localEditPoints.size() + 1;
+
+            ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
+
+            LineType2 line = new LineType2();
+            line.setWidth(BigDecimal.valueOf(1));
+            line.setColor("ff000000");
+            line.setType("Straight");
+
+            List<String> editPointString = new ArrayList<>();
+            for(Point2D.Float p: localEditPoints) {
+                editPointString.add(p.getX()+","+p.getY());
+            }
+
+            LineWrapper lineWrapper = new LineWrapper(connectScheme, editPointString, line);
+
+            additionalW.setLineWrapper(lineWrapper);
+            reactionW.getAdditionalProducts().add(additionalW);
+
+        }
+
         sbml.getModel().getListOfReactions().getReaction().add(reactionW.getCDReaction());
 
     }
@@ -1022,7 +1085,10 @@ public class SBGNML2CD extends GeneralConverter {
         aliasW.setBounds(bounds);
 
         // style
-        aliasW.setStyleInfo(styleMap.get(glyph.getId()));
+        if(mapHasStyle)
+            aliasW.setStyleInfo(styleMap.get(glyph.getId()));
+        else
+            aliasW.setStyleInfo(new StyleInfo(aliasW.getId()));
 
         if(isIncluded) {
             aliasW.setComplexAlias(parentAliasId);
@@ -1221,10 +1287,12 @@ public class SBGNML2CD extends GeneralConverter {
         // parse all the style info
         styleMap = new HashMap<>();
         mapHasStyle = false;
-        for(Element e: map.getExtension().getAny()) {
-            if(e.getTagName().equals("renderInformation")) {
-                styleMap = SBGNUtils.mapStyleinfo(e);
-                mapHasStyle = true;
+        if(map.getExtension() != null) {
+            for (Element e : map.getExtension().getAny()) {
+                if (e.getTagName().equals("renderInformation")) {
+                    styleMap = SBGNUtils.mapStyleinfo(e);
+                    mapHasStyle = true;
+                }
             }
         }
 
