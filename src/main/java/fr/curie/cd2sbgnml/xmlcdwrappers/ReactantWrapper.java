@@ -343,7 +343,24 @@ public class ReactantWrapper {
                     baseProduct.setLinkAnchor(linkAnchor);
                 }
                 return baseProduct;
-            case ADDITIONAL_REACTANT: return null;
+            case ADDITIONAL_REACTANT:
+                ReactantLink reactantLink = new ReactantLink();
+                reactantLink.setReactant(this.getAliasW().getSpeciesW().getId());
+                reactantLink.setAlias(this.getAliasW().getId());
+                if(this.getAnchorPoint() != AnchorPoint.CENTER) { // no linkAnchor when center
+                    LinkAnchor linkAnchor = new LinkAnchor();
+                    linkAnchor.setPosition(this.getAnchorPoint().toString());
+                    reactantLink.setLinkAnchor(linkAnchor);
+                }
+                reactantLink.setTargetLineIndex(this.getTargetLineIndex());
+
+                reactantLink.setConnectScheme(this.getLineWrapper().getCDConnectScheme());
+                reactantLink.setLine(this.getLineWrapper().getCDLineType2());
+                if(this.getLineWrapper().getEditPoints().size() > 0) {
+                    reactantLink.setEditPoints(this.getLineWrapper().getCDEditPoints(false));
+                }
+
+                return reactantLink;
             case ADDITIONAL_PRODUCT: return null;
             case MODIFICATION: return null;
         }

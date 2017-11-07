@@ -4,6 +4,7 @@ import fr.curie.cd2sbgnml.graphics.AnchorPoint;
 import fr.curie.cd2sbgnml.graphics.CdShape;
 import fr.curie.cd2sbgnml.graphics.GeometryUtils;
 import fr.curie.cd2sbgnml.graphics.Link;
+import fr.curie.cd2sbgnml.model.Process;
 import fr.curie.cd2sbgnml.xmlcdwrappers.*;
 import fr.curie.cd2sbgnml.model.ReactantModel;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper.ReactantType;
@@ -26,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.StringWriter;
@@ -157,34 +159,13 @@ public class SBGNML2CD extends GeneralConverter {
         List<Arc> products = tmp.get(1);
         List<Arc> modifiers = tmp.get(2);
         System.out.println("connected glyphs: "+reactants.size()+" "+products.size()+" "+modifiers.size());
-        /*
-         * The arcs (and glyphs) that we will consider as basis of the reaction, for CellDesigner structure.
-         * Normally 1 of each, 2 for the association/dissociation reactions.
-         * They are arbitrarily chosen among the reactants/products.
-         */
-        List<Arc> baseReactantArcs = new ArrayList<>();
-        List<Arc> baseProductArcs = new ArrayList<>();
+
+        // assign correct CellDesigner reaction type
         if(SBGNUtils.isReactionAssociation(processGlyph, reactants, products)) {
             reactionCDClass = ReactionType.HETERODIMER_ASSOCIATION;
-            baseReactantArcs.add(reactants.get(0));
-            if(reactants.size() <= 1) {
-                logger.warn("An association with only 1 or less reactant was detected, this probably shouldn't happen");
-            }
-            else {
-                baseReactantArcs.add(reactants.get(1));
-            }
-            baseProductArcs.add(products.get(0));
         }
         else if(SBGNUtils.isReactionDissociation(processGlyph, reactants, products)) {
             reactionCDClass = ReactionType.DISSOCIATION;
-            baseProductArcs.add(products.get(0));
-            if(products.size() <= 1) {
-                logger.warn("A dissociation with only 1 or less product was detected, this probably shouldn't happen");
-            }
-            else {
-                baseProductArcs.add(products.get(1));
-            }
-            baseReactantArcs.add(reactants.get(0));
         }
         else {
             switch(GlyphClazz.fromClazz(processGlyph.getClazz())) {
@@ -195,18 +176,25 @@ public class SBGNML2CD extends GeneralConverter {
                     reactionCDClass = ReactionType.UNKNOWN_TRANSITION;
                     break;
             }
-            if(reactants.size() > 0)
-                baseReactantArcs.add(reactants.get(0));
-            if(products.size() > 0)
-                baseProductArcs.add(products.get(0));
         }
 
-        // process base reactants and products
+        /* process and assign arcs to base reactants and products and additional reactants and products.
+         * Base reactants and products are arbitrarily chosen among the reactants/products.
+         */
         List<ReactantWrapper> baseReactantsW = new ArrayList<>();
         List<Glyph> baseReactantGlyphs = new ArrayList<>();
+        List<Arc> baseReactantArcs = new ArrayList<>();
+        List<ReactantWrapper> additionallReactantsW = new ArrayList<>();
+        List<Glyph> additionalReactantGlyphs = new ArrayList<>();
+        List<Arc> additionalReactantArcs = new ArrayList<>();
         List<ReactantWrapper> baseProductsW = new ArrayList<>();
         List<Glyph> baseProductGlyphs = new ArrayList<>();
-        for(Arc arc: baseReactantArcs) {
+        List<Arc> baseProductArcs = new ArrayList<>();
+        List<ReactantWrapper> additionalProductsW = new ArrayList<>();
+        List<Glyph> additionalProductGlyphs = new ArrayList<>();
+        List<Arc> additionalProductArcs = new ArrayList<>();
+        int i = 0;
+        for(Arc arc: reactants) {
             Glyph g;
             if(isReversible) { // what is considered reactant was previously a product
                 g = arcToTarget.get(arc.getId());
@@ -215,27 +203,60 @@ public class SBGNML2CD extends GeneralConverter {
                 g = arcToSource.get(arc.getId());
             }
             AliasWrapper aliasW = aliasWrapperMap.get(g.getId()+"_alias1");
-            System.out.println("Base reactant: "+g.getId()+" "+g.getClazz());
-            ReactantWrapper baseWrapper = new ReactantWrapper(aliasW, ReactantType.BASE_REACTANT);
-            baseWrapper.setAnchorPoint(AnchorPoint.CENTER); // set to CENTER for now, but better computed after
+            System.out.println("Reactant: "+g.getId()+" "+g.getClazz());
 
-            baseReactantsW.add(baseWrapper);
-            baseReactantGlyphs.add(g);
+            // set the first 2 as basereactants for association, if dissociation or normal reaction only the 1st
+            if((reactionCDClass == ReactionType.HETERODIMER_ASSOCIATION &&  i==1)
+                    || i == 0) {
+                ReactantWrapper baseWrapper = new ReactantWrapper(aliasW, ReactantType.BASE_REACTANT);
+                //baseWrapper.setAnchorPoint(AnchorPoint.CENTER); // set to CENTER for now, but better computed after
+
+                baseReactantsW.add(baseWrapper);
+                baseReactantGlyphs.add(g);
+                baseReactantArcs.add(arc);
+            }
+            else {
+                ReactantWrapper additionalWrapper = new ReactantWrapper(aliasW, ReactantType.ADDITIONAL_REACTANT);
+                //additionalWrapper.setAnchorPoint(AnchorPoint.CENTER); // set to CENTER for now, but better computed after
+
+                additionallReactantsW.add(additionalWrapper);
+                additionalReactantGlyphs.add(g);
+                additionalReactantArcs.add(arc);
+            }
+            i++;
         }
-        for(Arc arc: baseProductArcs) {
+
+        i = 0;
+        for(Arc arc: products) {
             Glyph g = arcToTarget.get(arc.getId());
             AliasWrapper aliasW = aliasWrapperMap.get(g.getId()+"_alias1");
-            System.out.println("Base product: "+g.getId()+" "+g.getClazz());
-            ReactantWrapper baseWrapper = new ReactantWrapper(aliasW, ReactantType.BASE_PRODUCT);
-            baseWrapper.setAnchorPoint(AnchorPoint.CENTER); // set to CENTER for now, but better computed after
+            System.out.println("Product: "+g.getId()+" "+g.getClazz());
 
-            baseProductsW.add(baseWrapper);
-            baseProductGlyphs.add(g);
+            // for dissociation consider first 2 as base, for association and normal only the 1st
+            if(i == 0 || (reactionCDClass == ReactionType.DISSOCIATION && i == 1)) {
+                ReactantWrapper baseWrapper = new ReactantWrapper(aliasW, ReactantType.BASE_PRODUCT);
+                //baseWrapper.setAnchorPoint(AnchorPoint.CENTER); // set to CENTER for now, but better computed after
+
+                baseProductsW.add(baseWrapper);
+                baseProductGlyphs.add(g);
+                baseProductArcs.add(arc);
+            }
+            else {
+                ReactantWrapper additionalWrapper = new ReactantWrapper(aliasW, ReactantType.ADDITIONAL_PRODUCT);
+                //additionalWrapper.setAnchorPoint(AnchorPoint.CENTER); // set to CENTER for now, but better computed after
+
+                additionalProductsW.add(additionalWrapper);
+                additionalProductGlyphs.add(g);
+                additionalProductArcs.add(arc);
+            }
+            i++;
         }
 
         ReactionWrapper reactionW = new ReactionWrapper(processGlyph.getId().replaceAll("-","_"),
                 reactionCDClass, baseReactantsW, baseProductsW);
         reactionW.setReversible(isReversible);
+        Line2D.Float processLine;
+        boolean isProcessOnPolyline;
 
         // geometry operations to get corrects reaction links
         if(reactionCDClass == ReactionType.HETERODIMER_ASSOCIATION) {
@@ -387,6 +408,21 @@ public class SBGNML2CD extends GeneralConverter {
                     ));
             System.out.println("Branch 2: "+productLink.getEditPoints()+" -> "+localEditPoints2);
 
+            if(productLink.getEditPoints().size() > 0) {
+                processLine = new Line2D.Float(
+                        absAssocPoint,
+                        productLink.getEditPoints().get(0)
+                );
+                isProcessOnPolyline = true;
+            }
+            else {
+                processLine = new Line2D.Float(
+                        absAssocPoint,
+                        finalEndPoint
+                );
+                isProcessOnPolyline = false;
+            }
+
             // finally set up the xml elements and add to reactions
             int num0 = localEditPoints0.size();
             int num1 = localEditPoints1.size();
@@ -419,7 +455,6 @@ public class SBGNML2CD extends GeneralConverter {
 
         }
         else if(reactionCDClass == ReactionType.DISSOCIATION) {
-            // TODO
             System.out.println("DISSOCIATION REACTION");
 
             // set basic variables
@@ -568,6 +603,22 @@ public class SBGNML2CD extends GeneralConverter {
                     ));
             System.out.println("Branch 2: "+productLink2.getEditPoints()+" -> "+localEditPoints2);
 
+            // get segment on which CellDesigner will put process
+            if(editpoints0.size() > 0) {
+                processLine = new Line2D.Float(
+                        editpoints0.get(0),
+                        absDissocPoint
+                );
+                isProcessOnPolyline = true;
+            }
+            else {
+                processLine = new Line2D.Float(
+                        finalStartPoint,
+                        absDissocPoint
+                );
+                isProcessOnPolyline = false;
+            }
+
 
             // finally set up the xml elements and add to reactions
             int num0 = localEditPoints0.size();
@@ -660,6 +711,22 @@ public class SBGNML2CD extends GeneralConverter {
                     ));
             System.out.println("Local edit points "+localEditPoints);
 
+            // get segment on which CellDesigner will put process
+            if(editPointsOnly.size() > 0) {
+                processLine = new Line2D.Float(
+                        completeLinkPoints.get(reactantPoints.size() - 1),
+                        completeLinkPoints.get(reactantPoints.size())
+                );
+                isProcessOnPolyline = true;
+            }
+            else {
+                processLine = new Line2D.Float(
+                        finalStartPoint,
+                        finalEndPoint
+                );
+                isProcessOnPolyline = false;
+            }
+
 
             /*
                 Finally build the appropriate xml elements and pass it to the reaction
@@ -685,10 +752,85 @@ public class SBGNML2CD extends GeneralConverter {
 
         }
 
+        // now that base reaction link is established, build the process model
+        System.out.println("Process is on: "+processLine.getP1()+" "+processLine.getP2());
+        Process pr = new Process(
+                GeometryUtils.getMiddle((Point2D.Float) processLine.getP1(),(Point2D.Float) processLine.getP2()),
+                processGlyph.getId(),
+                processLine,
+                isProcessOnPolyline,
+                new StyleInfo(processGlyph.getId())
+        );
+        System.out.println("anchors 0 and 1: "+pr.getAbsoluteAnchorCoords(0)+" "+pr.getAbsoluteAnchorCoords(1));
+
+
+        // process additional reactants and products
+        for(i=0; i < additionalReactantArcs.size(); i++) {
+            Arc additionalArc = additionalReactantArcs.get(i);
+            ReactantWrapper additionalW = additionallReactantsW.get(i);
+            Glyph additionalGlyph = additionalReactantGlyphs.get(i);
+
+            additionalW.setTargetLineIndex("-1,0");
+
+            List<Point2D.Float> additionalReactPoints = SBGNUtils.getPoints(additionalArc);
+            if(isReversible)
+                Collections.reverse(additionalReactPoints);
+
+            // gather only edit points, as they are the one who will undergo transformations into local
+            // coordinate system
+            List<Point2D.Float> editPointsOnly;
+            if(additionalReactPoints.size() > 2) {
+                editPointsOnly = additionalReactPoints.subList(1, additionalReactPoints.size() - 1);
+
+            }
+            else {
+                editPointsOnly = new ArrayList<>();
+            }
+            Point2D.Float startPoint = additionalReactPoints.get(0);
+
+            // infer best anchorpoints possible
+            AnchorPoint startAnchor = inferAnchorPoint(startPoint, additionalW,
+                    SBGNUtils.getRectangleFromGlyph(additionalGlyph));
+            additionalW.setAnchorPoint(startAnchor);
+
+            Point2D.Float finalStartPoint = getFinalpoint(
+                    additionalW.getAnchorPoint(),
+                    additionalW,
+                    SBGNUtils.getRectangleFromGlyph(additionalGlyph));
+
+            // infer coordinates for the process' anchor point 0
+            Point2D.Float anchor0 = pr.getAbsoluteAnchorCoords(0);
+
+            List<Point2D.Float> localEditPoints = GeometryUtils.convertPoints(
+                    editPointsOnly,
+                    GeometryUtils.getTransformsToLocalCoords(
+                            finalStartPoint,
+                            anchor0
+                    ));
+            System.out.println("Local edit points "+localEditPoints);
+
+            int segmentCount = localEditPoints.size() + 1;
+
+            ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
+
+            LineType2 line = new LineType2();
+            line.setWidth(BigDecimal.valueOf(1));
+            line.setColor("ff000000");
+            line.setType("Straight");
+
+            List<String> editPointString = new ArrayList<>();
+            for(Point2D.Float p: localEditPoints) {
+                editPointString.add(p.getX()+","+p.getY());
+            }
+
+            LineWrapper lineWrapper = new LineWrapper(connectScheme, editPointString, line);
+
+            additionalW.setLineWrapper(lineWrapper);
+            reactionW.getAdditionalReactants().add(additionalW);
+
+        }
+
         sbml.getModel().getListOfReactions().getReaction().add(reactionW.getCDReaction());
-
-
-
 
     }
 

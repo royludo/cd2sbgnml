@@ -54,6 +54,30 @@ public class LineWrapper {
         this.editPoints = pointList;
     }
 
+    public LineWrapper(ConnectScheme connectScheme, List<String> editPoints, LineType2 line) {
+        this(connectScheme, line.getWidth().floatValue(), line.getColor(), line.getType());
+        List<Point2D.Float> pointList = new ArrayList<>();
+        if(editPoints != null) {
+            for (String pointString : editPoints) {
+                String[] tmp = pointString.split(",");
+                float x = Float.parseFloat(tmp[0]);
+                float y = Float.parseFloat(tmp[1]);
+                pointList.add(new Point2D.Float(x, y));
+            }
+        }
+        this.editPoints = pointList;
+    }
+
+    private LineWrapper(ConnectScheme connectScheme, float width, String color, String type) {
+        this.lineWidth = width;
+        this.lineColor = color;
+        this.lineType = type;
+
+        this.connectPolicy = connectScheme.getConnectPolicy();
+        this.rectangleIndex = connectScheme.getRectangleIndex();
+        this.lineDirectionList = connectScheme.getListOfLineDirection().getLineDirection();
+    }
+
     private void setEditPoints(EditPoints editPoints){
         if(editPoints != null) {
             if(editPoints.getNum0() != null) {
@@ -79,16 +103,6 @@ public class LineWrapper {
                 this.editPoints = pointList;
             }
         }
-    }
-
-    private LineWrapper(ConnectScheme connectScheme, float width, String color, String type) {
-        this.lineWidth = width;
-        this.lineColor = color;
-        this.lineType = type;
-
-        this.connectPolicy = connectScheme.getConnectPolicy();
-        this.rectangleIndex = connectScheme.getRectangleIndex();
-        this.lineDirectionList = connectScheme.getListOfLineDirection().getLineDirection();
     }
 
     public ConnectScheme getCDConnectScheme() {

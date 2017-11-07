@@ -420,6 +420,9 @@ public class ReactionWrapper {
 
         if(this.getAdditionalReactants().size() > 0) {
             ListOfReactantLinks listOfReactantLinks = new ListOfReactantLinks();
+            for(ReactantWrapper w: this.getAdditionalReactants()) {
+                listOfReactantLinks.getReactantLink().add((ReactantLink) w.getCDElement());
+            }
             ext.setListOfReactantLinks(listOfReactantLinks);
         }
 
