@@ -71,6 +71,8 @@ public class SBGNML2CD extends GeneralConverter {
 
     java.util.Map<String, Glyph> portToGlyph;
 
+    java.util.Map<String, List<Arc>> glyphToArc;
+
 
     public Sbml toCD(Sbgn sbgn) {
 
@@ -916,77 +918,184 @@ public class SBGNML2CD extends GeneralConverter {
             ReactantWrapper modificationW = modificationsW.get(i);
             Glyph modificationGlyph = modificationsGlyphs.get(i);
 
-            if(modificationGlyph.getClazz().equals("and")
-                    || modificationGlyph.getClazz().equals("or")
-                    || modificationGlyph.getClazz().equals("not")) {
-                continue;
+            /*
+                If logic gate encountered, get all direct links to it. Exclude other logic gates as a complete
+                tree of logic gates is impossible in CellDesigner.
+                So get only direct links to EPNs and connect them to newly created logicWrapper.
+             */
+            if(SBGNUtils.isLogicGate(modificationGlyph)) {
+                System.out.println("PROCESS LOGIC GATE");
+                System.out.println(modificationW.getModificationLinkType());
+
+                List<Arc> arcsConnectedToLogic = glyphToArc.get(modificationGlyph.getId());
+                System.out.println("Arcs connected to logic gate: "+arcsConnectedToLogic.size());
+
+                List<ReactantWrapper> connectedReactantsW = new ArrayList<>();
+                List<String> logicModifiers = new ArrayList<>();
+                List<String> logicAliases = new ArrayList<>();
+                for(Arc logicArc: arcsConnectedToLogic) {
+                    Glyph sourceGlyhp = arcToSource.get(logicArc.getId());
+                    System.out.println("Glyph "+sourceGlyhp.getClazz()+" connected to logic");
+                    // discard other connected logic gates, and the arc coming from the current gate itself
+                    if(SBGNUtils.isLogicGate(sourceGlyhp)) {
+                        System.out.println("skip logic gate");
+                        continue;
+                    }
+
+                    AliasWrapper aliasW = aliasWrapperMap.get(sourceGlyhp.getId()+"_alias1");
+                    System.out.println("modif aliasw "+aliasW);
+                    System.out.println("Modification: "+sourceGlyhp.getId()+" "+sourceGlyhp.getClazz());
+                    System.out.println("isaliasincluded ? "+aliasW.getSpeciesW().isIncludedSpecies());
+
+                    ReactantWrapper modifWrapper = new ReactantWrapper(aliasW, ReactantType.MODIFICATION);
+
+                    // modifications linked to logic gates inherit their link type
+                    modifWrapper.setModificationLinkType(
+                            ReactantWrapper.ModificationLinkType.valueOf(
+                                    LinkModel.getCdClass(
+                                            ArcClazz.fromClazz(modificationArc.getClazz()))));
+
+                    ReactantWrapper processedLogicModifW = processModifier(logicArc, sourceGlyhp,
+                            modifWrapper, new Point2D.Float(
+                                    modificationGlyph.getBbox().getX(),
+                                    modificationGlyph.getBbox().getY()));
+
+                    // we can't directly add the connected reactants, need the logic gate first.
+                    //reactionW.getModifiers().add(processedLogicModifW);
+                    connectedReactantsW.add(processedLogicModifW);
+                    logicModifiers.add(processedLogicModifW.getAliasW().getSpeciesW().getId());
+                    logicAliases.add(processedLogicModifW.getAliasW().getId());
+                }
+
+                // process the logic gate itself
+                ReactantWrapper processedlogicW = processModifier(modificationArc,
+                        modificationGlyph, modificationW, pr);
+
+                LogicGateWrapper finalLogicW = new LogicGateWrapper(
+                        processedlogicW,
+                        LogicGateWrapper.LogicGateType.valueOf(modificationGlyph.getClazz().toUpperCase()),
+                        logicModifiers,
+                        logicAliases,
+                        processedlogicW.getModificationLinkType()
+                );
+
+                /*SpeciesWrapper logicSpW = new SpeciesWrapper(modificationGlyph.getId(),
+                        modificationGlyph.getId(), null);
+                AliasWrapper logicAliasW = new AliasWrapper(modificationGlyph.getId()+"_alias1",
+                        AliasWrapper.AliasType.BASIC, logicSpW);
+                finalLogicW.setAliasW(logicAliasW);*/
+                finalLogicW.setAnchorPoint(AnchorPoint.CENTER);
+
+                System.out.println("Test presence of aliasw "+finalLogicW.getAliasW());
+                System.out.println(finalLogicW.getModificationType()+" "+finalLogicW.getModificationLinkType());
+
+                reactionW.getModifiers().add(finalLogicW);
+                for(ReactantWrapper connectedToLogic: connectedReactantsW) {
+                    reactionW.getModifiers().add(connectedToLogic);
+                }
+
+
             }
-
-            // TODO target line index
-
-            List<Point2D.Float> modificationPoints = SBGNUtils.getPoints(modificationArc);
-
-            // gather only edit points, as they are the one who will undergo transformations into local
-            // coordinate system
-            List<Point2D.Float> editPointsOnly;
-            if(modificationPoints.size() > 2) {
-                editPointsOnly = modificationPoints.subList(1, modificationPoints.size() - 1);
-            }
+            // non logic gates modifiers
             else {
-                editPointsOnly = new ArrayList<>();
+                ReactantWrapper processedModifW = processModifier(modificationArc,
+                        modificationGlyph, modificationW, pr);
+                System.out.println("add modifier -> "+processedModifW);
+                reactionW.getModifiers().add(processedModifW);
             }
-            Point2D.Float startPoint = modificationPoints.get(0);
-            Point2D.Float endPoint = modificationPoints.get(modificationPoints.size() - 1);
-
-            // infer best anchorpoints possible
-            System.out.println(modificationArc.getId());
-            AnchorPoint startAnchor = inferAnchorPoint(startPoint, modificationW,
-                    SBGNUtils.getRectangleFromGlyph(modificationGlyph));
-            modificationW.setAnchorPoint(startAnchor);
-
-            int processAnchor = inferProcessAnchorPoint(endPoint, pr);
-            modificationW.setTargetLineIndex("-1,"+processAnchor);
-
-
-            Point2D.Float finalStartPoint = getFinalpoint(
-                    modificationW.getAnchorPoint(),
-                    modificationW,
-                    SBGNUtils.getRectangleFromGlyph(modificationGlyph));
-            Point2D.Float finalEndPoint = pr.getAbsoluteAnchorCoords(processAnchor);
-
-            List<Point2D.Float> localEditPoints = GeometryUtils.convertPoints(
-                    editPointsOnly,
-                    GeometryUtils.getTransformsToLocalCoords(
-                            finalStartPoint,
-                            finalEndPoint
-                    ));
-            System.out.println("Local edit points "+localEditPoints);
-
-
-            int segmentCount = localEditPoints.size() + 1;
-
-            ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
-
-            LineType2 line = new LineType2();
-            line.setWidth(BigDecimal.valueOf(1));
-            line.setColor("ff000000");
-            line.setType("Straight");
-
-            List<String> editPointString = new ArrayList<>();
-            for(Point2D.Float p: localEditPoints) {
-                editPointString.add(p.getX()+","+p.getY());
-            }
-
-            LineWrapper lineWrapper = new LineWrapper(connectScheme, editPointString, line);
-
-            modificationW.setLineWrapper(lineWrapper);
-            reactionW.getModifiers().add(modificationW);
-
 
         }
 
         sbml.getModel().getListOfReactions().getReaction().add(reactionW.getCDReaction());
 
+    }
+
+    private ReactantWrapper processModifier(Arc modificationArc, Glyph modificationGlyph,
+                                 ReactantWrapper modificationW, Object prOrLogic) {
+        List<Point2D.Float> modificationPoints = SBGNUtils.getPoints(modificationArc);
+
+        // gather only edit points, as they are the one who will undergo transformations into local
+        // coordinate system
+        List<Point2D.Float> editPointsOnly;
+        if(modificationPoints.size() > 2) {
+            editPointsOnly = modificationPoints.subList(1, modificationPoints.size() - 1);
+        }
+        else {
+            editPointsOnly = new ArrayList<>();
+        }
+        Point2D.Float startPoint = modificationPoints.get(0);
+        Point2D.Float endPoint = modificationPoints.get(modificationPoints.size() - 1);
+
+        // infer best anchorpoints possible
+        System.out.println(modificationArc.getId());
+        if(!SBGNUtils.isLogicGate(modificationGlyph)) {
+            AnchorPoint startAnchor = inferAnchorPoint(startPoint, modificationW,
+                    SBGNUtils.getRectangleFromGlyph(modificationGlyph));
+            modificationW.setAnchorPoint(startAnchor);
+        }
+
+        Point2D.Float finalEndPoint = null;
+        if(prOrLogic instanceof Process) {
+            Process pr = (Process) prOrLogic;
+            int processAnchor = inferProcessAnchorPoint(endPoint, pr);
+            modificationW.setTargetLineIndex("-1," + processAnchor);
+
+            finalEndPoint = pr.getAbsoluteAnchorCoords(processAnchor);
+        }
+        else if(prOrLogic instanceof Point2D) {
+            Point2D.Float p = (Point2D.Float) prOrLogic;
+            finalEndPoint = p;
+            modificationW.setTargetLineIndex("-1,0");
+        }
+
+        Point2D.Float finalStartPoint  = null;
+        if(SBGNUtils.isLogicGate(modificationGlyph)) {
+            // for logic gates, just take the center of the glyph
+            finalStartPoint = new Point2D.Float(
+                    (float) (modificationGlyph.getBbox().getX() - mapBounds.getX()),
+                    (float) (modificationGlyph.getBbox().getY() - mapBounds.getY())
+            );
+        }
+        else {
+            finalStartPoint = getFinalpoint(
+                    modificationW.getAnchorPoint(),
+                    modificationW,
+                    SBGNUtils.getRectangleFromGlyph(modificationGlyph));
+        }
+
+
+        List<Point2D.Float> localEditPoints = GeometryUtils.convertPoints(
+                editPointsOnly,
+                GeometryUtils.getTransformsToLocalCoords(
+                        finalStartPoint,
+                        finalEndPoint
+                ));
+        System.out.println("Local edit points "+localEditPoints);
+
+
+        int segmentCount = localEditPoints.size() + 1;
+
+        ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
+
+        LineType2 line = new LineType2();
+        line.setWidth(BigDecimal.valueOf(1));
+        line.setColor("ff000000");
+        line.setType("Straight");
+
+        List<String> editPointString = new ArrayList<>();
+        for(Point2D.Float p: localEditPoints) {
+            editPointString.add(p.getX()+","+p.getY());
+        }
+
+        // logic gates have their own coordinate added to the edit point, in global coord system
+        if(SBGNUtils.isLogicGate(modificationGlyph)) {
+            editPointString.add(finalStartPoint.getX()+","+finalStartPoint.getY());
+        }
+
+        LineWrapper lineWrapper = new LineWrapper(connectScheme, editPointString, line);
+
+        modificationW.setLineWrapper(lineWrapper);
+        return modificationW;
     }
 
     /**
@@ -1163,6 +1272,7 @@ public class SBGNML2CD extends GeneralConverter {
         // add species to correct list
         if(isIncluded) {
             speciesW.setComplex(parentSpeciesId);
+            speciesW.setIncludedSpecies(true);
             org.sbml._2001.ns.celldesigner.Species species = speciesW.getCDIncludedSpecies(referenceId);
             sbml.getModel().getAnnotation().getExtension().getListOfIncludedSpecies().getSpecies().add(species);
         }
@@ -1383,6 +1493,7 @@ public class SBGNML2CD extends GeneralConverter {
         processToArcs = new HashMap<>();
         portToGlyph = new HashMap<>();
         aliasWrapperMap = new HashMap<>();
+        glyphToArc = new HashMap<>();
 
         // parse all the style info
         styleMap = new HashMap<>();
@@ -1406,6 +1517,7 @@ public class SBGNML2CD extends GeneralConverter {
                     || clazz == ASSOCIATION || clazz == DISSOCIATION) {
                 processToArcs.put(g.getId(), new ArrayList<>());
             }
+            glyphToArc.put(g.getId(), new ArrayList<>());
         }
 
         for(Arc arc: map.getArc()) {
@@ -1436,6 +1548,13 @@ public class SBGNML2CD extends GeneralConverter {
             }
             if(processToArcs.containsKey(targetGlyph.getId())){
                 processToArcs.get(targetGlyph.getId()).add(arc);
+            }
+
+            if(glyphToArc.containsKey(sourceGlyph.getId())){
+                glyphToArc.get(sourceGlyph.getId()).add(arc);
+            }
+            if(glyphToArc.containsKey(targetGlyph.getId())){
+                glyphToArc.get(targetGlyph.getId()).add(arc);
             }
         }
 

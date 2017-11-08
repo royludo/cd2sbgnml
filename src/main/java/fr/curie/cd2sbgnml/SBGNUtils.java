@@ -20,6 +20,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.sbgn.GlyphClazz.AND;
+import static org.sbgn.GlyphClazz.NOT;
+import static org.sbgn.GlyphClazz.OR;
+
 public class SBGNUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(SBGNUtils.class);
@@ -370,5 +374,11 @@ public class SBGNUtils {
                 g.getBbox().getW(),
                 g.getBbox().getH()
         );
+    }
+
+    public static boolean isLogicGate(Glyph g) {
+        return GlyphClazz.fromClazz(g.getClazz()) == AND
+                || GlyphClazz.fromClazz(g.getClazz()) == OR
+                || GlyphClazz.fromClazz(g.getClazz()) == NOT;
     }
 }

@@ -13,6 +13,8 @@ import java.net.ConnectException;
 import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
 
+import static fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper.ModificationLinkType.*;
+
 public class ReactionWrapper {
 
     private static final Logger logger = LoggerFactory.getLogger(ReactionWrapper.class);
@@ -353,8 +355,6 @@ public class ReactionWrapper {
         reaction.setListOfReactants(listOfReactants);
         ListOfSpeciesReferences listOfProducts = new ListOfSpeciesReferences();
         reaction.setListOfProducts(listOfProducts);
-        ListOfModifierSpeciesReferences listOfModifiers = new ListOfModifierSpeciesReferences();
-        reaction.setListOfModifiers(listOfModifiers);
 
         // init annotation part
         ReactionAnnotationType annotation = new ReactionAnnotationType();
@@ -465,24 +465,44 @@ public class ReactionWrapper {
         }
 
         if(this.getModifiers().size() > 0) {
+            ListOfModifierSpeciesReferences listOfModifiers = new ListOfModifierSpeciesReferences();
+            reaction.setListOfModifiers(listOfModifiers);
+
             ListOfModification listOfModification = new ListOfModification();
+            System.out.println("Number of modifiers to serialize: "+this.getModifiers().size());
             for(ReactantWrapper w: this.getModifiers()) {
                 listOfModification.getModification().add((Modification) w.getCDElement());
 
                 // create associated speciesReference for the sbml list
-                ModifierSpeciesReference speciesReference = new ModifierSpeciesReference();
-                speciesReference.setSpecies(w.getAliasW().getSpeciesW().getId());
-                speciesReference.setMetaid(w.getAliasW().getSpeciesW().getId());
+                System.out.println("modif type: "+w.getModificationLinkType()+" "+w.getAliasW()+" "+this.getId()+
+                " "+this.getModifiers().size()+" "+(w instanceof LogicGateWrapper));
+                if(w.getAliasW() != null)
+                    System.out.println("isincluded ? "+w.getAliasW().getSpeciesW().isIncludedSpecies());
+                /*
+                    Logic gates are not listed in the species reference
+                    Included species are also not listed here.
+                 */
+                if(!(w.getModificationLinkType() == BOOLEAN_LOGIC_GATE_UNKNOWN
+                        || w.getModificationLinkType() == BOOLEAN_LOGIC_GATE_AND
+                        || w.getModificationLinkType() == BOOLEAN_LOGIC_GATE_OR
+                        || w.getModificationLinkType() == BOOLEAN_LOGIC_GATE_NOT)
+                        && !w.getAliasW().getSpeciesW().isIncludedSpecies()) {
 
-                SpeciesReferenceAnnotationType speciesRefAnnotation = new SpeciesReferenceAnnotationType();
-                speciesReference.setAnnotation(speciesRefAnnotation);
 
-                SpeciesReferenceAnnotationType.Extension speciesRefExt = new SpeciesReferenceAnnotationType.Extension();
-                speciesRefAnnotation.setExtension(speciesRefExt);
+                    ModifierSpeciesReference speciesReference = new ModifierSpeciesReference();
+                    speciesReference.setSpecies(w.getAliasW().getSpeciesW().getId());
+                    speciesReference.setMetaid(w.getAliasW().getSpeciesW().getId());
 
-                speciesRefExt.setAlias(w.getAliasW().getId());
+                    SpeciesReferenceAnnotationType speciesRefAnnotation = new SpeciesReferenceAnnotationType();
+                    speciesReference.setAnnotation(speciesRefAnnotation);
 
-                listOfModifiers.getModifierSpeciesReference().add(speciesReference);
+                    SpeciesReferenceAnnotationType.Extension speciesRefExt = new SpeciesReferenceAnnotationType.Extension();
+                    speciesRefAnnotation.setExtension(speciesRefExt);
+
+                    speciesRefExt.setAlias(w.getAliasW().getId());
+
+                    listOfModifiers.getModifierSpeciesReference().add(speciesReference);
+                }
             }
             ext.setListOfModification(listOfModification);
         }

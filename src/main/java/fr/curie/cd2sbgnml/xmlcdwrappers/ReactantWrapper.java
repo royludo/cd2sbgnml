@@ -68,6 +68,18 @@ public class ReactantWrapper {
         this.reactantType = type;
     }
 
+    public ReactantWrapper (ReactantWrapper w) {
+        this.reactantType = w.getReactantType();
+        System.out.println("copy reactantwrapper "+w.getModificationLinkType());
+        this.modificationLinkType = w.getModificationLinkType();
+        this.aliasW = w.getAliasW();
+        this.targetLineIndex = w.getTargetLineIndex();
+        this.anchorPoint = w.getAnchorPoint();
+        this.lineWrapper = w.getLineWrapper();
+        this.logicGate = w.getLogicGate();
+        this.positionIndex = w.getPositionIndex();
+    }
+
     private ReactantWrapper (BaseReactant baseReactant, AliasWrapper aliasW) {
         this.reactantType = ReactantType.BASE_REACTANT;
         this.aliasW = aliasW;
