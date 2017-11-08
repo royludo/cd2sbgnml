@@ -109,7 +109,9 @@ public class ReactantModel extends GenericReactionElement{
                     default:
                             return "GENE";
                 }
-            case "phenotype": return "PHENOTYPE";
+            case "phenotype":
+            case "perturbing agent":
+                return "PHENOTYPE";
             case "simple chemical":
             case "simple chemical multimer":
                 return "SIMPLE_MOLECULE";

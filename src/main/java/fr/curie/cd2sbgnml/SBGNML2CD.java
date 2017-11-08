@@ -105,6 +105,7 @@ public class SBGNML2CD extends GeneralConverter {
                 case UNSPECIFIED_ENTITY:
                 case PHENOTYPE:
                 case SOURCE_AND_SINK:
+                case PERTURBING_AGENT:
                     processSpecies(glyph, false, false, null, null);
                     break;
                 case COMPLEX:
