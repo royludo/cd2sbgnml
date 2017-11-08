@@ -1268,7 +1268,7 @@ public class GeometryUtils {
      * @return
      */
     public static AnchorPoint getNearestAnchorPoint(Point2D.Float p, Rectangle2D.Float bbox, CdShape shape) {
-        Point2D.Float currentRelativeAnchor, resultRelativePos = new Point2D.Float();
+        Point2D.Float currentRelativeAnchor;
         AnchorPoint result = AnchorPoint.CENTER;
         Point2D.Float relativeP  = new Point2D.Float(
                 (float) (p.getX() - bbox.getX() - bbox.getWidth() / 2),
@@ -1283,11 +1283,9 @@ public class GeometryUtils {
             double dist = relativeP.distance(currentRelativeAnchor);
             if(dist < minDist) {
                 minDist = dist;
-                resultRelativePos = currentRelativeAnchor;
                 result = a;
             }
         }
-        System.out.println("Result: "+result+" "+resultRelativePos+" "+minDist);
         return result;
     }
 }

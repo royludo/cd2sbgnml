@@ -62,7 +62,7 @@ public class Main {
             e.printStackTrace();
         }*/
 
-        if(false) {
+        if(true) {
             CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
             try {
                 cdModel.setModelFromFile("samples/reaction.xml");

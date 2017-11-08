@@ -2,6 +2,7 @@ package fr.curie.cd2sbgnml.model;
 
 import fr.curie.cd2sbgnml.graphics.*;
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
+import org.sbgn.ArcClazz;
 
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
@@ -80,6 +81,24 @@ public class LinkModel {
 
         }
         throw new IllegalArgumentException("Could not infer SBGN class from reaction type: "+reactionType);
+    }
+
+    public static String getCdClass(ArcClazz sbgnClass) {
+        switch(sbgnClass) {
+            case CONSUMPTION:
+            case PRODUCTION:
+            case CATALYSIS:
+                return "CATALYSIS";
+            case INHIBITION:
+                return "INHIBITION";
+            case MODULATION:
+                return "MODULATION";
+            case STIMULATION:
+                return "PHYSICAL_STIMULATION";
+            case NECESSARY_STIMULATION:
+                return "TRIGGER";
+        }
+        throw new IllegalArgumentException("Could not infer CellDesigner class from SBGN arc class: "+sbgnClass);
     }
 
     /**

@@ -387,7 +387,33 @@ public class ReactantWrapper {
                 return productLink;
 
 
-            case MODIFICATION: return null;
+            case MODIFICATION:
+                Modification modification = new Modification();
+                modification.setModifiers(this.getAliasW().getSpeciesW().getId());
+                modification.setAliases(this.getAliasW().getId());
+                modification.setTargetLineIndex(this.getTargetLineIndex());
+                modification.setType(this.getModificationLinkType().toString());
+                if(this.getAnchorPoint() != AnchorPoint.CENTER) { // no linkAnchor when center
+                    LinkTarget linkTarget = new LinkTarget();
+                    linkTarget.setSpecies(this.getAliasW().getSpeciesW().getId());
+                    linkTarget.setAlias(this.getAliasW().getId());
+
+                    LinkAnchor linkAnchor = new LinkAnchor();
+                    linkAnchor.setPosition(this.getAnchorPoint().toString());
+                    linkTarget.setLinkAnchor(linkAnchor);
+
+                    modification.getLinkTarget().add(linkTarget);
+                }
+
+                modification.setConnectScheme(this.getLineWrapper().getCDConnectScheme());
+                modification.setLine(this.getLineWrapper().getCDLine());
+                if(this.getLineWrapper().getEditPoints().size() > 0) {
+                    for(String s: this.getLineWrapper().editPointsAsStringList()){
+                        modification.getEditPoints().add(s);
+                    }
+                }
+
+                return modification;
         }
         throw new RuntimeException("Reactant type was not defined properly.");
     }

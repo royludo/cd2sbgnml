@@ -148,6 +148,14 @@ public class LineWrapper {
         return editPoints;
     }
 
+    public List<String> editPointsAsStringList() {
+        List<String> editPointString = new ArrayList<>();
+        for(Point2D.Float p: this.getEditPoints()) {
+            editPointString.add(p.getX()+","+p.getY());
+        }
+        return editPointString;
+    }
+
     public float getLineWidth() {
         return lineWidth;
     }

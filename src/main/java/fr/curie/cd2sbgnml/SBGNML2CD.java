@@ -4,6 +4,7 @@ import fr.curie.cd2sbgnml.graphics.AnchorPoint;
 import fr.curie.cd2sbgnml.graphics.CdShape;
 import fr.curie.cd2sbgnml.graphics.GeometryUtils;
 import fr.curie.cd2sbgnml.graphics.Link;
+import fr.curie.cd2sbgnml.model.LinkModel;
 import fr.curie.cd2sbgnml.model.Process;
 import fr.curie.cd2sbgnml.xmlcdwrappers.*;
 import fr.curie.cd2sbgnml.model.ReactantModel;
@@ -13,6 +14,7 @@ import org.sbfc.converter.GeneralConverter;
 import org.sbfc.converter.exceptions.ConversionException;
 import org.sbfc.converter.exceptions.ReadModelException;
 import org.sbfc.converter.models.GeneralModel;
+import org.sbgn.ArcClazz;
 import org.sbgn.bindings.*;
 import org.sbgn.GlyphClazz;
 import org.sbgn.bindings.Map;
@@ -194,6 +196,9 @@ public class SBGNML2CD extends GeneralConverter {
         List<ReactantWrapper> additionalProductsW = new ArrayList<>();
         List<Glyph> additionalProductGlyphs = new ArrayList<>();
         List<Arc> additionalProductArcs = new ArrayList<>();
+        List<ReactantWrapper> modificationsW = new ArrayList<>();
+        List<Glyph> modificationsGlyphs = new ArrayList<>();
+        List<Arc> modificationsArcs = new ArrayList<>();
         int i = 0;
         for(Arc arc: reactants) {
             Glyph g;
@@ -250,6 +255,26 @@ public class SBGNML2CD extends GeneralConverter {
                 additionalProductGlyphs.add(g);
                 additionalProductArcs.add(arc);
             }
+            i++;
+        }
+
+        i = 0;
+        for(Arc arc: modifiers) {
+            Glyph g = arcToSource.get(arc.getId());
+            AliasWrapper aliasW = aliasWrapperMap.get(g.getId()+"_alias1");
+            System.out.println("Modification: "+g.getId()+" "+g.getClazz());
+
+            ReactantWrapper modifWrapper = new ReactantWrapper(aliasW, ReactantType.MODIFICATION);
+            //baseWrapper.setAnchorPoint(AnchorPoint.CENTER); // set to CENTER for now, but better computed after
+
+            modifWrapper.setModificationLinkType(
+                    ReactantWrapper.ModificationLinkType.valueOf(
+                            LinkModel.getCdClass(
+                                    ArcClazz.fromClazz(arc.getClazz()))));
+            modificationsW.add(modifWrapper);
+            modificationsGlyphs.add(g);
+            modificationsArcs.add(arc);
+
             i++;
         }
 
@@ -886,6 +911,80 @@ public class SBGNML2CD extends GeneralConverter {
 
         }
 
+        for(i=0; i < modificationsArcs.size(); i++) {
+            Arc modificationArc = modificationsArcs.get(i);
+            ReactantWrapper modificationW = modificationsW.get(i);
+            Glyph modificationGlyph = modificationsGlyphs.get(i);
+
+            if(modificationGlyph.getClazz().equals("and")
+                    || modificationGlyph.getClazz().equals("or")
+                    || modificationGlyph.getClazz().equals("not")) {
+                continue;
+            }
+
+            // TODO target line index
+
+            List<Point2D.Float> modificationPoints = SBGNUtils.getPoints(modificationArc);
+
+            // gather only edit points, as they are the one who will undergo transformations into local
+            // coordinate system
+            List<Point2D.Float> editPointsOnly;
+            if(modificationPoints.size() > 2) {
+                editPointsOnly = modificationPoints.subList(1, modificationPoints.size() - 1);
+            }
+            else {
+                editPointsOnly = new ArrayList<>();
+            }
+            Point2D.Float startPoint = modificationPoints.get(0);
+            Point2D.Float endPoint = modificationPoints.get(modificationPoints.size() - 1);
+
+            // infer best anchorpoints possible
+            System.out.println(modificationArc.getId());
+            AnchorPoint startAnchor = inferAnchorPoint(startPoint, modificationW,
+                    SBGNUtils.getRectangleFromGlyph(modificationGlyph));
+            modificationW.setAnchorPoint(startAnchor);
+
+            int processAnchor = inferProcessAnchorPoint(endPoint, pr);
+            modificationW.setTargetLineIndex("-1,"+processAnchor);
+
+
+            Point2D.Float finalStartPoint = getFinalpoint(
+                    modificationW.getAnchorPoint(),
+                    modificationW,
+                    SBGNUtils.getRectangleFromGlyph(modificationGlyph));
+            Point2D.Float finalEndPoint = pr.getAbsoluteAnchorCoords(processAnchor);
+
+            List<Point2D.Float> localEditPoints = GeometryUtils.convertPoints(
+                    editPointsOnly,
+                    GeometryUtils.getTransformsToLocalCoords(
+                            finalStartPoint,
+                            finalEndPoint
+                    ));
+            System.out.println("Local edit points "+localEditPoints);
+
+
+            int segmentCount = localEditPoints.size() + 1;
+
+            ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
+
+            LineType2 line = new LineType2();
+            line.setWidth(BigDecimal.valueOf(1));
+            line.setColor("ff000000");
+            line.setType("Straight");
+
+            List<String> editPointString = new ArrayList<>();
+            for(Point2D.Float p: localEditPoints) {
+                editPointString.add(p.getX()+","+p.getY());
+            }
+
+            LineWrapper lineWrapper = new LineWrapper(connectScheme, editPointString, line);
+
+            modificationW.setLineWrapper(lineWrapper);
+            reactionW.getModifiers().add(modificationW);
+
+
+        }
+
         sbml.getModel().getListOfReactions().getReaction().add(reactionW.getCDReaction());
 
     }
@@ -1353,6 +1452,23 @@ public class SBGNML2CD extends GeneralConverter {
                 baseProductShape
         );
         return a;
+    }
+
+    // TODO the 6 process anchor coords could be cached
+    public static int inferProcessAnchorPoint(Point2D.Float p, Process process) {
+        double minDist = Double.MAX_VALUE;
+        int result = -1;
+        // process anchors indexes go from 2 to 7
+        for(int i=2; i<8; i++) {
+            Point2D.Float anchorCoord = process.getAbsoluteAnchorCoords(i);
+            double distance = p.distance(anchorCoord);
+            if(distance < minDist) {
+                minDist = distance;
+                result = i;
+            }
+        }
+
+        return result;
     }
 
     public static Point2D.Float getFinalpoint(AnchorPoint a, ReactantWrapper reactantW, Rectangle2D.Float r) {
