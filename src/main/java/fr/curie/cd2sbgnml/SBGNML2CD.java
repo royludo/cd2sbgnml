@@ -955,10 +955,8 @@ public class SBGNML2CD extends GeneralConverter {
                                     LinkModel.getCdClass(
                                             ArcClazz.fromClazz(modificationArc.getClazz()))));
 
-                    ReactantWrapper processedLogicModifW = processModifier(logicArc, sourceGlyhp,
-                            modifWrapper, new Point2D.Float(
-                                    modificationGlyph.getBbox().getX(),
-                                    modificationGlyph.getBbox().getY()));
+                    ReactantWrapper processedLogicModifW = processModifierToLogic(logicArc, sourceGlyhp,
+                            modifWrapper, modificationGlyph);
 
                     // we can't directly add the connected reactants, need the logic gate first.
                     //reactionW.getModifiers().add(processedLogicModifW);
@@ -968,7 +966,7 @@ public class SBGNML2CD extends GeneralConverter {
                 }
 
                 // process the logic gate itself
-                ReactantWrapper processedlogicW = processModifier(modificationArc,
+                ReactantWrapper processedlogicW = processLogicGate(modificationArc,
                         modificationGlyph, modificationW, pr);
 
                 LogicGateWrapper finalLogicW = new LogicGateWrapper(
@@ -1010,6 +1008,176 @@ public class SBGNML2CD extends GeneralConverter {
 
     }
 
+    private ReactantWrapper processModifierToLogic(Arc modificationArc, Glyph modificationGlyph,
+                                            ReactantWrapper modificationW, Glyph logicGateGlyph) {
+        List<Point2D.Float> modificationPoints = SBGNUtils.getPoints(modificationArc);
+        if(logicGateGlyph.getPort().size() > 0) {
+            modificationPoints.add(new Point2D.Float(
+                    //modificationGlyph.getBbox().getX() - (float) mapBounds.getX() + modificationGlyph.getBbox().getW() / 2,
+                    //modificationGlyph.getBbox().getY() - (float) mapBounds.getY() + modificationGlyph.getBbox().getH() / 2
+                    logicGateGlyph.getBbox().getX() + logicGateGlyph.getBbox().getW() / 2,
+                    logicGateGlyph.getBbox().getY() + logicGateGlyph.getBbox().getH() / 2
+            ));
+        }
+
+        // gather only edit points, as they are the one who will undergo transformations into local
+        // coordinate system
+        List<Point2D.Float> editPointsOnly;
+        if(modificationPoints.size() > 2) {
+            editPointsOnly = modificationPoints.subList(1, modificationPoints.size() - 1);
+        }
+        else {
+            editPointsOnly = new ArrayList<>();
+        }
+        Point2D.Float startPoint = modificationPoints.get(0);
+        Point2D.Float endPoint = modificationPoints.get(modificationPoints.size() - 1);
+
+        // infer best anchorpoints possible
+        System.out.println(modificationArc.getId());
+        if(!SBGNUtils.isLogicGate(modificationGlyph)) {
+            AnchorPoint startAnchor = inferAnchorPoint(startPoint, modificationW,
+                    SBGNUtils.getRectangleFromGlyph(modificationGlyph));
+            modificationW.setAnchorPoint(startAnchor);
+        }
+
+        Point2D.Float finalEndPoint = endPoint;
+
+        Point2D.Float finalStartPoint = getFinalpoint(
+                modificationW.getAnchorPoint(),
+                modificationW,
+                SBGNUtils.getRectangleFromGlyph(modificationGlyph));
+
+
+        List<Point2D.Float> localEditPoints = GeometryUtils.convertPoints(
+                editPointsOnly,
+                GeometryUtils.getTransformsToLocalCoords(
+                        finalStartPoint,
+                        finalEndPoint
+                ));
+        System.out.println("Local edit points "+localEditPoints);
+
+
+        int segmentCount = localEditPoints.size() + 1;
+
+        ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
+
+        LineType2 line = new LineType2();
+        line.setWidth(BigDecimal.valueOf(1));
+        line.setColor("ff000000");
+        line.setType("Straight");
+
+        List<String> editPointString = new ArrayList<>();
+        for(Point2D.Float p: localEditPoints) {
+            editPointString.add(p.getX()+","+p.getY());
+        }
+
+        LineWrapper lineWrapper = new LineWrapper(connectScheme, editPointString, line);
+
+        modificationW.setLineWrapper(lineWrapper);
+        return modificationW;
+    }
+
+    private ReactantWrapper processLogicGate(Arc modificationArc, Glyph modificationGlyph,
+                                            ReactantWrapper modificationW, Process pr) {
+
+        List<Point2D.Float> modificationPoints = new ArrayList<>();
+        if(modificationGlyph.getPort().size() > 0) {
+            // join the arc coming out of the port to the center of the logic gate
+            modificationPoints.add(new Point2D.Float(
+                    //modificationGlyph.getBbox().getX() - (float) mapBounds.getX() + modificationGlyph.getBbox().getW() / 2,
+                    //modificationGlyph.getBbox().getY() - (float) mapBounds.getY() + modificationGlyph.getBbox().getH() / 2
+                    modificationGlyph.getBbox().getX() + modificationGlyph.getBbox().getW() / 2,
+                    modificationGlyph.getBbox().getY() + modificationGlyph.getBbox().getH() / 2
+            ));
+        }
+        modificationPoints.addAll(SBGNUtils.getPoints(modificationArc));
+
+        // gather only edit points, as they are the one who will undergo transformations into local
+        // coordinate system
+        List<Point2D.Float> editPointsOnly;
+        if(modificationPoints.size() > 2) {
+            editPointsOnly = modificationPoints.subList(1, modificationPoints.size() - 1);
+        }
+        else {
+            editPointsOnly = new ArrayList<>();
+        }
+        Point2D.Float startPoint = modificationPoints.get(0);
+        Point2D.Float endPoint = modificationPoints.get(modificationPoints.size() - 1);
+
+        // infer best anchorpoints possible
+        System.out.println(modificationArc.getId());
+
+        int processAnchor = inferProcessAnchorPoint(endPoint, pr);
+        modificationW.setTargetLineIndex("-1," + processAnchor);
+
+        Point2D.Float finalEndPoint = pr.getAbsoluteAnchorCoords(processAnchor);
+        System.out.println("process coords: "+pr.getGlyph().getCenter());
+
+
+        // for logic gates, just take the center of the glyph
+        Point2D.Float finalStartPoint = startPoint;
+        /*
+            here we work with a process that is already placed on final coordinates (translated with mapbounds)
+            so we need to harmonize everything, including the coordinates of edit points
+         */
+        /*List<Point2D.Float> newEditPointsOnly = new ArrayList<>();
+        for(Point2D.Float p: editPointsOnly) {
+            newEditPointsOnly.add(new Point2D.Float(
+                    (float) (p.getX() - mapBounds.getX()),
+                    (float) (p.getY() - mapBounds.getY())
+            ));
+        }
+        editPointsOnly = newEditPointsOnly;*/
+
+        System.out.println("LOGIIIIC: "+ finalStartPoint+" "+editPointsOnly+" "+finalEndPoint);
+        System.out.println(modificationPoints.size()+" "+modificationPoints);
+
+
+
+        List<Point2D.Float> localEditPoints = GeometryUtils.convertPoints(
+                editPointsOnly,
+                GeometryUtils.getTransformsToLocalCoords(
+                        finalStartPoint,
+                        finalEndPoint
+                ));
+        System.out.println("Local edit points "+localEditPoints);
+
+
+        int segmentCount = localEditPoints.size() + 1;
+
+        ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
+
+        LineType2 line = new LineType2();
+        line.setWidth(BigDecimal.valueOf(1));
+        line.setColor("ff000000");
+        line.setType("Straight");
+
+        List<String> editPointString = new ArrayList<>();
+        for(Point2D.Float p: localEditPoints) {
+            editPointString.add(p.getX()+","+p.getY());
+        }
+
+        // logic gates have their own coordinate added to the edit point, in global coord system
+        // we need to adjust to map translation factor
+        editPointString.add(
+                (finalStartPoint.getX() - mapBounds.getX())
+                        +","+
+                        (finalStartPoint.getY() - mapBounds.getY()));
+
+        LineWrapper lineWrapper = new LineWrapper(connectScheme, editPointString, line);
+
+        modificationW.setLineWrapper(lineWrapper);
+        return modificationW;
+    }
+
+    /**
+     * Pass a Point2D for logic gates, process otherwise
+     * @param modificationArc
+     * @param modificationGlyph
+     * @param modificationW
+     * @param prOrLogic
+     * @return
+     */
     private ReactantWrapper processModifier(Arc modificationArc, Glyph modificationGlyph,
                                  ReactantWrapper modificationW, Object prOrLogic) {
         List<Point2D.Float> modificationPoints = SBGNUtils.getPoints(modificationArc);
@@ -1041,10 +1209,10 @@ public class SBGNML2CD extends GeneralConverter {
             modificationW.setTargetLineIndex("-1," + processAnchor);
 
             finalEndPoint = pr.getAbsoluteAnchorCoords(processAnchor);
+            System.out.println("process coords: "+pr.getGlyph().getCenter());
         }
         else if(prOrLogic instanceof Point2D) {
-            Point2D.Float p = (Point2D.Float) prOrLogic;
-            finalEndPoint = p;
+            finalEndPoint = (Point2D.Float) prOrLogic;
             modificationW.setTargetLineIndex("-1,0");
         }
 
@@ -1052,9 +1220,24 @@ public class SBGNML2CD extends GeneralConverter {
         if(SBGNUtils.isLogicGate(modificationGlyph)) {
             // for logic gates, just take the center of the glyph
             finalStartPoint = new Point2D.Float(
-                    (float) (modificationGlyph.getBbox().getX() - mapBounds.getX()),
-                    (float) (modificationGlyph.getBbox().getY() - mapBounds.getY())
+                    (float) (modificationGlyph.getBbox().getX() - mapBounds.getX() + modificationGlyph.getBbox().getW() / 2),
+                    (float) (modificationGlyph.getBbox().getY() - mapBounds.getY() + modificationGlyph.getBbox().getH() / 2)
             );
+            /*
+                here we work with a process that is already placed on final coordinates (translated with mapbounds)
+                so we need to harmonize everything, including the coordinates of edit points
+             */
+            /*List<Point2D.Float> newEditPointsOnly = new ArrayList<>();
+            for(Point2D.Float p: editPointsOnly) {
+                newEditPointsOnly.add(new Point2D.Float(
+                        (float) (p.getX() - mapBounds.getX()),
+                        (float) (p.getY() - mapBounds.getY())
+                ));
+            }
+            editPointsOnly = newEditPointsOnly;*/
+
+            System.out.println("LOGIIIIC: "+ finalStartPoint+" "+editPointsOnly+" "+finalEndPoint);
+            System.out.println(modificationPoints.size()+" "+modificationPoints);
         }
         else {
             finalStartPoint = getFinalpoint(
