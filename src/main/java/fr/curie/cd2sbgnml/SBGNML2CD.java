@@ -1443,6 +1443,17 @@ public class SBGNML2CD extends GeneralConverter {
         }
         speciesW.getAliases().add(aliasW);
 
+        // find and set the toplevel complex parent
+        if(isIncluded) {
+            AliasWrapper parentComplexAliasW = aliasWrapperMap.get(parentAliasId);
+            // we need to go up the chain in case of multiple inclusion levels
+            while(parentComplexAliasW.getTopLevelParent() != null) {
+                parentComplexAliasW = parentComplexAliasW.getTopLevelParent();
+            }
+            aliasW.setTopLevelParent(parentComplexAliasW);
+            System.out.println("TOP level parent: "+parentComplexAliasW.getSpeciesW().getId()+" "+parentComplexAliasW.getId());
+        }
+
 
         // PROCESS SPECIES
         // class

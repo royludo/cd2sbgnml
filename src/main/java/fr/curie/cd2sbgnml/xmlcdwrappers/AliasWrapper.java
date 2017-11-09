@@ -27,6 +27,13 @@ public class AliasWrapper {
     private AliasInfoWrapper info;
     private StyleInfo styleInfo;
 
+    /**
+     * When an included species interacts in a reaction, its speciesReference isn't listed in the sbml listOfReactants,
+     * listOfProducts or listOfModifiers. Instead, it's its top level complex's speciesReference that is used.
+     * So we need to keep track of the parent complex's aliasWrapper.
+     */
+    private AliasWrapper topLevelParent;
+
     public AliasWrapper(String id, AliasType type, SpeciesWrapper speciesW) {
         this.id = id;
         this.aliasType = type;
@@ -336,5 +343,13 @@ public class AliasWrapper {
 
     public void setStyleInfo(StyleInfo styleInfo) {
         this.styleInfo = styleInfo;
+    }
+
+    public AliasWrapper getTopLevelParent() {
+        return topLevelParent;
+    }
+
+    public void setTopLevelParent(AliasWrapper topLevelParent) {
+        this.topLevelParent = topLevelParent;
     }
 }

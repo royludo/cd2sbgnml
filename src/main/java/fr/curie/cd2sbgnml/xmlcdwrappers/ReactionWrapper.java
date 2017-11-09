@@ -379,20 +379,7 @@ public class ReactionWrapper {
             BaseReactant baseReactant = (BaseReactant) reactantWrapper.getCDElement();
             baseReactants.getBaseReactant().add(baseReactant);
 
-            // create associated speciesReference for the sbml list
-            SpeciesReference speciesReference = new SpeciesReference();
-            speciesReference.setSpecies(reactantWrapper.getAliasW().getSpeciesW().getId());
-            speciesReference.setMetaid(reactantWrapper.getAliasW().getSpeciesW().getId());
-
-            SpeciesReferenceAnnotationType speciesRefAnnotation = new SpeciesReferenceAnnotationType();
-            speciesReference.setAnnotation(speciesRefAnnotation);
-
-            SpeciesReferenceAnnotationType.Extension speciesRefExt = new SpeciesReferenceAnnotationType.Extension();
-            speciesRefAnnotation.setExtension(speciesRefExt);
-
-            speciesRefExt.setAlias(reactantWrapper.getAliasW().getId());
-
-            listOfReactants.getSpeciesReference().add(speciesReference);
+            listOfReactants.getSpeciesReference().add(getSpeciesReference(reactantWrapper));
         }
 
         // base product list
@@ -402,20 +389,7 @@ public class ReactionWrapper {
             BaseProduct baseProduct = (BaseProduct) reactantWrapper.getCDElement();
             baseProducts.getBaseProduct().add(baseProduct);
 
-            // create associated speciesReference for the sbml list
-            SpeciesReference speciesReference = new SpeciesReference();
-            speciesReference.setSpecies(reactantWrapper.getAliasW().getSpeciesW().getId());
-            speciesReference.setMetaid(reactantWrapper.getAliasW().getSpeciesW().getId());
-
-            SpeciesReferenceAnnotationType speciesRefAnnotation = new SpeciesReferenceAnnotationType();
-            speciesReference.setAnnotation(speciesRefAnnotation);
-
-            SpeciesReferenceAnnotationType.Extension speciesRefExt = new SpeciesReferenceAnnotationType.Extension();
-            speciesRefAnnotation.setExtension(speciesRefExt);
-
-            speciesRefExt.setAlias(reactantWrapper.getAliasW().getId());
-
-            listOfProducts.getSpeciesReference().add(speciesReference);
+            listOfProducts.getSpeciesReference().add(getSpeciesReference(reactantWrapper));
         }
 
         if(this.getAdditionalReactants().size() > 0) {
@@ -423,20 +397,7 @@ public class ReactionWrapper {
             for(ReactantWrapper w: this.getAdditionalReactants()) {
                 listOfReactantLinks.getReactantLink().add((ReactantLink) w.getCDElement());
 
-                // create associated speciesReference for the sbml list
-                SpeciesReference speciesReference = new SpeciesReference();
-                speciesReference.setSpecies(w.getAliasW().getSpeciesW().getId());
-                speciesReference.setMetaid(w.getAliasW().getSpeciesW().getId());
-
-                SpeciesReferenceAnnotationType speciesRefAnnotation = new SpeciesReferenceAnnotationType();
-                speciesReference.setAnnotation(speciesRefAnnotation);
-
-                SpeciesReferenceAnnotationType.Extension speciesRefExt = new SpeciesReferenceAnnotationType.Extension();
-                speciesRefAnnotation.setExtension(speciesRefExt);
-
-                speciesRefExt.setAlias(w.getAliasW().getId());
-
-                listOfReactants.getSpeciesReference().add(speciesReference);
+                listOfReactants.getSpeciesReference().add(getSpeciesReference(w));
             }
             ext.setListOfReactantLinks(listOfReactantLinks);
         }
@@ -446,20 +407,7 @@ public class ReactionWrapper {
             for(ReactantWrapper w: this.getAdditionalProducts()) {
                 listOfProductLinks.getProductLink().add((ProductLink) w.getCDElement());
 
-                // create associated speciesReference for the sbml list
-                SpeciesReference speciesReference = new SpeciesReference();
-                speciesReference.setSpecies(w.getAliasW().getSpeciesW().getId());
-                speciesReference.setMetaid(w.getAliasW().getSpeciesW().getId());
-
-                SpeciesReferenceAnnotationType speciesRefAnnotation = new SpeciesReferenceAnnotationType();
-                speciesReference.setAnnotation(speciesRefAnnotation);
-
-                SpeciesReferenceAnnotationType.Extension speciesRefExt = new SpeciesReferenceAnnotationType.Extension();
-                speciesRefAnnotation.setExtension(speciesRefExt);
-
-                speciesRefExt.setAlias(w.getAliasW().getId());
-
-                listOfProducts.getSpeciesReference().add(speciesReference);
+                listOfProducts.getSpeciesReference().add(getSpeciesReference(w));
             }
             ext.setListOfProductLinks(listOfProductLinks);
         }
@@ -480,28 +428,14 @@ public class ReactionWrapper {
                     System.out.println("isincluded ? "+w.getAliasW().getSpeciesW().isIncludedSpecies());
                 /*
                     Logic gates are not listed in the species reference
-                    Included species are also not listed here.
+                    If included species, the species reference must be the one of the topmost parent complex
                  */
                 if(!(w.getModificationLinkType() == BOOLEAN_LOGIC_GATE_UNKNOWN
                         || w.getModificationLinkType() == BOOLEAN_LOGIC_GATE_AND
                         || w.getModificationLinkType() == BOOLEAN_LOGIC_GATE_OR
-                        || w.getModificationLinkType() == BOOLEAN_LOGIC_GATE_NOT)
-                        && !w.getAliasW().getSpeciesW().isIncludedSpecies()) {
+                        || w.getModificationLinkType() == BOOLEAN_LOGIC_GATE_NOT)) {
 
-
-                    ModifierSpeciesReference speciesReference = new ModifierSpeciesReference();
-                    speciesReference.setSpecies(w.getAliasW().getSpeciesW().getId());
-                    speciesReference.setMetaid(w.getAliasW().getSpeciesW().getId());
-
-                    SpeciesReferenceAnnotationType speciesRefAnnotation = new SpeciesReferenceAnnotationType();
-                    speciesReference.setAnnotation(speciesRefAnnotation);
-
-                    SpeciesReferenceAnnotationType.Extension speciesRefExt = new SpeciesReferenceAnnotationType.Extension();
-                    speciesRefAnnotation.setExtension(speciesRefExt);
-
-                    speciesRefExt.setAlias(w.getAliasW().getId());
-
-                    listOfModifiers.getModifierSpeciesReference().add(speciesReference);
+                    listOfModifiers.getModifierSpeciesReference().add(getModifierSpeciesReference(w));
                 }
             }
             ext.setListOfModification(listOfModification);
@@ -509,6 +443,60 @@ public class ReactionWrapper {
 
 
         return reaction;
+    }
+
+    private SpeciesReference getSpeciesReference(ReactantWrapper w) {
+        String aliasId, speciesId;
+        if(w.getAliasW().getSpeciesW().isIncludedSpecies()) {
+            aliasId = w.getAliasW().getTopLevelParent().getId();
+            speciesId = w.getAliasW().getTopLevelParent().getSpeciesId();
+        }
+        else {
+            aliasId = w.getAliasW().getId();
+            speciesId = w.getAliasW().getSpeciesW().getId();
+        }
+
+        // create associated speciesReference for the sbml list
+        SpeciesReference speciesReference = new SpeciesReference();
+        speciesReference.setSpecies(speciesId);
+        speciesReference.setMetaid(speciesId);
+
+        SpeciesReferenceAnnotationType speciesRefAnnotation = new SpeciesReferenceAnnotationType();
+        speciesReference.setAnnotation(speciesRefAnnotation);
+
+        SpeciesReferenceAnnotationType.Extension speciesRefExt = new SpeciesReferenceAnnotationType.Extension();
+        speciesRefAnnotation.setExtension(speciesRefExt);
+
+        speciesRefExt.setAlias(aliasId);
+
+        return speciesReference;
+    }
+
+    private ModifierSpeciesReference getModifierSpeciesReference(ReactantWrapper w) {
+        String aliasId, speciesId;
+        if(w.getAliasW().getSpeciesW().isIncludedSpecies()) {
+            aliasId = w.getAliasW().getTopLevelParent().getId();
+            speciesId = w.getAliasW().getTopLevelParent().getSpeciesId();
+        }
+        else {
+            aliasId = w.getAliasW().getId();
+            speciesId = w.getAliasW().getSpeciesW().getId();
+        }
+
+        // create associated speciesReference for the sbml list
+        ModifierSpeciesReference speciesReference = new ModifierSpeciesReference();
+        speciesReference.setSpecies(speciesId);
+        speciesReference.setMetaid(speciesId);
+
+        SpeciesReferenceAnnotationType speciesRefAnnotation = new SpeciesReferenceAnnotationType();
+        speciesReference.setAnnotation(speciesRefAnnotation);
+
+        SpeciesReferenceAnnotationType.Extension speciesRefExt = new SpeciesReferenceAnnotationType.Extension();
+        speciesRefAnnotation.setExtension(speciesRefExt);
+
+        speciesRefExt.setAlias(aliasId);
+
+        return speciesReference;
     }
 
 
