@@ -793,6 +793,12 @@ public class SBGNML2CD extends GeneralConverter {
             additionalW.setTargetLineIndex("-1,0");
 
             List<Point2D.Float> additionalReactPoints = SBGNUtils.getPoints(additionalArc);
+            if(processGlyph.getPort().size() > 0) {
+                additionalReactPoints.add(new Point2D.Float(
+                        processGlyph.getBbox().getX(),
+                        processGlyph.getBbox().getY())
+                );
+            }
             if(isReversible)
                 Collections.reverse(additionalReactPoints);
 
@@ -858,7 +864,14 @@ public class SBGNML2CD extends GeneralConverter {
 
             additionalW.setTargetLineIndex("-1,1");
 
-            List<Point2D.Float> additionalProdPoints = SBGNUtils.getPoints(additionalArc);
+            List<Point2D.Float> additionalProdPoints = new ArrayList<>();
+            if(processGlyph.getPort().size() > 0) {
+                additionalProdPoints.add(new Point2D.Float(
+                        processGlyph.getBbox().getX(),
+                        processGlyph.getBbox().getY())
+                );
+            }
+            additionalProdPoints.addAll(SBGNUtils.getPoints(additionalArc));
 
             // gather only edit points, as they are the one who will undergo transformations into local
             // coordinate system
