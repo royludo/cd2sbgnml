@@ -1750,6 +1750,11 @@
         <xs:enumeration value="TRANSLATIONAL_INHIBITION"/>
         <xs:enumeration value="TRANSCRIPTION"/>
         <xs:enumeration value="TRANSLATION"/>
+        <xs:enumeration value="PHYSICAL_STIMULATION"/>
+        <xs:enumeration value="POSITIVE_INFLUENCE"/>
+        <xs:enumeration value="NEGATIVE_INFLUENCE"/>
+        <xs:enumeration value="REDUCED_MODULATION"/>
+        <xs:enumeration value="REDUCED_TRIGGER"/>
       </xs:restriction>
     </xs:simpleType>
   </xs:element>
