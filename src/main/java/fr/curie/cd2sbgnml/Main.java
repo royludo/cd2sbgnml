@@ -11,7 +11,11 @@ import org.sbml.sbml.level2.version4.Sbml;
 import org.slf4j.impl.SimpleLogger;
 import org.xml.sax.SAXException;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.*;
+import javax.xml.bind.util.ValidationEventCollector;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import java.io.File;
 import java.io.IOException;
 
@@ -62,10 +66,26 @@ public class Main {
             e.printStackTrace();
         }*/
 
+        String inputFile = "samples/reaction.xml";
+
+        SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        Schema schema = null;
+        try {
+            schema = sf.newSchema(new File("schema/CellDesigner.xsd"));
+            JAXBContext jc = JAXBContext.newInstance(Sbml.class);
+
+            Unmarshaller unmarshaller = jc.createUnmarshaller();
+            unmarshaller.setSchema(schema);
+            unmarshaller.setEventHandler(new ValidationEventCollector());
+            Sbml sbml = (Sbml) unmarshaller.unmarshal(new File(inputFile));
+        } catch (SAXException | JAXBException e) {
+            e.printStackTrace();
+        }
+
         if(true) {
             CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
             try {
-                cdModel.setModelFromFile("samples/mtor.xml");
+                cdModel.setModelFromFile(inputFile);
                 //System.out.println(cdModel.modelToString());
             } catch (ReadModelException e) {
                 e.printStackTrace();
@@ -138,6 +158,23 @@ public class Main {
         } catch (JAXBException e) {
             e.printStackTrace();
         }
+
+        System.out.println("VALIDATION of CellDesigner final output");
+
+        sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        schema = null;
+        try {
+            schema = sf.newSchema(new File("schema/CellDesigner.xsd"));
+            JAXBContext jc = JAXBContext.newInstance(Sbml.class);
+
+            Unmarshaller unmarshaller = jc.createUnmarshaller();
+            unmarshaller.setSchema(schema);
+            unmarshaller.setEventHandler(new ValidationEventCollector());
+            Sbml sbml = (Sbml) unmarshaller.unmarshal(new File("samples/newCD.xml"));
+        } catch (SAXException | JAXBException e) {
+            e.printStackTrace();
+        }
+
 
 
     }

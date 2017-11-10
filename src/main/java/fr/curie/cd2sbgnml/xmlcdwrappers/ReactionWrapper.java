@@ -372,6 +372,10 @@ public class ReactionWrapper {
                 || ReactionType.valueOf(this.getReactionType()) == ReactionType.DISSOCIATION;
         ext.setEditPoints(this.getLineWrapper().getCDEditPoints(isBranchType));
 
+        // metaids cannot be the same, so we keep a global counter for the reaction, and use the reaction
+        // id in the metaid. This should ensure uniqueness in all the document.
+        int metaCounter = 1;
+
         // base reactant list
         BaseReactants baseReactants = new BaseReactants();
         ext.setBaseReactants(baseReactants);
@@ -379,7 +383,8 @@ public class ReactionWrapper {
             BaseReactant baseReactant = (BaseReactant) reactantWrapper.getCDElement();
             baseReactants.getBaseReactant().add(baseReactant);
 
-            listOfReactants.getSpeciesReference().add(getSpeciesReference(reactantWrapper));
+            listOfReactants.getSpeciesReference().add(getSpeciesReference(reactantWrapper, metaCounter));
+            metaCounter++;
         }
 
         // base product list
@@ -389,7 +394,8 @@ public class ReactionWrapper {
             BaseProduct baseProduct = (BaseProduct) reactantWrapper.getCDElement();
             baseProducts.getBaseProduct().add(baseProduct);
 
-            listOfProducts.getSpeciesReference().add(getSpeciesReference(reactantWrapper));
+            listOfProducts.getSpeciesReference().add(getSpeciesReference(reactantWrapper, metaCounter));
+            metaCounter++;
         }
 
         if(this.getAdditionalReactants().size() > 0) {
@@ -397,7 +403,8 @@ public class ReactionWrapper {
             for(ReactantWrapper w: this.getAdditionalReactants()) {
                 listOfReactantLinks.getReactantLink().add((ReactantLink) w.getCDElement());
 
-                listOfReactants.getSpeciesReference().add(getSpeciesReference(w));
+                listOfReactants.getSpeciesReference().add(getSpeciesReference(w, metaCounter));
+                metaCounter++;
             }
             ext.setListOfReactantLinks(listOfReactantLinks);
         }
@@ -407,7 +414,8 @@ public class ReactionWrapper {
             for(ReactantWrapper w: this.getAdditionalProducts()) {
                 listOfProductLinks.getProductLink().add((ProductLink) w.getCDElement());
 
-                listOfProducts.getSpeciesReference().add(getSpeciesReference(w));
+                listOfProducts.getSpeciesReference().add(getSpeciesReference(w, metaCounter));
+                metaCounter++;
             }
             ext.setListOfProductLinks(listOfProductLinks);
         }
@@ -435,7 +443,8 @@ public class ReactionWrapper {
                         || w.getModificationLinkType() == BOOLEAN_LOGIC_GATE_OR
                         || w.getModificationLinkType() == BOOLEAN_LOGIC_GATE_NOT)) {
 
-                    listOfModifiers.getModifierSpeciesReference().add(getModifierSpeciesReference(w));
+                    listOfModifiers.getModifierSpeciesReference().add(getModifierSpeciesReference(w, metaCounter));
+                    metaCounter++;
                 }
             }
             ext.setListOfModification(listOfModification);
@@ -445,7 +454,12 @@ public class ReactionWrapper {
         return reaction;
     }
 
-    private SpeciesReference getSpeciesReference(ReactantWrapper w) {
+    /**
+     * Metaids cannot be the same
+     * @param w
+     * @return
+     */
+    private SpeciesReference getSpeciesReference(ReactantWrapper w, int metaCount) {
         String aliasId, speciesId;
         if(w.getAliasW().getSpeciesW().isIncludedSpecies()) {
             aliasId = w.getAliasW().getTopLevelParent().getId();
@@ -459,7 +473,7 @@ public class ReactionWrapper {
         // create associated speciesReference for the sbml list
         SpeciesReference speciesReference = new SpeciesReference();
         speciesReference.setSpecies(speciesId);
-        speciesReference.setMetaid(speciesId);
+        speciesReference.setMetaid(this.getId()+"_meta"+metaCount+"_"+speciesId);
 
         SpeciesReferenceAnnotationType speciesRefAnnotation = new SpeciesReferenceAnnotationType();
         speciesReference.setAnnotation(speciesRefAnnotation);
@@ -472,7 +486,7 @@ public class ReactionWrapper {
         return speciesReference;
     }
 
-    private ModifierSpeciesReference getModifierSpeciesReference(ReactantWrapper w) {
+    private ModifierSpeciesReference getModifierSpeciesReference(ReactantWrapper w, int metaCount) {
         String aliasId, speciesId;
         if(w.getAliasW().getSpeciesW().isIncludedSpecies()) {
             aliasId = w.getAliasW().getTopLevelParent().getId();
@@ -486,7 +500,7 @@ public class ReactionWrapper {
         // create associated speciesReference for the sbml list
         ModifierSpeciesReference speciesReference = new ModifierSpeciesReference();
         speciesReference.setSpecies(speciesId);
-        speciesReference.setMetaid(speciesId);
+        speciesReference.setMetaid(this.getId()+"_meta"+metaCount+"_"+speciesId);
 
         SpeciesReferenceAnnotationType speciesRefAnnotation = new SpeciesReferenceAnnotationType();
         speciesReference.setAnnotation(speciesRefAnnotation);

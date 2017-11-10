@@ -480,7 +480,7 @@
             <xsd:element name="model" type="Model"/>
           </xsd:sequence>
           <xsd:attribute name="level" type="xsd:positiveInteger" use="required" fixed="2"/>
-          <xsd:attribute name="version" type="xsd:positiveInteger" use="required" fixed="1"/>
+          <xsd:attribute name="version" type="xsd:positiveInteger" use="required" fixed="4"/>
         </xsd:extension>
       </xsd:complexContent>
     </xsd:complexType>
