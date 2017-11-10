@@ -20,7 +20,14 @@ public class ReactionWrapper {
     private static final Logger logger = LoggerFactory.getLogger(ReactionWrapper.class);
 
     public enum ReactionType { STATE_TRANSITION, HETERODIMER_ASSOCIATION, DISSOCIATION,
-        KNOWN_TRANSITION_OMITTED, UNKNOWN_TRANSITION}
+        KNOWN_TRANSITION_OMITTED, UNKNOWN_TRANSITION,
+        CATALYSIS, UNKNOWN_CATALYSIS,
+        INHIBITION, UNKNOWN_INHIBITION,
+        TRANSPORT,
+        TRANSCRIPTIONAL_ACTIVATION, TRANSCRIPTIONAL_INHIBITION,
+        TRANSLATIONAL_ACTIVATION, TRANSLATIONAL_INHIBITION,
+        PHYSICAL_STIMULATION, MODULATION, TRIGGER, REDUCED_MODULATION,
+        REDUCED_TRIGGER, NEGATIVE_INFLUENCE, POSITIVE_INFLUENCE}
 
     private String id;
     private List<ReactantWrapper> baseReactants;
@@ -370,7 +377,10 @@ public class ReactionWrapper {
         boolean isBranchType =
                 ReactionType.valueOf(this.getReactionType()) == ReactionType.HETERODIMER_ASSOCIATION
                 || ReactionType.valueOf(this.getReactionType()) == ReactionType.DISSOCIATION;
-        ext.setEditPoints(this.getLineWrapper().getCDEditPoints(isBranchType));
+
+        if(this.getLineWrapper().getEditPoints().size() > 0) {
+            ext.setEditPoints(this.getLineWrapper().getCDEditPoints(isBranchType));
+        }
 
         // metaids cannot be the same, so we keep a global counter for the reaction, and use the reaction
         // id in the metaid. This should ensure uniqueness in all the document.

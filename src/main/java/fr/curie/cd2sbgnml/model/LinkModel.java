@@ -101,6 +101,22 @@ public class LinkModel {
         throw new IllegalArgumentException("Could not infer CellDesigner class from SBGN arc class: "+sbgnClass);
     }
 
+    public static String getReducedCdClass(ArcClazz sbgnClass) {
+        switch(sbgnClass) {
+            case CATALYSIS:
+                return "CATALYSIS";
+            case INHIBITION:
+                return "NEGATIVE_INFLUENCE";
+            case MODULATION:
+                return "REDUCED_MODULATION";
+            case STIMULATION:
+                return "POSITIVE_INFLUENCE";
+            case NECESSARY_STIMULATION:
+                return "REDUCED_TRIGGER";
+        }
+        throw new IllegalArgumentException("Could not infer CellDesigner class from SBGN arc class: "+sbgnClass);
+    }
+
     /**
      * Modify in place the LinkModel, set it as production if it was consumption, and vice versa.
      * Used for reversible reactions.

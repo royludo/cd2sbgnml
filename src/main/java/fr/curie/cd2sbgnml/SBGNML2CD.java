@@ -62,6 +62,13 @@ public class SBGNML2CD extends GeneralConverter {
     java.util.Map<String, List<Arc>> processToArcs;
 
     /**
+     * This list will contain all arcs that are not linked to any process node.
+     * For example, phenotype arcs.
+     * Or AF map arcs.
+     */
+    List<Arc> orphanArcs;
+
+    /**
      * Those 2 maps index the source and target glyph attached to each link.
      */
     java.util.Map<String, Glyph> arcToSource;
@@ -131,6 +138,11 @@ public class SBGNML2CD extends GeneralConverter {
                     processReaction(glyph);
                     break;
             }
+        }
+
+        // now process the remaining orphan arcs
+        for(Arc orphanArc: orphanArcs) {
+            processOrphanArc(orphanArc);
         }
 
 
@@ -1103,6 +1115,109 @@ public class SBGNML2CD extends GeneralConverter {
 
     }
 
+    private void processOrphanArc(Arc orphanArc) {
+        // process orphan arcs
+
+        System.out.println(orphanArc.getClazz());
+
+        Glyph targetGlyph = arcToTarget.get(orphanArc.getId());
+        Glyph sourceGlyph = arcToSource.get(orphanArc.getId());
+
+        AliasWrapper sourceAliasW = aliasWrapperMap.get(sourceGlyph.getId()+"_alias1");
+        AliasWrapper targetAliasW = aliasWrapperMap.get(targetGlyph.getId()+"_alias1");
+
+        // case where one of the glyphs could not be translated (ex: submaps)
+        if(sourceAliasW == null || targetAliasW == null) {
+            logger.warn("Discarding arc because its source or target could not be translated"); // TODO more details
+            return;
+        }
+
+        ReactantWrapper sourceWrapper = new ReactantWrapper(sourceAliasW, ReactantType.BASE_REACTANT);
+        ReactantWrapper targetWrapper = new ReactantWrapper(targetAliasW, ReactantType.BASE_PRODUCT);
+
+        List<Point2D.Float> arcPoints = SBGNUtils.getPoints(orphanArc);
+
+        // gather only edit points, as they are the one who will undergo transformations into local
+        // coordinate system
+        List<Point2D.Float> editPointsOnly;
+        if(arcPoints.size() > 2) {
+            editPointsOnly = arcPoints.subList(1, arcPoints.size() - 1);
+        }
+        else {
+            editPointsOnly = new ArrayList<>();
+        }
+        Point2D.Float startPoint = arcPoints.get(0);
+        Point2D.Float endPoint = arcPoints.get(arcPoints.size() - 1);
+
+        // infer best anchorpoints possible
+        AnchorPoint startAnchor = inferAnchorPoint(startPoint, sourceWrapper,
+                SBGNUtils.getRectangleFromGlyph(sourceGlyph));
+        sourceWrapper.setAnchorPoint(startAnchor);
+
+        AnchorPoint endAnchor = inferAnchorPoint(endPoint, targetWrapper,
+                SBGNUtils.getRectangleFromGlyph(targetGlyph));
+        targetWrapper.setAnchorPoint(endAnchor);
+
+        Point2D.Float finalStartPoint = getFinalpoint(
+                sourceWrapper.getAnchorPoint(),
+                sourceWrapper,
+                SBGNUtils.getRectangleFromGlyph(sourceGlyph));
+        Point2D.Float finalEndPoint = getFinalpoint(
+                targetWrapper.getAnchorPoint(),
+                targetWrapper,
+                SBGNUtils.getRectangleFromGlyph(targetGlyph));
+
+
+        List<Point2D.Float> localEditPoints = GeometryUtils.convertPoints(
+                editPointsOnly,
+                GeometryUtils.getTransformsToLocalCoords(
+                        finalStartPoint,
+                        finalEndPoint
+                ));
+        System.out.println("Local edit points "+localEditPoints);
+
+
+        int segmentCount = localEditPoints.size() + 1;
+
+        ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
+
+        String lineColor = "ff000000";
+        float lineWidth = 1;
+        if(mapHasStyle) {
+            System.out.println(orphanArc.getId());
+            StyleInfo styleInfo = styleMap.get(orphanArc.getId());
+            lineWidth = styleInfo.getLineWidth();
+            lineColor = styleInfo.getLineColor();
+        }
+
+        LineType2 line = new LineType2();
+        line.setWidth(BigDecimal.valueOf(lineWidth));
+        line.setColor(lineColor);
+        line.setType("Straight");
+
+        List<String> editPointString = new ArrayList<>();
+        for(Point2D.Float p: localEditPoints) {
+            editPointString.add(p.getX()+","+p.getY());
+        }
+
+        LineWrapper lineWrapper = new LineWrapper(connectScheme, editPointString, line);
+
+        ReactionWrapper reactionW = new ReactionWrapper(
+                orphanArc.getId(),
+                ReactionType.valueOf(LinkModel.getReducedCdClass(ArcClazz.fromClazz(orphanArc.getClazz()))),
+                Collections.singletonList(sourceWrapper),
+                Collections.singletonList(targetWrapper));
+
+        reactionW.setLineWrapper(lineWrapper);
+        reactionW.setHasProcess(false);
+        System.out.println("Add direct link: "+reactionW.getId());
+
+        sbml.getModel().getListOfReactions().getReaction().add(reactionW.getCDReaction());
+
+        /*additionalW.setLineWrapper(lineWrapper);
+        reactionW.getAdditionalProducts().add(additionalW);*/
+    }
+
     private ReactantWrapper processModifierToLogic(Arc modificationArc, Glyph modificationGlyph,
                                             ReactantWrapper modificationW, Glyph logicGateGlyph) {
         List<Point2D.Float> modificationPoints = SBGNUtils.getPoints(modificationArc);
@@ -1809,6 +1924,7 @@ public class SBGNML2CD extends GeneralConverter {
         portToGlyph = new HashMap<>();
         aliasWrapperMap = new HashMap<>();
         glyphToArc = new HashMap<>();
+        orphanArcs = new ArrayList<>();
 
         // parse all the style info
         styleMap = new HashMap<>();
@@ -1838,6 +1954,8 @@ public class SBGNML2CD extends GeneralConverter {
         for(Arc arc: map.getArc()) {
             Glyph sourceGlyph;
             Glyph targetGlyph;
+            boolean isConnectedToProcess = false;
+
             if(arc.getSource() instanceof Port) {
                 Port p = (Port) arc.getSource();
                 sourceGlyph = portToGlyph.get(p.getId());
@@ -1860,9 +1978,11 @@ public class SBGNML2CD extends GeneralConverter {
 
             if(processToArcs.containsKey(sourceGlyph.getId())){
                 processToArcs.get(sourceGlyph.getId()).add(arc);
+                isConnectedToProcess = true;
             }
             if(processToArcs.containsKey(targetGlyph.getId())){
                 processToArcs.get(targetGlyph.getId()).add(arc);
+                isConnectedToProcess = true;
             }
 
             if(glyphToArc.containsKey(sourceGlyph.getId())){
@@ -1870,6 +1990,12 @@ public class SBGNML2CD extends GeneralConverter {
             }
             if(glyphToArc.containsKey(targetGlyph.getId())){
                 glyphToArc.get(targetGlyph.getId()).add(arc);
+            }
+
+            if(!SBGNUtils.isLogicGate(sourceGlyph)
+                && !SBGNUtils.isLogicGate(targetGlyph)
+                && !isConnectedToProcess) {
+                orphanArcs.add(arc);
             }
         }
 
