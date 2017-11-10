@@ -1055,6 +1055,8 @@ public class SBGNML2CD extends GeneralConverter {
 
         Point2D.Float finalEndPoint = endPoint;
 
+        modificationW.setTargetLineIndex("-1,0");
+
         Point2D.Float finalStartPoint = getFinalpoint(
                 modificationW.getAnchorPoint(),
                 modificationW,

@@ -1,6 +1,7 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
 import org.sbml._2001.ns.celldesigner.*;
+import org.sbml._2001.ns.celldesigner.ComplexSpeciesAlias.BackupSize;
 import org.w3c.dom.Node;
 
 import java.awt.geom.Point2D;
@@ -225,6 +226,15 @@ public class AliasWrapper {
         View view = new View();
         view.setState("usual");
         alias.setView(view);
+
+        BackupSize backupSize = new BackupSize();
+        alias.setBackupSize(backupSize);
+        backupSize.setW(0d);
+        backupSize.setH(0d);
+
+        View backupView = new View();
+        backupView.setState("none");
+        alias.setBackupView(backupView);
 
         // the 2 views components (will be the same)
         InnerPosition innerPosition = new InnerPosition();
