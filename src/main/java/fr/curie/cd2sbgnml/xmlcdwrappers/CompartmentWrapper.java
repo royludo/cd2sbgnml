@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
+import javax.rmi.CORBA.Util;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.math.BigDecimal;
@@ -76,9 +77,12 @@ public class CompartmentWrapper {
 
         extension.setName(this.getName());
 
-        SBase.Notes notes = new SBase.Notes();
-        notes.getAny().add(this.getNotes());
-        compartment.setNotes(notes);
+        if(this.getNotes() != null
+                && !Utils.isNoteEmpty(this.getNotes())) {
+            SBase.Notes notes = new SBase.Notes();
+            notes.getAny().add(this.getNotes());
+            compartment.setNotes(notes);
+        }
 
         annotation.getAny().add(this.getAnnotations());
         return compartment;

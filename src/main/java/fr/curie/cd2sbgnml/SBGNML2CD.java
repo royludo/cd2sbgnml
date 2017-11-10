@@ -1633,7 +1633,7 @@ public class SBGNML2CD extends GeneralConverter {
         ext.setListOfGenes(new ListOfGenes());
         ext.setListOfGroups(new ListOfGroups());
         ext.setListOfIncludedSpecies(new ListOfIncludedSpecies());
-        ext.setListOfLayers(new ListOfLayers());
+        //ext.setListOfLayers(new ListOfLayers()); // TODO only when a layer is there
         ext.setListOfProteins(new ListOfProteins());
         ext.setListOfRNAs(new ListOfRNAs());
 
