@@ -456,9 +456,31 @@ public class SBGNML2CD extends GeneralConverter {
 
             ConnectScheme connectScheme = getBranchConnectScheme(segmentCountList);
 
+            String lineColor = "ff000000";
+            float lineWidth = 1;
+            /*
+                Set a style only if all components' style are the same
+             */
+            if(mapHasStyle) {
+                StyleInfo baseReactantArcStyle1 = styleMap.get(baseReactantArcs.get(0).getId());
+                StyleInfo baseReactantArcStyle2 = styleMap.get(baseReactantArcs.get(1).getId());
+                StyleInfo baseProductArcStyle = styleMap.get(baseProductArcs.get(0).getId());
+                StyleInfo processGlyphStyle = styleMap.get(processGlyph.getId());
+                if(baseReactantArcStyle1.getLineWidth() == baseReactantArcStyle2.getLineWidth()
+                        && baseReactantArcStyle1.getLineWidth() == processGlyphStyle.getLineWidth()
+                        && baseReactantArcStyle1.getLineWidth() == baseProductArcStyle.getLineWidth()
+
+                        && baseReactantArcStyle1.getLineColor().equals(baseReactantArcStyle2.getLineColor())
+                        && baseReactantArcStyle1.getLineColor().equals(baseProductArcStyle.getLineColor())
+                        && baseReactantArcStyle1.getLineColor().equals(processGlyphStyle.getLineColor())) {
+                    lineWidth = baseReactantArcStyle1.getLineWidth();
+                    lineColor = baseReactantArcStyle1.getLineColor();
+                }
+            }
+
             Line line = new Line();
-            line.setWidth(BigDecimal.valueOf(1));
-            line.setColor("ff000000");
+            line.setWidth(BigDecimal.valueOf(lineWidth));
+            line.setColor(lineColor);
 
             List<String> editPointString = new ArrayList<>();
             List<Point2D.Float> mergedList = new ArrayList<>();
@@ -651,9 +673,31 @@ public class SBGNML2CD extends GeneralConverter {
 
             ConnectScheme connectScheme = getBranchConnectScheme(segmentCountList);
 
+            String lineColor = "ff000000";
+            float lineWidth = 1;
+            /*
+                Set a style only if all components' style are the same
+             */
+            if(mapHasStyle) {
+                StyleInfo baseReactantArcStyle = styleMap.get(baseReactantArcs.get(0).getId());
+                StyleInfo baseProductArcStyle1 = styleMap.get(baseProductArcs.get(0).getId());
+                StyleInfo baseProductArcStyle2 = styleMap.get(baseProductArcs.get(1).getId());
+                StyleInfo processGlyphStyle = styleMap.get(processGlyph.getId());
+                if(baseReactantArcStyle.getLineWidth() == baseProductArcStyle1.getLineWidth()
+                        && baseProductArcStyle1.getLineWidth() == processGlyphStyle.getLineWidth()
+                        && baseProductArcStyle1.getLineWidth() == baseProductArcStyle2.getLineWidth()
+
+                        && baseReactantArcStyle.getLineColor().equals(baseProductArcStyle1.getLineColor())
+                        && baseReactantArcStyle.getLineColor().equals(baseProductArcStyle2.getLineColor())
+                        && baseReactantArcStyle.getLineColor().equals(processGlyphStyle.getLineColor())) {
+                    lineWidth = baseReactantArcStyle.getLineWidth();
+                    lineColor = baseReactantArcStyle.getLineColor();
+                }
+            }
+
             Line line = new Line();
-            line.setWidth(BigDecimal.valueOf(1));
-            line.setColor("ff000000");
+            line.setWidth(BigDecimal.valueOf(lineWidth));
+            line.setColor(lineColor);
 
             List<String> editPointString = new ArrayList<>();
             List<Point2D.Float> mergedList = new ArrayList<>();
@@ -758,9 +802,29 @@ public class SBGNML2CD extends GeneralConverter {
 
             ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, processSegmentIndex);
 
+            String lineColor = "ff000000";
+            float lineWidth = 1;
+            /*
+                Set a style only if all components' style are the same
+             */
+            if(mapHasStyle) {
+                StyleInfo baseReactantArcStyle = styleMap.get(baseReactantArcs.get(0).getId());
+                StyleInfo baseProductArcStyle = styleMap.get(baseProductArcs.get(0).getId());
+                StyleInfo processGlyphStyle = styleMap.get(processGlyph.getId());
+                if(baseReactantArcStyle.getLineWidth() == baseProductArcStyle.getLineWidth()
+                        && baseProductArcStyle.getLineWidth() == processGlyphStyle.getLineWidth()
+
+                        && baseReactantArcStyle.getLineColor().equals(baseProductArcStyle.getLineColor())
+                        && baseReactantArcStyle.getLineColor().equals(processGlyphStyle.getLineColor())) {
+                    lineWidth = baseReactantArcStyle.getLineWidth();
+                    lineColor = baseReactantArcStyle.getLineColor();
+                }
+            }
+
+
             Line line = new Line();
-            line.setWidth(BigDecimal.valueOf(1));
-            line.setColor("ff000000");
+            line.setWidth(BigDecimal.valueOf(lineWidth));
+            line.setColor(lineColor);
 
             List<String> editPointString = new ArrayList<>();
             for(Point2D.Float p: localEditPoints) {
@@ -835,13 +899,22 @@ public class SBGNML2CD extends GeneralConverter {
                     ));
             System.out.println("Local edit points "+localEditPoints);
 
+            String lineColor = "ff000000";
+            float lineWidth = 1;
+            if(mapHasStyle) {
+                System.out.println(additionalArc.getId());
+                StyleInfo styleInfo = styleMap.get(additionalArc.getId());
+                lineWidth = styleInfo.getLineWidth();
+                lineColor = styleInfo.getLineColor();
+            }
+
             int segmentCount = localEditPoints.size() + 1;
 
             ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
 
             LineType2 line = new LineType2();
-            line.setWidth(BigDecimal.valueOf(1));
-            line.setColor("ff000000");
+            line.setWidth(BigDecimal.valueOf(lineWidth));
+            line.setColor(lineColor);
             line.setType("Straight");
 
             List<String> editPointString = new ArrayList<>();
@@ -909,9 +982,18 @@ public class SBGNML2CD extends GeneralConverter {
 
             ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
 
+            String lineColor = "ff000000";
+            float lineWidth = 1;
+            if(mapHasStyle) {
+                System.out.println(additionalArc.getId());
+                StyleInfo styleInfo = styleMap.get(additionalArc.getId());
+                lineWidth = styleInfo.getLineWidth();
+                lineColor = styleInfo.getLineColor();
+            }
+
             LineType2 line = new LineType2();
-            line.setWidth(BigDecimal.valueOf(1));
-            line.setColor("ff000000");
+            line.setWidth(BigDecimal.valueOf(lineWidth));
+            line.setColor(lineColor);
             line.setType("Straight");
 
             List<String> editPointString = new ArrayList<>();
@@ -1076,9 +1158,17 @@ public class SBGNML2CD extends GeneralConverter {
 
         ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
 
+        String lineColor = "ff000000";
+        float lineWidth = 1;
+        if(mapHasStyle) {
+            StyleInfo styleInfo = styleMap.get(modificationArc.getId());
+            lineWidth = styleInfo.getLineWidth();
+            lineColor = styleInfo.getLineColor();
+        }
+
         LineType2 line = new LineType2();
-        line.setWidth(BigDecimal.valueOf(1));
-        line.setColor("ff000000");
+        line.setWidth(BigDecimal.valueOf(lineWidth));
+        line.setColor(lineColor);
         line.setType("Straight");
 
         List<String> editPointString = new ArrayList<>();
@@ -1162,9 +1252,17 @@ public class SBGNML2CD extends GeneralConverter {
 
         ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
 
+        String lineColor = "ff000000";
+        float lineWidth = 1;
+        if(mapHasStyle) {
+            StyleInfo styleInfo = styleMap.get(modificationArc.getId());
+            lineWidth = styleInfo.getLineWidth();
+            lineColor = styleInfo.getLineColor();
+        }
+
         LineType2 line = new LineType2();
-        line.setWidth(BigDecimal.valueOf(1));
-        line.setColor("ff000000");
+        line.setWidth(BigDecimal.valueOf(lineWidth));
+        line.setColor(lineColor);
         line.setType("Straight");
 
         List<String> editPointString = new ArrayList<>();
@@ -1275,9 +1373,17 @@ public class SBGNML2CD extends GeneralConverter {
 
         ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
 
+        String lineColor = "ff000000";
+        float lineWidth = 1;
+        if(mapHasStyle) {
+            StyleInfo styleInfo = styleMap.get(modificationArc.getId());
+            lineWidth = styleInfo.getLineWidth();
+            lineColor = styleInfo.getLineColor();
+        }
+
         LineType2 line = new LineType2();
-        line.setWidth(BigDecimal.valueOf(1));
-        line.setColor("ff000000");
+        line.setWidth(BigDecimal.valueOf(lineWidth));
+        line.setColor(lineColor);
         line.setType("Straight");
 
         List<String> editPointString = new ArrayList<>();

@@ -339,10 +339,9 @@ public class SBGNUtils {
             }
         }
 
-        /* source and target are reference to objects, probably useless to update
         for(Arc a: sbgn.getMap().get(0).getArc()) {
-
-        }*/
+            a.setId(a.getId().replaceAll("-", "_"));
+        }
 
         // change ids in style
         if(sbgn.getMap().get(0).getExtension() != null) {
