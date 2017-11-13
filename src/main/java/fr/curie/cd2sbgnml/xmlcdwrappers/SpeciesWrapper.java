@@ -11,6 +11,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -405,6 +407,14 @@ public class SpeciesWrapper {
                     break;
             }
         }
+
+        if(this.getMultimer() > 0) {
+            State state = new State();
+            ident.setState(state);
+
+            state.setHomodimer(BigInteger.valueOf(this.getMultimer()));
+        }
+
         return ident;
     }
 

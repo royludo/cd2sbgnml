@@ -184,6 +184,28 @@ public class SBGNUtils {
     }
 
     /**
+     * Will check the presence of a unit of information with content: "N:"+multimer count
+     * and return multimer count
+     * @param glyph
+     * @return 0 if no unit of info concerning multimer, else number of multimer
+     */
+    public static int getMultimerFromInfo(Glyph glyph) {
+        if(SBGNUtils.hasUnitOfInfo(glyph, "N\\s*:\\s*\\d+")){
+            Pattern p = Pattern.compile("N\\s*:\\s*(\\d+)", Pattern.CASE_INSENSITIVE);
+            for(Glyph subglyph: glyph.getGlyph()) {
+                if(subglyph.getClazz().equals("unit of information")) {
+                    String info = subglyph.getLabel().getText();
+                    Matcher m = p.matcher(info);
+                    if(m.find()){
+                        return Integer.parseInt(m.group(1));
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+
+    /**
      * Given a list of arcs all belonging to the same reaction (= attached to the same process glyph),
      * determines wether the reaction is reversible or not.
      * It is considered reversible if no consumption arc is present.

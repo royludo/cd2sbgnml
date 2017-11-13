@@ -1699,6 +1699,18 @@ public class SBGNML2CD extends GeneralConverter {
             speciesW.setCompartment("default");
         }
 
+        // multimer
+        if(glyph.getClazz().endsWith("multimer")) {
+            speciesW.setMultimer(2); // default to 2, if more information is present, count will be more precise
+        }
+
+        // we allow elements to not be multimer, but still have a N:\d unit of info
+        int multimerCount = SBGNUtils.getMultimerFromInfo(glyph);
+        if(multimerCount > 0) {
+            speciesW.setMultimer(multimerCount);
+        }
+
+
         // add species to correct list
         if(isIncluded) {
             speciesW.setComplex(parentSpeciesId);
