@@ -15,6 +15,23 @@ import java.io.*;
 
 public class App extends Application {
 
+    /**
+     * This enum describes the 2 possible directions of convertion.
+     */
+    public enum ConvertionChoice {
+        CD2SBGN,
+        SBGN2CD;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case CD2SBGN: return "CellDesigner -> SBGN-ML";
+                case SBGN2CD: return "SBGN-ML -> CellDesigner";
+            }
+            throw new IllegalArgumentException("No valid enum was given");
+        }
+    }
+
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("CellDesigner <-> SBGN-ML");
@@ -35,7 +52,8 @@ public class App extends Application {
         grid.add(directionLabel, 0, 0);
 
         ChoiceBox directionChoice = new ChoiceBox<>(FXCollections.observableArrayList(
-                "CellDesigner -> SBGN-ML")
+                ConvertionChoice.CD2SBGN.toString(),
+                ConvertionChoice.SBGN2CD.toString())
         );
         grid.add(directionChoice, 1, 0);
         directionChoice.getSelectionModel().selectFirst(); // set first as default
@@ -91,9 +109,13 @@ public class App extends Application {
                 throw new IllegalArgumentException("No output file provided");
             }
 
-            if(directionChoice.getValue().equals("CellDesigner -> SBGN-ML")) {
+            if(directionChoice.getValue().equals(ConvertionChoice.CD2SBGN.toString())) {
                 System.out.println("Convert button clicked, launch script");
                 Cd2SbgnmlScript.convert(inputFileText.getText(), outputFileText.getText());
+            }
+            else if(directionChoice.getValue().equals(ConvertionChoice.SBGN2CD.toString())) {
+                System.out.println("Convert button clicked, launch script");
+                Sbgnml2CdScript.convert(inputFileText.getText(), outputFileText.getText());
             }
             else {
                 throw new RuntimeException("That shouldn't happen.");

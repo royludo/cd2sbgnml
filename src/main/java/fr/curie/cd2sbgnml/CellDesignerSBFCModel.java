@@ -99,7 +99,7 @@ public class CellDesignerSBFCModel implements GeneralModel {
             marshaller = JAXBContext.newInstance(Sbml.class).createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            marshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", new Utils.DefaultNamespacePrefixMapper());
+            marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new Utils.DefaultNamespacePrefixMapper());
             marshaller.marshal(this.sbml, file);
         } catch (JAXBException e) {
             throw new WriteModelException(e.getCause());
