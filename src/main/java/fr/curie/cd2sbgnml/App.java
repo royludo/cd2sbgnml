@@ -1,7 +1,9 @@
 package fr.curie.cd2sbgnml;
 
+import com.sun.javafx.tk.Toolkit;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -10,6 +12,9 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.impl.SimpleLogger;
 
 import java.io.*;
 
@@ -111,11 +116,27 @@ public class App extends Application {
 
             if(directionChoice.getValue().equals(ConvertionChoice.CD2SBGN.toString())) {
                 System.out.println("Convert button clicked, launch script");
-                Cd2SbgnmlScript.convert(inputFileText.getText(), outputFileText.getText());
+                Task task = new Task<Void>() {
+                    @Override
+                    public Void call() {
+                        Cd2SbgnmlScript.convert(inputFileText.getText(), outputFileText.getText());
+                        return null;
+                    }
+                };
+                new Thread(task).start();
+
             }
             else if(directionChoice.getValue().equals(ConvertionChoice.SBGN2CD.toString())) {
                 System.out.println("Convert button clicked, launch script");
-                Sbgnml2CdScript.convert(inputFileText.getText(), outputFileText.getText());
+                Task task = new Task<Void>() {
+                    @Override
+                    public Void call() {
+                        Sbgnml2CdScript.convert(inputFileText.getText(), outputFileText.getText());
+                        return null;
+                    }
+                };
+                new Thread(task).start();
+
             }
             else {
                 throw new RuntimeException("That shouldn't happen.");
