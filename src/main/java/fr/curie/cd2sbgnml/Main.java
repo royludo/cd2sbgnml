@@ -66,7 +66,7 @@ public class Main {
             e.printStackTrace();
         }*/
 
-        String inputFile = "samples/infounit.xml";
+        String inputFile = "samples/mtor.xml";
 
         SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         Schema schema = null;

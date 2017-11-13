@@ -55,6 +55,7 @@ public class SBGNML2CD extends GeneralConverter {
      * Keep track of created aliasWrappers to be referred to.
      */
     java.util.Map<String, AliasWrapper> aliasWrapperMap;
+    java.util.Map<String, SpeciesWrapper> speciesWrapperMap;
 
     /**
      * This map indexes all the arcs connected to each process node.
@@ -145,9 +146,25 @@ public class SBGNML2CD extends GeneralConverter {
             processOrphanArc(orphanArc);
         }
 
+        processEnd();
+
 
 
         return sbml;
+    }
+
+    private void processEnd() {
+        for(SpeciesWrapper speciesW: speciesWrapperMap.values()){
+            // add species to correct list
+            if(speciesW.isIncludedSpecies()) {
+                org.sbml._2001.ns.celldesigner.Species species = speciesW.getCDIncludedSpecies();
+                sbml.getModel().getAnnotation().getExtension().getListOfIncludedSpecies().getSpecies().add(species);
+            }
+            else {
+                Species species = speciesW.getCDNormalSpecies();
+                sbml.getModel().getListOfSpecies().getSpecies().add(species);
+            }
+        }
     }
 
     private void processReaction(Glyph processGlyph) {
@@ -1109,6 +1126,16 @@ public class SBGNML2CD extends GeneralConverter {
                 reactionW.getModifiers().add(processedModifW);
             }
 
+            // get all speciesReference and add the reaction to those species as catalyzedReaction
+            for(ModifierSpeciesReference speciesReference:
+                    reactionW.getCDReaction().getListOfModifiers().getModifierSpeciesReference()) {
+                String speciesId = speciesReference.getSpecies();
+                SpeciesWrapper speciesW = speciesWrapperMap.get(speciesId);
+
+                System.out.println("ADD CATALYYYYZED");
+                speciesW.getCatalyzedReactions().add(reactionW.getId());
+            }
+
         }
 
         sbml.getModel().getListOfReactions().getReaction().add(reactionW.getCDReaction());
@@ -1657,11 +1684,11 @@ public class SBGNML2CD extends GeneralConverter {
         String aliasId = glyph.getId()+"_alias1";
         AliasWrapper aliasW;
         if(isComplex) {
-            speciesW = new SpeciesWrapper(glyph.getId(), label, null);
+            speciesW = new SpeciesWrapper(glyph.getId(), label, null, referenceId);
             aliasW = new AliasWrapper(aliasId, AliasWrapper.AliasType.COMPLEX, speciesW);
         }
         else {
-            speciesW = new SpeciesWrapper(glyph.getId(), label, subType);
+            speciesW = new SpeciesWrapper(glyph.getId(), label, subType, referenceId);
             aliasW = new AliasWrapper(aliasId, AliasWrapper.AliasType.BASIC, speciesW);
         }
         speciesW.getAliases().add(aliasW);
@@ -1709,18 +1736,19 @@ public class SBGNML2CD extends GeneralConverter {
         if(multimerCount > 0) {
             speciesW.setMultimer(multimerCount);
         }
+        speciesWrapperMap.put(speciesW.getId(), speciesW);
 
 
         // add species to correct list
         if(isIncluded) {
             speciesW.setComplex(parentSpeciesId);
             speciesW.setIncludedSpecies(true);
-            org.sbml._2001.ns.celldesigner.Species species = speciesW.getCDIncludedSpecies(referenceId);
-            sbml.getModel().getAnnotation().getExtension().getListOfIncludedSpecies().getSpecies().add(species);
+            /*org.sbml._2001.ns.celldesigner.Species species = speciesW.getCDIncludedSpecies(referenceId);
+            sbml.getModel().getAnnotation().getExtension().getListOfIncludedSpecies().getSpecies().add(species);*/
         }
         else {
-            Species species = speciesW.getCDNormalSpecies(referenceId);
-            sbml.getModel().getListOfSpecies().getSpecies().add(species);
+            /*Species species = speciesW.getCDNormalSpecies(referenceId);
+            sbml.getModel().getListOfSpecies().getSpecies().add(species);*/
         }
 
         // PROCESS ALIAS
@@ -1935,6 +1963,7 @@ public class SBGNML2CD extends GeneralConverter {
         processToArcs = new HashMap<>();
         portToGlyph = new HashMap<>();
         aliasWrapperMap = new HashMap<>();
+        speciesWrapperMap = new HashMap<>();
         glyphToArc = new HashMap<>();
         orphanArcs = new ArrayList<>();
 
