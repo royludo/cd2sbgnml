@@ -178,6 +178,80 @@ public class Utils {
     }
 
     /**
+     * Resolve some special chars as CellDesigner specific encoding.
+     * @param s
+     * @return
+     */
+    public static String UTF8charsToCD(String s) {
+        // special chars
+        String newString =
+                s.replaceAll("\\n", "_br_") // actual line break
+                .replaceAll("\n", "_br_") // literal \n
+                .replaceAll("&#10;", "_br_") // encoded line break
+                .replaceAll("\\+", "_plus_")
+                .replaceAll("-", "_minus_")
+                .replaceAll("/", "_slash_")
+                //.replaceAll("_", "_underscore_")
+                .replaceAll(" ", "_space_");
+
+        // greek small letters
+        newString = newString
+                .replaceAll("α","_alpha_")
+                .replaceAll("β","_beta_")
+                .replaceAll("γ","_gamma_")
+                .replaceAll("δ","_delta_")
+                .replaceAll("ε","_epsilon_")
+                .replaceAll("ζ","_zeta_")
+                .replaceAll("η","_eta_")
+                .replaceAll("θ","_theta_")
+                .replaceAll("ι","_iota_")
+                .replaceAll("κ","_kappa_")
+                .replaceAll("λ","_lambda_")
+                .replaceAll("μ","_mu_")
+                .replaceAll("ν","_nu_")
+                .replaceAll("ξ","_xi_")
+                .replaceAll("ο","_omicron_")
+                .replaceAll("π","_pi_")
+                .replaceAll("ρ","_rho_")
+                .replaceAll("σ","_sigma_")
+                .replaceAll("τ","_tau_")
+                .replaceAll("υ","_upsilon_")
+                .replaceAll("φ","_phi_")
+                .replaceAll("χ","_chi_")
+                .replaceAll("ψ","_psi_")
+                .replaceAll("ω","_omega_");
+
+        // greek capital letters
+        newString = newString
+                .replaceAll("Α", "_Alpha_")
+                .replaceAll("Β", "_Beta_")
+                .replaceAll("Γ", "_Gamma_")
+                .replaceAll("Δ", "_Delta_")
+                .replaceAll("Ε", "_Epsilon_")
+                .replaceAll("Ζ", "_Zeta_")
+                .replaceAll("Η", "_Eta_")
+                .replaceAll("Θ", "_Theta_")
+                .replaceAll("Ι", "_Iota_")
+                .replaceAll("Κ", "_Kappa_")
+                .replaceAll("Λ", "_Lambda_")
+                .replaceAll("Μ", "_Mu_")
+                .replaceAll("Ν", "_Nu_")
+                .replaceAll("Ξ", "_Xi_")
+                .replaceAll("Ο", "_Omicron_")
+                .replaceAll("Π", "_Pi_")
+                .replaceAll("Ρ", "_Rho_")
+                .replaceAll("Σ", "_Sigma_")
+                .replaceAll("Τ", "_Tau_")
+                .replaceAll("Υ", "_Upsilon_")
+                .replaceAll("Φ", "_Phi_")
+                .replaceAll("Χ", "_Chi_")
+                .replaceAll("Ψ", "_Psi_")
+                .replaceAll("Ω", "_Omega_");
+
+        return newString;
+    }
+
+    /**
      * Get the RDF element from an annotation element, if present
      * @param annotationsXml
      * @return

@@ -1611,6 +1611,7 @@ public class SBGNML2CD extends GeneralConverter {
     private void processSpecies(Glyph glyph, boolean isIncluded, boolean isComplex,
                                 String parentSpeciesId, String parentAliasId) {
         String label = glyph.getLabel() == null ? "": glyph.getLabel().getText();
+        label = Utils.UTF8charsToCD(label);
 
         System.out.println(glyph.getClazz()+" "+isIncluded+" "+isComplex);
         // first determine specific subtypes
