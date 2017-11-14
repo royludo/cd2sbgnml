@@ -1,5 +1,6 @@
 package fr.curie.cd2sbgnml;
 
+import fr.curie.cd2sbgnml.xmlcdwrappers.ResidueWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
 import jdk.nashorn.internal.runtime.regexp.joni.Regex;
 import org.sbgn.ArcClazz;
@@ -20,9 +21,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.sbgn.GlyphClazz.AND;
-import static org.sbgn.GlyphClazz.NOT;
-import static org.sbgn.GlyphClazz.OR;
+import static org.sbgn.GlyphClazz.*;
 
 public class SBGNUtils {
 
@@ -401,5 +400,26 @@ public class SBGNUtils {
         return GlyphClazz.fromClazz(g.getClazz()) == AND
                 || GlyphClazz.fromClazz(g.getClazz()) == OR
                 || GlyphClazz.fromClazz(g.getClazz()) == NOT;
+    }
+
+    public static List<Glyph> getStateVariables(Glyph g) {
+        int i=1;
+        List<Glyph> result = new ArrayList<>();
+        for(Glyph subglyph: g.getGlyph()) {
+            if(GlyphClazz.fromClazz(subglyph.getClazz()) == STATE_VARIABLE) {
+                //Glyph.State state = subglyph.getState();
+                /*String stateVar = subglyph.getState().getVariable();
+                String value = subglyph.getState().getValue();
+
+                ResidueWrapper resW = new ResidueWrapper("rs"+i);
+                resW.useAngle = true;
+                resW.name = stateVar;
+                resW.state = ResidueWrapper.getLongState(value);
+                result.add(resW);
+                i++;*/
+                result.add(subglyph);
+            }
+        }
+        return result;
     }
 }

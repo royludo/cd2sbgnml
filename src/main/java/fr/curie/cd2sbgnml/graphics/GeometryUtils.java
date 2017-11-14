@@ -183,6 +183,15 @@ public class GeometryUtils {
     }
 
     /**
+     * return angle from origin
+     * @param p a vector at origin
+     * @return signed angle in radian
+     */
+    public static double angle(Point2D p) {
+        return angle(p, new Point2D.Float(1,0));
+    }
+
+    /**
      *
      * @return angle in degree starting from positive X axis (= East)
      */
@@ -1054,6 +1063,29 @@ public class GeometryUtils {
     }
 
     /**
+     * Relative position of center of auxiliary unit from center of its parent glyph.
+     * @return
+     */
+    public static Point2D.Float getRelativePositionOfAuxUnit(Rectangle2D parent, Rectangle2D auxUnit) {
+        Point2D.Float parentMiddle = new Point2D.Float((float)parent.getCenterX(), (float)parent.getCenterY());
+        Point2D.Float unitMiddle = new Point2D.Float(
+                (float) (auxUnit.getCenterX() - parentMiddle.getX()),
+                (float) (auxUnit.getCenterY() - parentMiddle.getY()));
+        return unitMiddle;
+    }
+
+    /**
+     *
+     * @param parent
+     * @param auxUnit
+     * @return position of aux unit, in percentage of the parent glyph width from the left
+     */
+    public static double getTopRatioOfAuxUnit(Rectangle2D parent, Rectangle2D auxUnit) {
+        Point2D.Float unitRelativeCenter = getRelativePositionOfAuxUnit(parent, auxUnit);
+        return unitRelativeCenter.getX()  / parent.getWidth() + 0.5;
+    }
+
+    /**
      *
      * @param angle in radian, signed or unsigned
      * @return signed angle in radian between -PI and PI
@@ -1166,6 +1198,30 @@ public class GeometryUtils {
 
 
         return new Point2D.Float((float) resultX,(float) resultY);
+    }
+
+    /**
+     *
+     * @param parent
+     * @param auxUnit
+     * @return unsigned angle in radian
+     */
+    public static double getAngleOfAuxUnit(Rectangle2D parent, Rectangle2D auxUnit) {
+        Point2D.Float unitRelativeCenter = getRelativePositionOfAuxUnit(parent, auxUnit);
+
+        double xratio = unitRelativeCenter.getX() / parent.getWidth();
+        double yratio = unitRelativeCenter.getY() / parent.getHeight();
+
+        float fictionalSquareSize = 10;
+        Point2D.Float unitOnSquare = new Point2D.Float(
+                (float) (xratio * fictionalSquareSize),
+                (float) (yratio * fictionalSquareSize));
+
+        double signedAngle = angle(unitOnSquare);
+        if(signedAngle < 0) {
+            signedAngle += Math.PI * 2;
+        }
+        return signedAngle;
     }
 
     /**

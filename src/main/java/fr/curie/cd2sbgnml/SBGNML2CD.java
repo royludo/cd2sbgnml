@@ -56,6 +56,11 @@ public class SBGNML2CD extends GeneralConverter {
      */
     java.util.Map<String, AliasWrapper> aliasWrapperMap;
     java.util.Map<String, SpeciesWrapper> speciesWrapperMap;
+    java.util.Map<String, Protein> protMap;
+    java.util.Map<String, RNA> rnaMap;
+    java.util.Map<String, Gene> geneMap;
+    java.util.Map<String, AntisenseRNA> asrnaMap;
+
 
     /**
      * This map indexes all the arcs connected to each process node.
@@ -164,6 +169,19 @@ public class SBGNML2CD extends GeneralConverter {
                 Species species = speciesW.getCDNormalSpecies();
                 sbml.getModel().getListOfSpecies().getSpecies().add(species);
             }
+        }
+
+        for(Protein p: protMap.values()) {
+            sbml.getModel().getAnnotation().getExtension().getListOfProteins().getProtein().add(p);
+        }
+        for(Gene p: geneMap.values()) {
+            sbml.getModel().getAnnotation().getExtension().getListOfGenes().getGene().add(p);
+        }
+        for(RNA p: rnaMap.values()) {
+            sbml.getModel().getAnnotation().getExtension().getListOfRNAs().getRNA().add(p);
+        }
+        for(AntisenseRNA p: asrnaMap.values()) {
+            sbml.getModel().getAnnotation().getExtension().getListOfAntisenseRNAs().getAntisenseRNA().add(p);
         }
     }
 
@@ -1636,6 +1654,35 @@ public class SBGNML2CD extends GeneralConverter {
             }
         }
 
+        // process state vars
+        List<ResidueWrapper> residueList = new ArrayList<>();
+        int i=0;
+        for(Glyph stateVar: SBGNUtils.getStateVariables(glyph)) {
+            double angle = GeometryUtils.getAngleOfAuxUnit(
+                    SBGNUtils.getRectangleFromGlyph(glyph),
+                    SBGNUtils.getRectangleFromGlyph(stateVar));
+            double topRatio = GeometryUtils.getTopRatioOfAuxUnit(
+                    SBGNUtils.getRectangleFromGlyph(glyph),
+                    SBGNUtils.getRectangleFromGlyph(stateVar));
+
+            System.out.println("State var: "+angle+" "+stateVar.getState().getVariable()+" "+
+                    stateVar.getState().getValue()+" "+topRatio);
+
+            String variable = stateVar.getState().getVariable();
+            String value = stateVar.getState().getValue();
+
+            ResidueWrapper resW = new ResidueWrapper("rs"+i);
+            //resW.useAngle = true;
+            resW.name = variable;
+            resW.state = ResidueWrapper.getLongState(value);
+            resW.angle = (float) angle;
+            resW.relativePos = (float) topRatio;
+            residueList.add(resW);
+
+            i++;
+
+        }
+
         // create associated reference type (protein, gene...)
         // if no particular type, default to own id (for complex, simple molecules...)
         String referenceId = glyph.getId();
@@ -1650,7 +1697,26 @@ public class SBGNML2CD extends GeneralConverter {
                     referenceId = "prot_"+glyph.getId();
                     prot.setId(referenceId);
                     prot.setName(label);
-                    sbml.getModel().getAnnotation().getExtension().getListOfProteins().getProtein().add(prot);
+
+                    if(residueList.size() > 0) {
+                        ListOfModificationResidues listOfModificationResidues = new ListOfModificationResidues();
+                        prot.setListOfModificationResidues(listOfModificationResidues);
+
+                        for(ResidueWrapper resW: residueList) {
+                            ModificationResidue modificationResidue = new ModificationResidue();
+                            listOfModificationResidues.getModificationResidue().add(modificationResidue);
+
+                            modificationResidue.setSide("none");
+                            modificationResidue.setAngle(BigDecimal.valueOf(resW.angle));
+                            modificationResidue.setId(resW.id);
+                            if(resW.name != null && !resW.name.isEmpty()) {
+                                modificationResidue.setName(resW.name);
+                            }
+                        }
+                    }
+
+                    protMap.put(referenceId, prot);
+                    //sbml.getModel().getAnnotation().getExtension().getListOfProteins().getProtein().add(prot);
                     break;
                 case GENE:
                     Gene gene = new Gene();
@@ -1658,7 +1724,29 @@ public class SBGNML2CD extends GeneralConverter {
                     gene.setId(referenceId);
                     gene.setName(label);
                     gene.setType("GENE");
-                    sbml.getModel().getAnnotation().getExtension().getListOfGenes().getGene().add(gene);
+
+                    if(residueList.size() > 0) {
+                        ListOfRegions listOfRegions = new ListOfRegions();
+                        gene.setListOfRegions(listOfRegions);
+
+                        for(ResidueWrapper resW: residueList) {
+                            ListOfRegions.Region region = new ListOfRegions.Region();
+                            listOfRegions.getRegion().add(region);
+
+                            region.setId(resW.id);
+                            region.setActive(false);
+                            region.setSize(BigDecimal.valueOf(0));
+                            region.setType("Modification Site");
+                            region.setPos(BigDecimal.valueOf(resW.relativePos));
+
+                            if(resW.name != null && !resW.name.isEmpty()) {
+                                region.setName(resW.name);
+                            }
+                        }
+                    }
+
+                    geneMap.put(referenceId, gene);
+                    //sbml.getModel().getAnnotation().getExtension().getListOfGenes().getGene().add(gene);
                     break;
                 case RNA:
                     RNA rna = new RNA();
@@ -1666,7 +1754,30 @@ public class SBGNML2CD extends GeneralConverter {
                     rna.setId(referenceId);
                     rna.setName(label);
                     rna.setType("RNA");
-                    sbml.getModel().getAnnotation().getExtension().getListOfRNAs().getRNA().add(rna);
+
+                    if(residueList.size() > 0) {
+                        ListOfRegions listOfRegions = new ListOfRegions();
+                        rna.setListOfRegions(listOfRegions);
+
+                        for(ResidueWrapper resW: residueList) {
+                            ListOfRegions.Region region = new ListOfRegions.Region();
+                            listOfRegions.getRegion().add(region);
+
+                            region.setId(resW.id);
+                            // region.setActive(false); // <--- same as genes except no activity
+                            region.setSize(BigDecimal.valueOf(0));
+                            region.setType("Modification Site");
+                            region.setPos(BigDecimal.valueOf(resW.relativePos));
+
+                            if(resW.name != null && !resW.name.isEmpty()) {
+                                region.setName(resW.name);
+                            }
+                        }
+                    }
+
+
+                    rnaMap.put(referenceId, rna);
+                    //sbml.getModel().getAnnotation().getExtension().getListOfRNAs().getRNA().add(rna);
                     break;
                 case ANTISENSE_RNA:
                     AntisenseRNA asrna = new AntisenseRNA();
@@ -1674,7 +1785,29 @@ public class SBGNML2CD extends GeneralConverter {
                     asrna.setId(referenceId);
                     asrna.setName(label);
                     asrna.setType("ANTISENSE_RNA");
-                    sbml.getModel().getAnnotation().getExtension().getListOfAntisenseRNAs().getAntisenseRNA().add(asrna);
+
+                    if(residueList.size() > 0) {
+                        ListOfRegions listOfRegions = new ListOfRegions();
+                        asrna.setListOfRegions(listOfRegions);
+
+                        for(ResidueWrapper resW: residueList) {
+                            ListOfRegions.Region region = new ListOfRegions.Region();
+                            listOfRegions.getRegion().add(region);
+
+                            region.setId(resW.id);
+                            // region.setActive(false); // <--- same as genes except no activity
+                            region.setSize(BigDecimal.valueOf(0));
+                            region.setType("Modification Site");
+                            region.setPos(BigDecimal.valueOf(resW.relativePos));
+
+                            if(resW.name != null && !resW.name.isEmpty()) {
+                                region.setName(resW.name);
+                            }
+                        }
+                    }
+
+                    asrnaMap.put(referenceId, asrna);
+                    //sbml.getModel().getAnnotation().getExtension().getListOfAntisenseRNAs().getAntisenseRNA().add(asrna);
                     break;
             }
         }
@@ -1736,8 +1869,11 @@ public class SBGNML2CD extends GeneralConverter {
         if(multimerCount > 0) {
             speciesW.setMultimer(multimerCount);
         }
-        speciesWrapperMap.put(speciesW.getId(), speciesW);
 
+        // add state variables
+        for(ResidueWrapper resW: residueList) {
+            speciesW.getResidues().add(resW);
+        }
 
         // add species to correct list
         if(isIncluded) {
@@ -1750,6 +1886,7 @@ public class SBGNML2CD extends GeneralConverter {
             /*Species species = speciesW.getCDNormalSpecies(referenceId);
             sbml.getModel().getListOfSpecies().getSpecies().add(species);*/
         }
+        speciesWrapperMap.put(speciesW.getId(), speciesW);
 
         // PROCESS ALIAS
         // compartmentRef
@@ -1966,6 +2103,10 @@ public class SBGNML2CD extends GeneralConverter {
         speciesWrapperMap = new HashMap<>();
         glyphToArc = new HashMap<>();
         orphanArcs = new ArrayList<>();
+        protMap = new HashMap<>();
+        rnaMap = new HashMap<>();
+        geneMap = new HashMap<>();
+        asrnaMap = new HashMap<>();
 
         // parse all the style info
         styleMap = new HashMap<>();

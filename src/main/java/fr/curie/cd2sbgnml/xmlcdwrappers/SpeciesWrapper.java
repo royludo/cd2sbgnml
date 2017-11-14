@@ -421,11 +421,31 @@ public class SpeciesWrapper {
             }
         }
 
-        if(this.getMultimer() > 0) {
+        if(this.getMultimer() > 0 || this.getResidues().size() > 0) {
             State state = new State();
             ident.setState(state);
 
-            state.setHomodimer(BigInteger.valueOf(this.getMultimer()));
+            if(this.getMultimer() > 0) {
+                state.setHomodimer(BigInteger.valueOf(this.getMultimer()));
+            }
+
+            if(this.getResidues().size() > 0) {
+                ListOfModifications listOfModifications = new ListOfModifications();
+                boolean atLeast1ResiduePresent = false;
+
+                for(ResidueWrapper resW: this.getResidues()) {
+                    if(resW.state != null && !resW.state.isEmpty()) {
+                        ListOfModifications.Modification modification = new ListOfModifications.Modification();
+                        modification.setResidue(resW.id);
+                        modification.setState(resW.state);
+                        listOfModifications.getModification().add(modification);
+                        atLeast1ResiduePresent = true;
+                    }
+                }
+                if(atLeast1ResiduePresent) {
+                    state.setListOfModifications(listOfModifications);
+                }
+            }
         }
 
         return ident;

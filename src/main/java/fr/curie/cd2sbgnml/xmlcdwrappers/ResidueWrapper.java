@@ -47,6 +47,29 @@ public class ResidueWrapper {
         }
     }
 
+    public static String getLongState(String state) {
+        switch(state) {
+            case "P": return "phosphorylated";
+            case "Ac": return "acetylated";
+            case "Ub": return "ubiquitinated";
+            case "Me": return "methylated";
+            case "OH": return "hydroxylated";
+            case "*": return "don't care";
+            case "?": return "unknown";
+            case "G": return "glycosylated";
+            case "My": return "myristoylated";
+            case "Pa": return "palmytoylated";
+            case "Pr": return "prenylated";
+            case "H": return "protonated";
+            case "S": return "sulfated";
+            case "": return "";
+            default:
+                logger.warn("Residue state: "+state+" not recognized, set to empty as it will not be " +
+                        "recognized by CellDesigner.");
+                return "";
+        }
+    }
+
     public String getSbgnText() {
         if(!this.state.equals("")) {
             if(!this.name.equals("")) {
