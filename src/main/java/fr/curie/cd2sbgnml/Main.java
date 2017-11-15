@@ -9,7 +9,6 @@ import org.sbgn.SbgnUtil;
 import org.sbml.wrapper.ModelWrapper;
 import org.sbml.wrapper.ObjectFactory;*/
 import org.sbml.sbml.level2.version4.Sbml;
-import org.slf4j.impl.SimpleLogger;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
@@ -23,8 +22,8 @@ import java.io.IOException;
 public class Main {
     public static void main(String args[]) {
         System.out.println("test");
-        System.setProperty(SimpleLogger.LOG_FILE_KEY, "samples/report.log");
-        System.setProperty(SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "DEBUG");
+        /*System.setProperty(SimpleLogger.LOG_FILE_KEY, "samples/report.log");
+        System.setProperty(SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "DEBUG");*/
 
         /*fr.curie.cd2sbgnml.xmlcdwrappers.ModelWrapper model = null;
         try {
@@ -83,7 +82,7 @@ public class Main {
             e.printStackTrace();
         }
 
-        if(false) {
+        if(true) {
             CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
             try {
                 cdModel.setModelFromFile(inputFile);
