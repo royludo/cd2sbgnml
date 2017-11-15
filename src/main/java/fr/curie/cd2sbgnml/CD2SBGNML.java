@@ -49,7 +49,7 @@ public class CD2SBGNML extends GeneralConverter {
     public Sbgn toSbgn(Sbml sbml) {
         Sbgn sbgn = new Sbgn();
         Map map = new Map();
-        map.setId("mapID");
+        //map.setId("mapID"); don't put it to ensure 0.2 compatibility
         sbgn.getMap().add(map);
 
         ModelWrapper modelW = ModelWrapper.create(sbml);
@@ -889,7 +889,7 @@ public class CD2SBGNML extends GeneralConverter {
 
     public GeneralModel convert(GeneralModel generalModel) throws ConversionException, ReadModelException {
         CellDesignerSBFCModel cdModel = (CellDesignerSBFCModel) generalModel;
-        return new SBGNModel(this.toSbgn(cdModel.getSbml()));
+        return new SBGNSBFCModel(this.toSbgn(cdModel.getSbml()));
     }
 
     public String getResultExtension() {

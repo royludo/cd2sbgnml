@@ -47,7 +47,7 @@ public class Cd2SbgnmlScript {
         }
 
         try {
-            SBGNModel sbgnModel = (SBGNModel) toSBGNConverter.convert(cdModel);
+            SBGNSBFCModel sbgnModel = (SBGNSBFCModel) toSBGNConverter.convert(cdModel);
             sbgnModel.modelToFile(outputFileName);
         } catch (ConversionException | ReadModelException | WriteModelException e) {
             e.printStackTrace();

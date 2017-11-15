@@ -3,6 +3,7 @@ package fr.curie.cd2sbgnml;
 import fr.curie.cd2sbgnml.xmlcdwrappers.Utils;
 import org.sbfc.converter.exceptions.ConversionException;
 import org.sbfc.converter.exceptions.ReadModelException;
+import org.sbfc.converter.exceptions.WriteModelException;
 import org.sbgn.SbgnUtil;
 /*import org.sbml.sbml.level2.version4.Sbml;
 import org.sbml.wrapper.ModelWrapper;
@@ -66,7 +67,7 @@ public class Main {
             e.printStackTrace();
         }*/
 
-        String inputFile = "samples/infounit.xml";
+        String inputFile = "samples/reaction.xml";
 
         SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         Schema schema = null;
@@ -82,7 +83,7 @@ public class Main {
             e.printStackTrace();
         }
 
-        if(true) {
+        if(false) {
             CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
             try {
                 cdModel.setModelFromFile(inputFile);
@@ -92,8 +93,11 @@ public class Main {
             }
 
             try {
-                SbgnUtil.writeToFile(new CD2SBGNML().toSbgn(cdModel.getSbml()), new File("samples/out.sbgnml"));
-            } catch (JAXBException e) {
+                CD2SBGNML cd2SBGNML = new CD2SBGNML();
+                SBGNSBFCModel sbgnModel = (SBGNSBFCModel) cd2SBGNML.convert(cdModel);
+                sbgnModel.modelToFile("samples/out.sbgnml");
+                //SbgnUtil.writeToFile(new CD2SBGNML().toSbgn(cdModel.getSbml()), new File("samples/out.sbgnml"));
+            } catch (ReadModelException | ConversionException | WriteModelException e) {
                 e.printStackTrace();
             }
         }
