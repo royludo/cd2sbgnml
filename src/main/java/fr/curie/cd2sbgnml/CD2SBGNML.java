@@ -592,10 +592,10 @@ public class CD2SBGNML extends GeneralConverter {
             Glyph rnaUnitOfInfo = getUnitOfInfo("asRNA", bboxRect, 90);
             glyph.getGlyph().add(rnaUnitOfInfo);
         }
-        else if(species.getCdClass().equals("ION")) {
+        /*else if(species.getCdClass().equals("ION")) {
             Glyph ionUnitOfInfo = getUnitOfInfo("ion", bboxRect, 90);
             glyph.getGlyph().add(ionUnitOfInfo);
-        }
+        }*/
         else if(species.getCdClass().equals("DRUG")) {
             Glyph drugUnitOfInfo = getUnitOfInfo("drug", bboxRect, 90);
             glyph.getGlyph().add(drugUnitOfInfo);
