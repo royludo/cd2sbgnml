@@ -1,8 +1,20 @@
-under construction
+Under finalization
 
-lib/org.sbgn-with-dependencies.jar is built directly from the libsbgn sources.
+## Project
 
-To download the package, go to the [release page](https://github.com/royludo/cd2sbgnml/releases).
+The aim is to provide the most accurate translation possible between
+[CellDesigner](http://www.celldesigner.org/)
+and [SBGN-ML](https://sbgn.github.io/sbgn/) file formats.
+Translation in both direction is possible. This project should ultimately be integrated into
+[SBFC](https://www.ebi.ac.uk/biomodels/tools/converters/).
+
+Compatible formats:
+ - Sbml Level 2 Version 4, CellDesigner modelVersion 4.0 (output of CellDesigner 4.4)
+ - SBGN-ML 0.2 (PD)
+
+To download the full app directly, go to the [release page](https://github.com/royludo/cd2sbgnml/releases).
+
+More information in the [Wiki](https://github.com/royludo/cd2sbgnml/wiki).
 
 ## Requirements
 
@@ -36,3 +48,26 @@ directly calling the package with `java -jar`. Be sure to have JavaFX working in
 
 With the scripts, all log messages will go to System.out. With the GUI, everything will be written in
 the selected log file.
+
+## Contributions and issues
+
+If you have any suggestions or want to report a bug, don't hesitate to create an [issue](https://github.com/royludo/cd2sbgnml/issues).
+Pull requests and all forms of contribution will be warmly welcomed.
+
+## Useful links
+
+ - More details about the [SBGN-ML format](https://github.com/sbgn/sbgn/wiki/SBGN_ML)
+ - The [CellDesigner format](http://www.celldesigner.org/documents/CellDesigner4ExtensionTagSpecificationE.pdf) (outdated for 4.4)
+ - [SBFC doc](http://sbfc.sourceforge.net/mediawiki/index.php/Main_Page)
+ - a super useful webservice for [SBGN rendering](http://sysbioapps.dyndns.org/Home/Services)
+
+## Acknowledgements
+
+This work was initially done at [Sysbio group](http://sysbio.curie.fr/) in [Institut Curie](https://curie.fr/)
+under the supervision of Andrei Zinovyev, in collaboration with Alexander Mazein from [EISBM](http://www.eisbm.org/).
+
+Thanks to Frank T. Bergmann for his SBGN rendering tool which made debugging a whole lot easier.
+
+Thanks to Nicolas, Laetitia, Henri, Choumouss and Julien for the everyday office mate support.
+
+And thanks to Olga for this translation rule sheet that, in the end, definitely had a real part in this project.
