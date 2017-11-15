@@ -66,7 +66,7 @@ public class Main {
             e.printStackTrace();
         }*/
 
-        String inputFile = "samples/acsn_v1.1.xml";
+        String inputFile = "samples/infounit.xml";
 
         SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         Schema schema = null;

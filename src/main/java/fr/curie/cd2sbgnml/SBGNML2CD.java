@@ -162,8 +162,16 @@ public class SBGNML2CD extends GeneralConverter {
         for(SpeciesWrapper speciesW: speciesWrapperMap.values()){
             // add species to correct list
             if(speciesW.isIncludedSpecies()) {
+                ListOfIncludedSpecies listOfIncludedSpecies =
+                        sbml.getModel().getAnnotation().getExtension().getListOfIncludedSpecies();
+
+                // create listofincluded if not already there
+                if(listOfIncludedSpecies == null) {
+                    listOfIncludedSpecies = new ListOfIncludedSpecies();
+                    sbml.getModel().getAnnotation().getExtension().setListOfIncludedSpecies(listOfIncludedSpecies);
+                }
                 org.sbml._2001.ns.celldesigner.Species species = speciesW.getCDIncludedSpecies();
-                sbml.getModel().getAnnotation().getExtension().getListOfIncludedSpecies().getSpecies().add(species);
+                listOfIncludedSpecies.getSpecies().add(species);
             }
             else {
                 Species species = speciesW.getCDNormalSpecies();
@@ -2031,7 +2039,6 @@ public class SBGNML2CD extends GeneralConverter {
         ext.setListOfComplexSpeciesAliases(new ListOfComplexSpeciesAliases());
         ext.setListOfGenes(new ListOfGenes());
         ext.setListOfGroups(new ListOfGroups());
-        ext.setListOfIncludedSpecies(new ListOfIncludedSpecies());
         //ext.setListOfLayers(new ListOfLayers()); // TODO only when a layer is there
         ext.setListOfProteins(new ListOfProteins());
         ext.setListOfRNAs(new ListOfRNAs());
