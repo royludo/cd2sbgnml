@@ -1,7 +1,5 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
-import org.apache.xmlbeans.SchemaType;
-import org.apache.xmlbeans.impl.schema.SchemaTypeImpl;
 import org.sbgn.bindings.Glyph;
 import org.sbml._2001.ns.celldesigner.*;
 import org.sbml.sbml.level2.version4.Species;

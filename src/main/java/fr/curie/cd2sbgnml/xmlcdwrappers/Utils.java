@@ -1,7 +1,6 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
-import org.apache.xmlbeans.XmlObject;
 import org.sbml._2001.ns.celldesigner.Notes;
 import org.sbml.sbml.level2.version4.SBase;
 import org.w3c.dom.Element;

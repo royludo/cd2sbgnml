@@ -6,7 +6,7 @@
 
     <groupId>fr.curie</groupId>
     <artifactId>cd2sbgnml</artifactId>
-    <version>0.1</version>
+    <version>0.2</version>
 
 
     <build>
@@ -27,45 +27,6 @@
                 <version>2.5.2</version>
                 <inherited>false</inherited>
                 <executions>
-                    <!-- cellDesignerParser -->
-                    <!--
-                    <execution>
-                        <id>install-cellDesignerParser</id>
-                        <phase>clean</phase>
-                        <configuration>
-                            <file>${project.basedir}/lib/cellDesignerParser-1.0.jar</file>
-                            <repositoryLayout>default</repositoryLayout>
-                            <groupId>fr.curie</groupId>
-                            <artifactId>cellDesignerParser</artifactId>
-                            <version>1.0</version>
-                            <packaging>jar</packaging>
-                            <generatePom>true</generatePom>
-                        </configuration>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                    </execution>
-                    -->
-
-                    <!-- cellDesignerParser funasoul -->
-                    <!--
-                    <execution>
-                        <id>install-celldesigner-parser-funasoul</id>
-                        <phase>clean</phase>
-                        <configuration>
-                            <file>${project.basedir}/lib/layoutconverter-1.0.0-jar-with-dependencies.jar</file>
-                            <repositoryLayout>default</repositoryLayout>
-                            <groupId>org.sbml</groupId>
-                            <artifactId>cellDesigner-parser</artifactId>
-                            <version>1.0</version>
-                            <packaging>jar</packaging>
-                            <generatePom>true</generatePom>
-                        </configuration>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                    </execution>
-                    -->
 
                     <!-- libsbgn -->
                     <execution>
@@ -120,6 +81,8 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
+                    <finalName>${project.artifactId}-${project.version}-app</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>
                             <mainClass>fr.curie.cd2sbgnml.Launcher</mainClass>
@@ -147,26 +110,6 @@
             <artifactId>sbfc-1.3.7</artifactId>
             <version>1.3.7</version>
         </dependency>
-
-        <dependency>
-            <groupId>fr.curie</groupId>
-            <artifactId>cellDesignerParser</artifactId>
-            <version>1.0</version>
-        </dependency>
-
-        <!--
-        <dependency>
-            <groupId>org.sbml</groupId>
-            <artifactId>cellDesigner-parser</artifactId>
-            <version>1.0</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>org.sbml.jsbml</groupId>
-            <artifactId>jsbml</artifactId>
-            <version>1.2</version>
-        </dependency> -->
 
         <dependency>
             <groupId>junit</groupId>
