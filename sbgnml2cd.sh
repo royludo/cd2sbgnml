@@ -1,1 +1,1 @@
-java -cp target/cd2sbgnml-0.1-jar-with-dependencies.jar fr.curie.cd2sbgnml.Sbgnml2CdScript -i $1 -o $2
+java -cp target/cd2sbgnml-0.2-app.jar fr.curie.cd2sbgnml.Sbgnml2CdScript -i $1 -o $2
