@@ -64,10 +64,11 @@ Pull requests and all forms of contribution will be warmly welcomed.
 ## Acknowledgements
 
 This work was initially done at [Sysbio group](http://sysbio.curie.fr/) in [Institut Curie](https://curie.fr/)
-under the supervision of Andrei Zinovyev, in collaboration with Alexander Mazein from [EISBM](http://www.eisbm.org/).
+under the supervision of Andrei Zinovyev, in collaboration with Alexander Mazein from [EISBM](http://www.eisbm.org/)
+and the Disease Maps community.
 
 Thanks to Frank T. Bergmann for his SBGN rendering tool which made debugging a whole lot easier.
 
 Thanks to Nicolas, Laetitia, Henri, Choumouss and Julien for the everyday office mate support.
 
-And thanks to Olga for this translation rule sheet that, in the end, definitely had a real part in this project.
+And thanks to Olga Ivanova for this translation rule sheet that, in the end, definitely had a real part in this project.
