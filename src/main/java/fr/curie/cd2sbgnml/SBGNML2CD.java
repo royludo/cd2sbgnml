@@ -92,7 +92,7 @@ public class SBGNML2CD extends GeneralConverter {
         sbgn = SBGNUtils.sanitizeIds(sbgn);
 
         // consider only the first map
-        Map sbgnMap = sbgn.getMap().get(0);
+        Map sbgnMap = sbgn.getMap(); //.get(0);
 
         // init celldesigner file
         sbml = this.initFile(sbgnMap);

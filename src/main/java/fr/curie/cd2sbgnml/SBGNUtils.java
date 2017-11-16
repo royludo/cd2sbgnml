@@ -345,7 +345,7 @@ public class SBGNUtils {
      * @return
      */
     public static Sbgn sanitizeIds(Sbgn sbgn) {
-        for(Glyph g: sbgn.getMap().get(0).getGlyph()){
+        for(Glyph g: sbgn.getMap()/*.get(0)*/.getGlyph()){
 
             System.out.println("Replace id: "+g.getId());
             g.setId(g.getId().replaceAll("-", "_"));
@@ -360,13 +360,13 @@ public class SBGNUtils {
             }
         }
 
-        for(Arc a: sbgn.getMap().get(0).getArc()) {
+        for(Arc a: sbgn.getMap()/*.get(0)*/.getArc()) {
             a.setId(a.getId().replaceAll("-", "_"));
         }
 
         // change ids in style
-        if(sbgn.getMap().get(0).getExtension() != null) {
-            for (Element e : sbgn.getMap().get(0).getExtension().getAny()) {
+        if(sbgn.getMap()/*.get(0)*/.getExtension() != null) {
+            for (Element e : sbgn.getMap()/*.get(0)*/.getExtension().getAny()) {
                 if (e.getTagName().equals("renderInformation")) {
                     NodeList nodeList = e.getElementsByTagName("style");
 

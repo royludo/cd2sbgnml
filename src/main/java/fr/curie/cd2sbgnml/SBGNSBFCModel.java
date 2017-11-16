@@ -39,8 +39,10 @@ public class SBGNSBFCModel extends SBGNModel {
         File f = new File(fileName);
         try {
             String content = new String(Files.readAllBytes(f.toPath()));
-            content = content.replaceFirst("http://sbgn\\.org/libsbgn/0\\.2", "http://sbgn.org/libsbgn/0.3");
-            //System.out.println(content);
+
+            // following line is when using 0.3 and processing 0.2
+            //content = content.replaceFirst("http://sbgn\\.org/libsbgn/0\\.2", "http://sbgn.org/libsbgn/0.3");
+
             JAXBContext context = JAXBContext.newInstance("org.sbgn.bindings");
             Unmarshaller unmarshaller = context.createUnmarshaller();
             this.model = (Sbgn)unmarshaller.unmarshal(new StringReader(content));
@@ -67,7 +69,8 @@ public class SBGNSBFCModel extends SBGNModel {
             marshaller.marshal(this.model , sw);
 
             String content = sw.toString();
-            content = content.replaceFirst("http://sbgn\\.org/libsbgn/0\\.3", "http://sbgn.org/libsbgn/0.2");
+            // following line is when using 0.3 and processing 0.2
+            //content = content.replaceFirst("http://sbgn\\.org/libsbgn/0\\.3", "http://sbgn.org/libsbgn/0.2");
 
             PrintWriter out = new PrintWriter(fileName);
             out.println(content);

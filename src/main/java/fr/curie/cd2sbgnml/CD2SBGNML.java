@@ -10,6 +10,7 @@ import org.sbfc.converter.exceptions.ConversionException;
 import org.sbfc.converter.exceptions.ReadModelException;
 import org.sbfc.converter.models.GeneralModel;
 import org.sbfc.converter.models.SBGNModel;
+import org.sbgn.Language;
 import org.sbgn.bindings.*;
 import org.sbgn.bindings.Glyph.State;
 import org.sbgn.bindings.Map;
@@ -50,7 +51,9 @@ public class CD2SBGNML extends GeneralConverter {
         Sbgn sbgn = new Sbgn();
         Map map = new Map();
         //map.setId("mapID"); don't put it to ensure 0.2 compatibility
-        sbgn.getMap().add(map);
+        //sbgn.getMap().add(map);
+        sbgn.setMap(map);
+        map.setLanguage(Language.PD.toString());
 
         ModelWrapper modelW = ModelWrapper.create(sbml);
 

@@ -64,7 +64,8 @@ public class Sbgnml2CdScript {
 
         SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         try {
-            Schema schema = sf.newSchema(new File("schema/CellDesigner.xsd"));
+            Schema schema = sf.newSchema(
+                            Sbgnml2CdScript.class.getResource("/schema/CellDesigner.xsd"));
             JAXBContext jc = JAXBContext.newInstance(Sbml.class);
 
             Unmarshaller unmarshaller = jc.createUnmarshaller();
