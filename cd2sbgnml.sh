@@ -1,1 +1,1 @@
-java -cp target/cd2sbgnml-0.2-app.jar fr.curie.cd2sbgnml.Cd2SbgnmlScript -i $1 -o $2
+java -cp target/cd2sbgnml-0.3.0-app.jar fr.curie.cd2sbgnml.Cd2SbgnmlScript -i $1 -o $2
