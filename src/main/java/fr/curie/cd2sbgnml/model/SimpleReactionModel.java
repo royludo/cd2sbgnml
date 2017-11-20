@@ -4,6 +4,8 @@ import fr.curie.cd2sbgnml.graphics.*;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
@@ -15,6 +17,8 @@ import java.util.UUID;
 
 
 public class SimpleReactionModel extends GenericReactionModel{
+
+    private static final Logger logger = LoggerFactory.getLogger(SimpleReactionModel.class);
 
     public SimpleReactionModel(ReactionWrapper reactionW) {
         super(reactionW);
@@ -127,6 +131,12 @@ public class SimpleReactionModel extends GenericReactionModel{
             this.getReactantModels().add(startModel);
             this.getReactantModels().add(endModel);
             this.getLinkModels().add(l1);
+
+            if(reactionW.getModifiers().size() > 0) {
+                logger.error("Reaction "+reactionW.getId()+" with no process has "+reactionW.getModifiers().size()
+                        +" modifier links that were removed.");
+            }
+
         }
 
     }
