@@ -37,7 +37,7 @@ public class LogicGate extends ReactionNodeModel{
             case OR: return "or";
             case AND: return "and";
             case NOT: return "not";
-            //case UNKNOWN: break; // TODO what to do ?
+            //case UNKNOWN: break; // they are removed
         }
         throw new IllegalArgumentException("Could not infer SBGN class from logic type: "+logicType);
     }

@@ -162,27 +162,8 @@ public class CD2SBGNML extends GeneralConverter {
 
 
                     Glyph logicGlyph = new Glyph();
-                    try {
-                        logicGlyph.setClazz(LogicGate.getSbgnClass(logicGate.getType()));
-                    } catch(RuntimeException e) {
-                        // we need to remove links pointing to this gate
-                        System.out.println("DELETE link to gate");
-                        logger.error("BOOLEAN_LOGIC_GATE_UNKNOWN was found in reaction " + reactionW.getId() +
-                                " and cannot be translated properly. It will be removed.");
-                        for (Iterator<LinkModel> iter = genericReactionModel.getLinkModels().listIterator(); iter.hasNext(); ) {
-                            LinkModel lm = iter.next();
-                            if(lm.getEnd().equals(logicGate) || lm.getStart().equals(logicGate)) {
-                                logger.error("Removing "+lm.getSbgnClass()+" link with id "+lm.getId()+" to or from unknown " +
-                                        "logic gate");
-                                System.out.println("FOUND LINK TO DELETE");
-                                iter.remove();
-                                System.out.println(genericReactionModel.getLinkModels().size());
-                            }
+                    logicGlyph.setClazz(LogicGate.getSbgnClass(logicGate.getType()));
 
-                        }
-
-                        continue;
-                    }
                     String logicId = logicGate.getId();
                     logicGlyph.setId(logicId);
 

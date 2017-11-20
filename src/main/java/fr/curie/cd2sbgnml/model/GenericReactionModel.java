@@ -4,6 +4,7 @@ import fr.curie.cd2sbgnml.graphics.AnchorPoint;
 import fr.curie.cd2sbgnml.graphics.GeometryUtils;
 import fr.curie.cd2sbgnml.graphics.Link;
 import fr.curie.cd2sbgnml.xmlcdwrappers.LogicGateWrapper;
+import fr.curie.cd2sbgnml.xmlcdwrappers.LogicGateWrapper.LogicGateType;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
@@ -120,6 +121,8 @@ public class GenericReactionModel {
     public void addModifiers(ReactionWrapper reactionW, Process process) {
         // start with logic gates
         HashMap<ReactantWrapper, String> reactantToLogicGateMap = this.addLogicGates(reactionW, process);
+        HashSet<ReactionNodeModel> logicGatesToBeRemoved = new HashSet<>();
+        HashSet<LinkModel> logicLinksToBeRemoved = new HashSet<>();
 
         for(ReactantWrapper reactantW: reactionW.getModifiers()) {
             // simple case, no logic gate
@@ -135,17 +138,52 @@ public class GenericReactionModel {
 
             // treat modifier as linked to a reactionNodeModel, either a process or a logic gate
             ReactionNodeModel genericNode = null;
+            LinkModel logicLink = null; // in case reactant is linked to logic gate
             Point2D.Float genericNodeAnchorPoint;
             String linkType;
             if(reactantW.getLogicGate() != null) { // linked to logic gate
-                String logicId = reactantToLogicGateMap.get(reactantW) ;
+                String logicId = reactantToLogicGateMap.get(reactantW);
                 for(ReactionNodeModel nodeModel: this.getReactionNodeModels()) {
                     if(nodeModel.getId().equals(logicId)) {
                         genericNode = nodeModel;
                     }
                 }
-                genericNodeAnchorPoint = genericNode.getPortIn();
-                linkType = "logic arc";
+
+                /*
+                    Case of UNKNOWN logic gates, needs to be removed
+                 */
+                LogicGateWrapper logicGate = reactantW.getLogicGate();
+                if(logicGate.getType() == LogicGateType.UNKNOWN) {
+                    logger.error("For reaction: "+this.getId()+" a glyph with ID: "+reactantW.getAliasW().getId()+
+                            " and glyph name: "+reactantW.getAliasW().getSpeciesW().getName()+
+                            " is linked to an UNKNOWN logic gate which cannot be translated. " +
+                            "The logic gate will be removed and the modifier will point directly to the process glyph.");
+
+                    // find the link of this logic gate
+                    for(LinkModel linkModel: this.getLinkModels()) {
+                        if(linkModel.getStart().getId().equals(logicId)) {
+                            logicLink = linkModel;
+                        }
+                    }
+
+                    // schedule for removal. Don't remove now, because other modifiers might be
+                    // linked to this logic gate
+                    logicLinksToBeRemoved.add(logicLink);
+                    logicGatesToBeRemoved.add(genericNode);
+
+                    // set destination of reactantWrapper link to be the process instead of the logic gate
+                    genericNode = process;
+                    genericNodeAnchorPoint = process.getAbsoluteAnchorCoords(logicGate.getProcessAnchorIndex());
+                    linkType = logicLink.getSbgnClass();
+
+                }
+                // normal logic gate case
+                else {
+                    genericNodeAnchorPoint = genericNode.getPortIn();
+                    linkType = "logic arc";
+                }
+
+
             }
             else { // modifier is linked to process
                 genericNode = process;
@@ -192,6 +230,17 @@ public class GenericReactionModel {
             // add everything to the reaction lists
             this.getReactantModels().add(modifModel);
             this.getLinkModels().add(modifLink);
+        }
+
+        // remove unwanted logic gates and their links
+        if(logicGatesToBeRemoved.size() > 0) {
+            logger.error(logicGatesToBeRemoved.size()+" logic gates were removed for reaction "+this.getId());
+        }
+        for(ReactionNodeModel r: logicGatesToBeRemoved){
+            this.getReactionNodeModels().remove(r);
+        }
+        for(LinkModel l: logicLinksToBeRemoved) {
+            this.getLinkModels().remove(l);
         }
     }
 
