@@ -234,14 +234,12 @@ public class GeometryUtilsTest {
     public void getLineRectangleIntersectionRectOriginDiag(){
         List<Point2D.Float> res = GeometryUtils.getLineRectangleIntersection(new Line2D.Float(p0, new Point2D.Float(5,5)), rectAtOrigin);
         assertEquals(2, res.size());
-        System.out.println(res);
         assertTrue(res.stream().anyMatch(e -> e.equals(new Point2D.Float(5, 5))));
     }
 
     @Test
     public void getLineRectangleIntersectionRectOriginFarLine(){
         List<Point2D.Float> res = GeometryUtils.getLineRectangleIntersection(inverseDiagAt50, rectAtOrigin);
-        System.out.println(res);
 
         assertEquals(0, res.size());
         /*assertTrue(res.stream().anyMatch(e -> e.equals(new Point2D.Float(5, 5))));

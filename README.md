@@ -14,7 +14,9 @@ Compatible formats:
 
 To download the full app directly, go to the [release page](https://github.com/royludo/cd2sbgnml/releases).
 
-More information in the [Wiki](https://github.com/royludo/cd2sbgnml/wiki).
+More information can be found in the [Wiki](https://github.com/royludo/cd2sbgnml/wiki).
+
+Javadoc is available [here](https://royludo.github.io/cd2sbgnml).
 
 ## Requirements
 
@@ -33,6 +35,10 @@ This will output 2 jars in the `target/` directory:
  - cd2sbgnml-{version}.jar: the bare compiled project, with no dependency included. Can be used directly in
  other Java projects.
  - cd2sbgnml-{version}-app.jar: the full project with all dependencies included. Scripts and GUI provided here can be used.
+
+Javadoc can be generated with:
+
+`mvn javadoc:javadoc`
 
 ## Usage
 
