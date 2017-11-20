@@ -1,12 +1,14 @@
 package fr.curie.cd2sbgnml.graphics;
 
 
-import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
+
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Something that links glyphs together. Only defines a set of point.
+ */
 public class Link {
 
     private Point2D.Float start;

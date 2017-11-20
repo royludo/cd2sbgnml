@@ -1,5 +1,6 @@
 package fr.curie.cd2sbgnml;
 
+import fr.curie.cd2sbgnml.graphics.CdShape;
 import fr.curie.cd2sbgnml.graphics.GeometryUtils;
 import fr.curie.cd2sbgnml.graphics.Link;
 import fr.curie.cd2sbgnml.model.*;
@@ -708,6 +709,12 @@ public class CD2SBGNML extends GeneralConverter {
             // TODO for reversible reactions, some product link can start from the input port!
         }
         else {
+            if(genericSource instanceof ReactantModel
+                    && genericSource.getGlyph().getCdShape() == CdShape.PHENOTYPE) {
+                logger.warn("Arc with id: "+linkM.getId()+" is coming from phenotype glyph "+genericSource.getId()
+                        +". Outgoing arcs are forbidden for phenotypes in SBGN, but are kept here.");
+            }
+
             source = glyphMap.get(genericSource.getId());
         }
 

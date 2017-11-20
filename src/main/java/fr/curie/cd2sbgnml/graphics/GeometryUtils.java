@@ -1,11 +1,11 @@
 package fr.curie.cd2sbgnml.graphics;
 
-import com.beust.jcommander.internal.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.awt.geom.*;
+
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -656,7 +656,7 @@ public class GeometryUtils {
         Line2D.Float l2 = new Line2D.Float(p2, p3);
         Line2D.Float l3 = new Line2D.Float(p3, p4);
         Line2D.Float l4 = new Line2D.Float(p4, p1);
-        System.out.println(rect+" -- "+line);
+        logger.trace(rect+" -- "+line);
         Point2D.Float i1 = getLineLineIntersection(line, l1);
         Point2D.Float i2 = getLineLineIntersection(line, l2);
         Point2D.Float i3 = getLineLineIntersection(line, l3);
@@ -758,7 +758,6 @@ public class GeometryUtils {
                 t.transform(p, p);
             }
 
-            System.out.println("result: " + editP + " -> " + p.toString());
             convertedPoints.add(new Point2D.Float((float) p.getX(), (float) p.getY()));
 
         }
@@ -789,7 +788,7 @@ public class GeometryUtils {
 
         Point2D.Float p1 = points.get(segment);
         Point2D.Float p2 = points.get(segment + 1);
-        System.out.println("middle of "+p1+" "+p2+" -> "+getMiddle(p1, p2));
+        logger.trace("middle of "+p1+" "+p2+" -> "+getMiddle(p1, p2));
         return getMiddle(p1, p2);
     }
 
@@ -806,16 +805,13 @@ public class GeometryUtils {
         List<Point2D.Float> currentSubLink = subLinkPoints1;
 
         for(int i=0; i < points.size() - 1; i++) {
-            System.out.println("i: "+i);
             Point2D.Float currentStartPoint = points.get(i);
             Point2D.Float currenEndPoint = points.get(i + 1);
 
             currentSubLink.add(currentStartPoint);
 
             if(i == segment) { // split this segment in 2
-                System.out.println("process segment");
                 Point2D.Float middle = getMiddle(currentStartPoint, currenEndPoint);
-                System.out.println(currentStartPoint+" "+middle+" "+currenEndPoint);
                 currentSubLink.add(middle);
                 currentSubLink = subLinkPoints2;
                 currentSubLink.add(middle);
@@ -826,8 +822,6 @@ public class GeometryUtils {
             }
 
         }
-
-        System.out.println(subLinkPoints1+" //// "+subLinkPoints2);
 
         return new SimpleEntry<>(subLinkPoints1, subLinkPoints2);
     }
@@ -848,12 +842,10 @@ public class GeometryUtils {
                     glyph.getWidth(),
                     glyph.getHeight());
             Line2D.Float segment = new Line2D.Float(p1, p2);
-            System.out.println("Intersect segement: "+segment.getP1()+" "+segment.getP2()+" with rectangle "+rect);
+            logger.trace("Intersect segement: "+segment.getP1()+" "+segment.getP2()+" with rectangle "+rect);
             List<Point2D.Float> intersections2 = GeometryUtils.getLineRectangleIntersection(segment, rect);
-            System.out.println("INTERSECTION START"+intersections2);
             if(intersections2.isEmpty()) {
                 return p1;
-
             }
             else {
                 Point2D.Float normalizedStart = GeometryUtils.getClosest(intersections2, p2);
@@ -876,7 +868,7 @@ public class GeometryUtils {
                                                              Glyph endGlyph,
                                                              AnchorPoint startAnchor,
                                                              AnchorPoint endAnchor) {
-        System.out.println("NORMALIZE points: " + points);
+        logger.trace("NORMALIZE points: " + points);
         Point2D.Float cdSpaceStart = points.get(0);
         Point2D.Float cdSpaceEnd = points.get(points.size() - 1);
 
@@ -885,18 +877,15 @@ public class GeometryUtils {
         Point2D.Float normalized1 = normalizePoint(cdSpaceStart, points.get(1), startGlyph, startAnchor);
         result.add(normalized1);
 
-        System.out.println("normalized start: " + result);
-
         for(int i=1; i < points.size() - 1; i++) {
             result.add(points.get(i));
         }
-        System.out.println("middle points: " + result);
 
         Point2D.Float normalized2 = normalizePoint(
                 cdSpaceEnd, points.get(points.size() - 2), endGlyph, endAnchor);
         result.add(normalized2);
 
-        System.out.println("NORMALIZE RESULT: " + result);
+        logger.trace("NORMALIZE RESULT: " + result);
 
         return result;
     }
@@ -1032,16 +1021,12 @@ public class GeometryUtils {
      */
     public static Rectangle2D.Float getAuxUnitBboxFromAngle(Rectangle2D.Float parentBbox, String s, float angle) {
 
-        System.out.println("Aux unit bbox with parent: " + parentBbox+" at angle "+angle);
-        System.out.println("received: "+angle+" passed: "+angle);
         Point2D.Float unitCenter = getPositionFromAngle(parentBbox, angle);
-        System.out.println("UNIT CENTER: "+unitCenter);
         return getAuxUnitBboxFromPoint(parentBbox, s, unitCenter);
     }
 
     public static Rectangle2D.Float getAuxUnitBboxFromRelativeTopRatio(Rectangle2D.Float parentBbox, String s, float ratio) {
         Point2D.Float unitCenter = getTopPositionFromRatio(parentBbox, ratio);
-        System.out.println("UNIT CENTER top ratio: "+unitCenter);
         return getAuxUnitBboxFromPoint(parentBbox, s, unitCenter);
 
     }
@@ -1093,7 +1078,6 @@ public class GeometryUtils {
     public static double normalizeAngle(double angle) {
         double twoPI = Math.PI*2;
         double theta = angle;
-        //System.out.println(theta);
 
         while (theta <= -Math.PI) {
             theta += twoPI;
@@ -1190,7 +1174,6 @@ public class GeometryUtils {
         // get ratios of position / length
         double xRatio = localCoordFromCenter.getX() / fictionalSquareSize;
         double yRatio = localCoordFromCenter.getY() / fictionalSquareSize;
-        System.out.println("coordFromCenter: "+localCoordFromCenter+" xratio: "+xRatio+" yratio: "+yRatio);
 
         // convert to relative coordinates from input rectangle's center
         double resultX = rect.width * xRatio;
@@ -1242,7 +1225,6 @@ public class GeometryUtils {
         if(unsignedDegree > 180) {
             unsignedDegree -= 360;
         }
-        System.out.println("radian: "+radian+" degree: "+unsignedDegree);
         return unsignedDegree;
     }
 
@@ -1330,12 +1312,11 @@ public class GeometryUtils {
                 (float) (p.getX() - bbox.getX() - bbox.getWidth() / 2),
                 (float) (p.getY() - bbox.getY() - bbox.getHeight() / 2)
         );
-        System.out.println("Nearest anchro point: "+p+" "+relativeP+" "+bbox+" "+shape);
+        logger.trace("Nearest anchro point: "+p+" "+relativeP+" "+bbox+" "+shape);
         double minDist = Double.MAX_VALUE;
         for(AnchorPoint a:AnchorPoint.values()){
             currentRelativeAnchor = getRelativeAnchorCoordinate(shape,
                     (float) bbox.getWidth(), (float) bbox.getHeight(), a);
-            System.out.println(currentRelativeAnchor);
             double dist = relativeP.distance(currentRelativeAnchor);
             if(dist < minDist) {
                 minDist = dist;
