@@ -20,6 +20,10 @@
                     <include>*.xsd</include>
                 </includes>
             </resource>
+            <!-- include slf4-simple config file-->
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
         </resources>
 
         <plugins>

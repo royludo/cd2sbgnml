@@ -63,7 +63,7 @@ Pull requests and all forms of contribution will be warmly welcomed.
 
 ## Acknowledgements
 
-This work was initially done at [Sysbio group](http://sysbio.curie.fr/) in [Institut Curie](https://curie.fr/)
+This work was initially done at [SysBio group](http://sysbio.curie.fr/) in [Institut Curie](https://curie.fr/)
 under the supervision of Andrei Zinovyev, in collaboration with Alexander Mazein from [EISBM](http://www.eisbm.org/)
 and the Disease Maps community.
 
@@ -72,3 +72,6 @@ Thanks to Frank T. Bergmann for his SBGN rendering tool which made debugging a w
 Thanks to Nicolas, Laetitia, Henri, Choumouss and Julien for the everyday office mate support.
 
 And thanks to Olga Ivanova for this translation rule sheet that, in the end, definitely had a real part in this project.
+
+This work has received funding from the European Union Horizon 2020 research and
+innovation programme under grant agreement No 668858.
