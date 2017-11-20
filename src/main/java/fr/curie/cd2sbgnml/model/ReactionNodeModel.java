@@ -3,15 +3,14 @@ package fr.curie.cd2sbgnml.model;
 import fr.curie.cd2sbgnml.graphics.GeometryUtils;
 import fr.curie.cd2sbgnml.graphics.Glyph;
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
-import org.sbgn.bindings.Sbgn;
 
-import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 
 /**
  * Abstraction of glyphs displayed for a reaction that don't have a concrete existence in celldesigner format,
  * but that are still important for the layout of the reaction.
  * Like process, association/dissociation and logic gates.
+ * All those glyphs can have ports.
  */
 public class ReactionNodeModel extends GenericReactionElement {
 
@@ -34,6 +33,9 @@ public class ReactionNodeModel extends GenericReactionElement {
      */
     private float size;
 
+    /**
+     * One port is called 'In' but it can also have output/production arcs, in the case of reversible reactions.
+     */
     private Point2D.Float portIn;
     private Point2D.Float portOut;
     private Orientation orientation;
@@ -51,7 +53,6 @@ public class ReactionNodeModel extends GenericReactionElement {
      * determines what is the orientation of the process and where are the ports.
      */
     public void setPorts(Point2D pIn, Point2D pOut) {
-        System.out.println("SLOPE: "+ GeometryUtils.lineSlope(pIn, pOut)+" from "+pIn+" "+pOut);
 
         // first get the slope to determine if horizontal or vertical
         float slope = GeometryUtils.lineSlope(pIn, pOut);
@@ -95,9 +96,6 @@ public class ReactionNodeModel extends GenericReactionElement {
                 this.portOut = p1;
             }
         }
-        System.out.println("ORIENTATION: " + this.orientation+" pin: "+this.portIn+" pout: "+this.portOut);
-
-        // then determine the direction of the line
     }
 
     public StyleInfo getStyleInfo() {

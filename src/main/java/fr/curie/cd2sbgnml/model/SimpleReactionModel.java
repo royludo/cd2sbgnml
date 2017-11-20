@@ -4,18 +4,22 @@ import fr.curie.cd2sbgnml.graphics.*;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-
+/**
+ * Used for construction of simple non-branching reactions.
+ */
 public class SimpleReactionModel extends GenericReactionModel{
 
     private static final Logger logger = LoggerFactory.getLogger(SimpleReactionModel.class);
@@ -40,13 +44,11 @@ public class SimpleReactionModel extends GenericReactionModel{
         absoluteEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
         absoluteEditPoints.add(baseLinkEndPoint);
 
-        System.out.println("BEFORE NOMRALIZE "+absoluteEditPoints);
         absoluteEditPoints = GeometryUtils.getNormalizedEndPoints(absoluteEditPoints,
                 startModel.getGlyph(),
                 endModel.getGlyph(),
                 startModel.getAnchorPoint(),
                 endModel.getAnchorPoint());
-        System.out.println("AFTER NOMRALIZE "+absoluteEditPoints);
 
         if(this.hasProcess()) {
 
@@ -98,12 +100,6 @@ public class SimpleReactionModel extends GenericReactionModel{
                     l2Id, LinkModel.getSbgnClass(reactionW.getReactionType()),
                     new StyleInfo(reactionW.getLineWrapper().getLineWidth(),
                             reactionW.getLineWrapper().getLineColor(), l2Id));
-
-            /*System.out.println("process coords "+process.getGlyph().getCenter());
-            System.out.println("original edit points "+absoluteEditPoints);
-            System.out.println("subline1 "+subLinesTuple.getKey());
-            System.out.println("subline2 "+subLinesTuple.getValue());
-            System.out.println("in simpel reaction "+l1.getLink().getStart()+" "+l1.getLink().getEditPoints()+" "+l1.getLink().getEnd());*/
 
             if(reactionW.isReversible()) {
                 l1.reverse();

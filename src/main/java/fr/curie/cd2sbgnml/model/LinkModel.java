@@ -2,15 +2,19 @@ package fr.curie.cd2sbgnml.model;
 
 import fr.curie.cd2sbgnml.graphics.*;
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
+
 import org.sbgn.ArcClazz;
 
-import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * A geometric link with more information about the reaction it is involved in, like its source and target
+ * elements, its style and its class (determining arrow shapes).
+ */
 public class LinkModel {
     GenericReactionElement start, end;
     Link link;

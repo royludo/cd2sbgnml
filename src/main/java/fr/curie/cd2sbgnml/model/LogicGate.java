@@ -3,12 +3,14 @@ package fr.curie.cd2sbgnml.model;
 import fr.curie.cd2sbgnml.graphics.CdShape;
 import fr.curie.cd2sbgnml.graphics.Glyph;
 import fr.curie.cd2sbgnml.graphics.SbgnShape;
-import fr.curie.cd2sbgnml.xmlcdwrappers.LogicGateWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.LogicGateWrapper.LogicGateType;
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
 
 import java.awt.geom.Point2D;
 
+/**
+ * A generic logic gate model.
+ */
 public class LogicGate extends ReactionNodeModel{
 
     private static final float LOGICGATE_SIZE = 20;

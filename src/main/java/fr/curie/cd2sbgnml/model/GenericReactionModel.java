@@ -3,21 +3,24 @@ package fr.curie.cd2sbgnml.model;
 import fr.curie.cd2sbgnml.graphics.AnchorPoint;
 import fr.curie.cd2sbgnml.graphics.GeometryUtils;
 import fr.curie.cd2sbgnml.graphics.Link;
+
 import fr.curie.cd2sbgnml.xmlcdwrappers.LogicGateWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.LogicGateWrapper.LogicGateType;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
-import org.sbml._2001.ns.celldesigner.Modification;
-import org.sbml.sbml.level2.version4.Reaction;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+
 import java.util.*;
 
-
+/**
+ * Contains parts that are common to simple, association and dissociation reactions.
+ */
 public class GenericReactionModel {
 
     private static final Logger logger = LoggerFactory.getLogger(GenericReactionModel.class);
@@ -50,20 +53,18 @@ public class GenericReactionModel {
         HashMap<ReactantWrapper, String> reactantToLogicGateMap = new HashMap<>();
 
         for(LogicGateWrapper logicW: reactionW.getLogicGates()) {
-            System.out.println("logic gate: "+logicW.getModificationType()+" "+logicW.getType());
+            logger.trace("logic gate: "+logicW.getModificationType()+" "+logicW.getType());
 
 
-            //Modification modif = reactionW.getReaction().getAnnotation().
-            //        getExtension().getListOfModification().getModification().get(logicW.getPositionIndex());
             Point2D.Float processAnchorPoint = process.getAbsoluteAnchorCoords(logicW.getProcessAnchorIndex());
             // list edit points
             List<Point2D.Float> editPoints = logicW.getLineWrapper().getEditPoints(); // ReactionWrapper.getEditPointsForModifier(reactionW.getReaction(), logicW.getPositionIndex());
-            System.out.println("gate edit points "+editPoints);
+            logger.trace("gate edit points "+editPoints);
 
             // process logic gate point
             Point2D.Float logicGateGlobalCoord = editPoints.get(editPoints.size() - 1); // last point listed in xml
             editPoints = editPoints.subList(0, editPoints.size() - 1);
-            System.out.println("Rest of edit points: "+editPoints);
+            logger.trace("Rest of edit points: "+editPoints);
 
 
             String logicId = "logicglyph_" + UUID.randomUUID();
@@ -93,7 +94,7 @@ public class GenericReactionModel {
                     AnchorPoint.E,
                     AnchorPoint.E);
 
-            System.out.println("FINAL logic gate edit points "+absoluteEditPoints);
+            logger.trace("FINAL logic gate edit points "+absoluteEditPoints);
 
             // port management
             Point2D.Float pIn = logicGate.getGlyph().getCenter();
@@ -116,8 +117,6 @@ public class GenericReactionModel {
         return reactantToLogicGateMap;
     }
 
-    //public void addModifiers(Reaction reaction, Process process, int modifIndex, AnchorPoint anchorPoint ) {}
-
     public void addModifiers(ReactionWrapper reactionW, Process process) {
         // start with logic gates
         HashMap<ReactantWrapper, String> reactantToLogicGateMap = this.addLogicGates(reactionW, process);
@@ -126,15 +125,13 @@ public class GenericReactionModel {
 
         for(ReactantWrapper reactantW: reactionW.getModifiers()) {
             // simple case, no logic gate
-            System.out.println("modifier: "+reactantW.getAliasW().getId());
+            logger.trace("modifier: "+reactantW.getAliasW().getId());
 
             ReactantModel modifModel = new ReactantModel(reactantW);
 
             //Reaction reaction = reactionW.getReaction();
             int modifIndex = reactantW.getPositionIndex();
             List<Point2D.Float> editPoints = reactantW.getLineWrapper().getEditPoints();
-            //Modification modif = reaction.getAnnotation().getExtension().
-            //        getListOfModification().getModification().get(modifIndex);
 
             // treat modifier as linked to a reactionNodeModel, either a process or a logic gate
             ReactionNodeModel genericNode = null;
@@ -193,7 +190,7 @@ public class GenericReactionModel {
             }
 
 
-            System.out.println("edit points: "+editPoints);
+            logger.trace("edit points: "+editPoints);
 
             List<AffineTransform> transformList =
                     GeometryUtils.getTransformsToGlobalCoords(
@@ -211,21 +208,12 @@ public class GenericReactionModel {
                     modifModel.getAnchorPoint(),
                     AnchorPoint.E);
 
-            String linkCdClass = reactantW.getModificationLinkType().toString();
-
             String modifId = "modif_" + UUID.randomUUID();
             LinkModel modifLink = new LinkModel(modifModel, genericNode, new Link(absoluteEditPoints),
                     modifId,
                     linkType,
                     new StyleInfo(reactantW.getLineWrapper().getLineWidth(),
                             reactantW.getLineWrapper().getLineColor(), modifId));
-
-            /*LinkWrapper link = new LinkWrapper(reactantW, process, absoluteEditPoints,
-                    modifIndex, linkCdClass);
-            link.setSbgnSpacePointList(
-                    link.getNormalizedEndPoints(
-                            reactantW.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
-                    ));*/
 
             // add everything to the reaction lists
             this.getReactantModels().add(modifModel);
@@ -255,16 +243,16 @@ public class GenericReactionModel {
                             process.getAbsoluteAnchorCoords(0));
 
             int positionIndex = reactantW.getPositionIndex();
-            System.out.println("POSITION INDEX "+positionIndex);
+            logger.trace("POSITION INDEX "+positionIndex);
             //Reaction reaction = reactionW.getReaction();
             List<Point2D.Float> editPoints = reactantW.getLineWrapper().getEditPoints();
-            System.out.println("ADDITIONAL REACT EDIT POINTS "+editPoints);
+            logger.trace("ADDITIONAL REACT EDIT POINTS "+editPoints);
 
             List<Point2D.Float> absoluteEditPoints = new ArrayList<>();
             absoluteEditPoints.add(reactantModel.getAbsoluteAnchorCoordinate(reactantW.getAnchorPoint()));
             absoluteEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
             absoluteEditPoints.add(process.getAbsoluteAnchorCoords(0));
-            System.out.println("ABSOLUTE POINTS: "+absoluteEditPoints);
+            logger.trace("ABSOLUTE POINTS: "+absoluteEditPoints);
 
             Point2D.Float normalizedStart = GeometryUtils.normalizePoint(absoluteEditPoints.get(0),
                     absoluteEditPoints.get(1),
@@ -304,16 +292,16 @@ public class GenericReactionModel {
                                     reactantW.getAnchorPoint()));
 
             int positionIndex = reactantW.getPositionIndex();
-            System.out.println("POSITION INDEX "+positionIndex);
+            logger.trace("POSITION INDEX "+positionIndex);
             //Reaction reaction = reactionW.getReaction();
             List<Point2D.Float> editPoints = reactantW.getLineWrapper().getEditPoints();
-            System.out.println("ADDITIONAL REACT EDIT POINTS "+editPoints);
+            logger.trace("ADDITIONAL REACT EDIT POINTS "+editPoints);
 
             List<Point2D.Float> absoluteEditPoints = new ArrayList<>();
             absoluteEditPoints.add(process.getAbsoluteAnchorCoords(1));
             absoluteEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
             absoluteEditPoints.add(reactantModel.getAbsoluteAnchorCoordinate(reactantW.getAnchorPoint()));
-            System.out.println("ABSOLUTE POINTS: "+absoluteEditPoints);
+            logger.trace("ABSOLUTE POINTS: "+absoluteEditPoints);
 
             Point2D.Float normalizedEnd = GeometryUtils.normalizePoint(absoluteEditPoints.get(absoluteEditPoints.size() - 1),
                     absoluteEditPoints.get(absoluteEditPoints.size() - 2),
@@ -336,79 +324,6 @@ public class GenericReactionModel {
             this.getLinkModels().add(reactLink);
         }
     }
-
-    /*
-     //TODO remove, probably unused anymore
-    public Point2D getProcessCoords (ModelWrapper modelW) {
-
-        // TODO also take complexSpeciesAlias into account <- should be ok
-
-        //System.out.println("reactant "+reactantBbox.getX()+" "+reactantBbox.getY()+" "+reactantBbox.getW()+" "+reactantBbox.getH());
-        //System.out.println("product "+productBbox.getX()+" "+productBbox.getY()+" "+productBbox.getW()+" "+productBbox.getH());
-
-        Point2D processCenter = null;
-        if(!this.isBranchType()) {
-            // TODO take anchor point into account
-            // for now, only from center
-            Point2D reactantStart = this.baseReactants.get(0).getLinkStartingPoint();
-            Point2D productEnd = this.baseProducts.get(0).getLinkStartingPoint();
-
-            LinkWrapper baseLink = this.baseLinks.get(0);
-
-            if(baseLink.getPointList().size() == 0) {
-                //System.out.println(reactantStart+" "+productEnd);
-
-                processCenter = new Point2D.Double(
-                        reactantStart.getX() + (productEnd.getX() - reactantStart.getX()) / 2,
-                        reactantStart.getY() + (productEnd.getY() - reactantStart.getY()) / 2
-                );
-            }
-            else {
-                Point2D segmentStart;
-                Point2D segmentEnd;
-                int segmentCount = baseLink.getPointList().size() + 1;
-                if(this.processSegmentIndex == 0) { // on first segment
-                    segmentStart = reactantStart;
-                    segmentEnd = baseLink.getPointList().get(0);
-                }
-                else if(this.processSegmentIndex == segmentCount - 1) { // on last segment
-                    segmentStart = baseLink.getPointList().get(segmentCount - 2);
-                    segmentEnd = productEnd;
-                }
-                else {
-                    segmentStart = baseLink.getPointList().get(this.processSegmentIndex - 1);
-                    segmentEnd = baseLink.getPointList().get(this.processSegmentIndex);
-                }
-
-                processCenter = new Point2D.Double(
-                        segmentStart.getX() + (segmentEnd.getX() - segmentStart.getX()) / 2,
-                        segmentStart.getY() + (segmentEnd.getY() - segmentStart.getY()) / 2
-                );
-
-            }
-        }
-        else {
-            processCenter = new Point2D.Float(0,0);
-        }
-
-        return processCenter;
-
-    }*/
-
-    /**
-     * CellDesigner uses a special coordinate system to define the edit points of a link.
-     * The x axis goes along a direct line passing through the center of both involved elements.
-     * Origin of the x axis is the center of the start element, 1 is the center of the end element.
-     * The y axis is orthogonal, its origin is the same as x, and the 1 coordinate is at the same distance as x.
-     * Y axis is oriented on the right of x, following the global coordinate system of the map.
-     *
-     * It means that points going beyond the center of elements can have coordinates > 1 or < 0.
-     *
-     */
-    /*public Point2f localToAbsoluteCoord(Point2f cStart, Point2f cEnd, Point2f p) {
-        return new Point2f();
-    }*/
-
 
     /**
      * Given a 3-point coordinate system, gets the absolute coordinates of a relative point
@@ -446,8 +361,8 @@ public class GenericReactionModel {
 
         List<Point2D.Float> absoluteEditPoints = new ArrayList<>();
         absoluteEditPoints.add(origin);
-        System.out.println("local system: "+origin+" "+pX);
-        System.out.println("points for BRANCH "+branch+" "+ reactionW.getEditPointsForBranch(branch));
+        logger.trace("local system: "+origin+" "+pX);
+        logger.trace("points for BRANCH "+branch+" "+ reactionW.getEditPointsForBranch(branch));
 
         for (Point2D editP : reactionW.getEditPointsForBranch(branch)) {
             Point2D p = new Point2D.Double(editP.getX(), editP.getY());
@@ -456,12 +371,12 @@ public class GenericReactionModel {
                 t.transform(p, p);
             }
 
-            System.out.println("BRANCH "+branch+" result: " + editP + " -> " + p.toString());
+            logger.trace("BRANCH "+branch+" result: " + editP + " -> " + p.toString());
             absoluteEditPoints.add(new Point2D.Float((float) p.getX(), (float) p.getY()));
 
         }
         absoluteEditPoints.add(pX);
-        System.out.println("BRANCH "+branch+" stack: "+absoluteEditPoints);
+        logger.trace("BRANCH "+branch+" stack: "+absoluteEditPoints);
 
         return absoluteEditPoints;
     }

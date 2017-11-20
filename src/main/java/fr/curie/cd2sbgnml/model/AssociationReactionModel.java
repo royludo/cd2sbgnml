@@ -7,13 +7,19 @@ import fr.curie.cd2sbgnml.xmlcdwrappers.LineWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+
 import java.util.*;
 
+/**
+ * Used for the construction of an association reaction. It is a branch type reaction in CellDesigner, which is
+ * fundamentally different from a normal reaction.
+ */
 public class AssociationReactionModel extends GenericReactionModel {
 
     private final Logger logger = LoggerFactory.getLogger(AssociationReactionModel.class);
@@ -40,13 +46,9 @@ public class AssociationReactionModel extends GenericReactionModel {
                 startR1.getCenterPoint(),
                 startR2.getCenterPoint(),
                 endR.getCenterPoint(), assocGlyphLocalCoords);
-        System.out.println("result: " + assocGlyphLocalCoords + " -> " + assocGlyphGlobalCoords);
+        logger.trace("result: " + assocGlyphLocalCoords + " -> " + assocGlyphGlobalCoords);
 
         String assocId = "assoc_" + UUID.randomUUID();
-        /*if(assocId.equals("assoc_d_s763_d_sa115_d_s760_d_csa5_d_s760_d_csa5")) {
-            logger.warn("PROBLEM glyph for reaction "+reactionW.getId()+" global coords "+assocGlyphGlobalCoords+" "+assocGlyphLocalCoords+" "+startR1.getCenterPoint()
-            +" "+startR2.getCenterPoint()+" "+endR.getCenterPoint()+" "+editPoints+" "+reactionW.getReaction().getAnnotation().getCelldesignerEditPoints());
-        }*/
         AssocDissoc association = new AssocDissoc(assocGlyphGlobalCoords, assocId, new StyleInfo(assocId));
 
         // get the relevant points
@@ -63,38 +65,21 @@ public class AssociationReactionModel extends GenericReactionModel {
         String link0Id = "cons_" + UUID.randomUUID();
         LinkModel link0 = new LinkModel(startModel0, association, new Link(absoluteEditPoints0),
                 link0Id, "consumption", new StyleInfo(lineW.getLineWidth(), lineW.getLineColor(), link0Id));
-        /*link0.setSbgnSpacePointList(
-                link0.getNormalizedEndPoints(
-                        startR1.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
-                ));*/
 
         List<Point2D.Float> absoluteEditPoints1 = getBranchPoints(reactionW, association.getGlyph().getCenter(), startR2coordPoint, 1);
         Collections.reverse(absoluteEditPoints1);
         String link1Id = "cons_" + UUID.randomUUID();
         LinkModel link1 = new LinkModel(startModel1, association, new Link(absoluteEditPoints1),
                 link1Id, "consumption", new StyleInfo(lineW.getLineWidth(), lineW.getLineColor(), link1Id));
-        /*link1.setSbgnSpacePointList(
-                link1.getNormalizedEndPoints(
-                        startR2.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
-                ));*/
 
         List<Point2D.Float> absoluteEditPoints2 = getBranchPoints(reactionW, association.getGlyph().getCenter(), endRcoordPoint, 2);
-        System.out.println("REACTION ID: "+reactionW.getId());
         absoluteEditPoints2 = GeometryUtils.getNormalizedEndPoints(absoluteEditPoints2,
                 association.getGlyph(),
                 endModel.getGlyph(),
                 AnchorPoint.CENTER,
                 endModel.getAnchorPoint());
-        //LinkModel link2 = new LinkModel(association, endModel, new Link(absolutePoints2));
-        /*link2.setSbgnSpacePointList(
-                link2.getNormalizedEndPoints(
-                        GeometryUtils.AnchorPoint.CENTER, endR.getAnchorPoint()
-                ));*/
 
         if(this.hasProcess()) {
-
-            System.out.println("association process segment "+reactionW.getProcessSegmentIndex());
-            System.out.println("absolutepoints2 "+absoluteEditPoints2);
 
             Line2D.Float processAxis = new Line2D.Float(absoluteEditPoints2.get(reactionW.getProcessSegmentIndex()),
                     absoluteEditPoints2.get(reactionW.getProcessSegmentIndex() + 1));
@@ -141,9 +126,6 @@ public class AssociationReactionModel extends GenericReactionModel {
             normalizedSubLinesTuple1.set(normalizedSubLinesTuple1.size() - 1, process.getPortIn());
             normalizedSubLinesTuple2.set(0, process.getPortOut());
 
-            // ASSOCIATION ports
-
-
             String l21Id = "cons_" + UUID.randomUUID();
             LinkModel l21 = new LinkModel(association, process, new Link(normalizedSubLinesTuple1),
                     l21Id, "consumption", new StyleInfo(lineW.getLineWidth(),
@@ -153,7 +135,6 @@ public class AssociationReactionModel extends GenericReactionModel {
             LinkModel l22 = new LinkModel(process, endModel, new Link(normalizedSubLinesTuple2),
                     l22Id, "production", new StyleInfo(lineW.getLineWidth(),
                     lineW.getLineColor(), l22Id));
-            System.out.println("link edit points: "+link0.getLink().getEditPoints()+" "+l21.getLink().getStart()+" "+l21.getLink().getEditPoints());
 
             // merge links to get rid of association glyph
             LinkModel mergedLink0 = link0.mergeWith(l21, "consumption", link0.getId());

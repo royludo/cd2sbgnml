@@ -10,6 +10,10 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 
+/**
+ * The process is the central point of the reaction. Unlike logic gates and assocation/dissociation glyphs, it
+ * has anchor points in CellDesigner.
+ */
 public class Process extends ReactionNodeModel {
 
     private static final float PROCESS_SIZE = 10;
@@ -70,7 +74,7 @@ public class Process extends ReactionNodeModel {
     public Point2D.Float getAbsoluteAnchorCoords(int index) {
         Point2D.Float relativeCoords = getRelativeAnchorCoords(index);
 
-        /**
+        /*
          * for 0 and 1 (additional reactants and products) we need the exact point on the line of the process
          */
         if( index == 0) {
@@ -86,7 +90,7 @@ public class Process extends ReactionNodeModel {
                         (Point2D.Float) this.getAxis().getP2(), 0.2f);
             return absolute;
         }
-        /**
+        /*
          * for other anchor points, only get relative position to the center without taking the orientation of the
          * process. This leads to inversion of the top and bottom of anchor points in the case of the process' reaction
          * going from right to left.
@@ -94,7 +98,6 @@ public class Process extends ReactionNodeModel {
         else {
             Point2D p2AtOrigin = new Point2D.Double(this.getAxis().getP2().getX() - this.getGlyph().getCenter().getX(),
                     this.getAxis().getP2().getY() - this.getGlyph().getCenter().getY());
-            System.out.println("P2 AT ORIG: from "+this.getAxis().getP2()+" TO "+p2AtOrigin);
             double angle = GeometryUtils.angle(new Point2D.Float(1,0), p2AtOrigin);
             AffineTransform t2 = new AffineTransform();
             t2.rotate(angle);
@@ -104,7 +107,6 @@ public class Process extends ReactionNodeModel {
             Point2D.Float absolute = new Point2D.Float(
                     (float) (afterRotate.getX() + this.getGlyph().getCenter().getX()),
                     (float) (afterRotate.getY() + this.getGlyph().getCenter().getY()));
-            System.out.println("PROCESS ROTATE: "+angle+" "+this.getGlyph().getCenter()+" "+relativeCoords+" "+afterRotate+" "+absolute);
 
             return absolute;
         }

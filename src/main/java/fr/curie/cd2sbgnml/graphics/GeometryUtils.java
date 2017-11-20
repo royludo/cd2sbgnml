@@ -11,7 +11,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-
+/**
+ * Util class containing only static methods, dealing with geometry objects.
+ * Methods can be grouped into different themes:
+ *  - creating and applying transforms to change system of coordinates
+ *  - converting anchor points to coordinates depending of shapes, and vice versa
+ *  - basic geometry things like angle unit conversion, slope, intersection of lines...
+ *  - auxiliary units placement geometry
+ *  - and more...
+ */
 public class GeometryUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(GeometryUtils.class);

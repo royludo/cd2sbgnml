@@ -7,13 +7,19 @@ import fr.curie.cd2sbgnml.xmlcdwrappers.LineWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+
 import java.util.*;
 
+/**
+ * Used for the construction of an dissociation reaction. It is a branch type reaction in CellDesigner, which is
+ * fundamentally different from a normal reaction.
+ */
 public class DissociationReactionModel extends GenericReactionModel{
 
     private final Logger logger = LoggerFactory.getLogger(DissociationReactionModel.class);
@@ -40,7 +46,7 @@ public class DissociationReactionModel extends GenericReactionModel{
                 startR.getCenterPoint(),
                 endR1.getCenterPoint(),
                 endR2.getCenterPoint(), assocGlyphLocalCoords);
-        System.out.println("result: " + assocGlyphLocalCoords + " -> " + assocGlyphGlobalCoords);
+        logger.trace("result: " + assocGlyphLocalCoords + " -> " + assocGlyphGlobalCoords);
 
         String dissocId = "dissoc_" + UUID.randomUUID();
         AssocDissoc dissociation = new AssocDissoc(assocGlyphGlobalCoords, dissocId, new StyleInfo(dissocId));
@@ -58,29 +64,17 @@ public class DissociationReactionModel extends GenericReactionModel{
                 dissociation.getGlyph(),
                 startModel.getAnchorPoint(),
                 AnchorPoint.CENTER);
-        //LinkModel link0 = new LinkModel(startModel, dissociation, new Link(absoluteEditPoints0));
-        /*link0.setSbgnSpacePointList(
-                link0.getNormalizedEndPoints(
-                        startR1.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
-                ));*/
 
         List<Point2D.Float> absoluteEditPoints1 = getBranchPoints(reactionW, dissociation.getGlyph().getCenter(), endR1coordPoint, 1);
-        System.out.println("dissoc BUUUUG: "+absoluteEditPoints1);
-        System.out.println("dissoc BUUUUG: "+dissociation.getGlyph()+" "+endModel1.getGlyph()+" "+endModel1.getAnchorPoint());
         absoluteEditPoints1 = GeometryUtils.getNormalizedEndPoints(absoluteEditPoints1,
                 dissociation.getGlyph(),
                 endModel1.getGlyph(),
                 AnchorPoint.CENTER,
                 endModel1.getAnchorPoint());
-        System.out.println("dissoc BUUUUG: "+absoluteEditPoints1);
 
         String link1Id = "prod_" + UUID.randomUUID();
         LinkModel link1 = new LinkModel(dissociation, endModel1, new Link(absoluteEditPoints1),
                 link1Id, "production", new StyleInfo(lineW.getLineWidth(), lineW.getLineColor(), link1Id));
-        /*link1.setSbgnSpacePointList(
-                link1.getNormalizedEndPoints(
-                        startR2.getAnchorPoint(), GeometryUtils.AnchorPoint.CENTER
-                ));*/
 
         List<Point2D.Float> absoluteEditPoints2 = getBranchPoints(reactionW, dissociation.getGlyph().getCenter(), endR2coordPoint, 2);
         absoluteEditPoints2 = GeometryUtils.getNormalizedEndPoints(absoluteEditPoints2,
@@ -92,15 +86,8 @@ public class DissociationReactionModel extends GenericReactionModel{
         String link2Id = "prod_" + UUID.randomUUID();
         LinkModel link2 = new LinkModel(dissociation, endModel2, new Link(absoluteEditPoints2),
                 link2Id, "production", new StyleInfo(lineW.getLineWidth(), lineW.getLineColor(), link2Id));
-        /*link2.setSbgnSpacePointList(
-                link2.getNormalizedEndPoints(
-                        GeometryUtils.AnchorPoint.CENTER, endR.getAnchorPoint()
-                ));*/
 
         if(this.hasProcess()) {
-
-            System.out.println("association process segment "+reactionW.getProcessSegmentIndex());
-            System.out.println("absolutepoints "+absoluteEditPoints0);
 
             Line2D.Float processAxis = new Line2D.Float(absoluteEditPoints0.get(absoluteEditPoints0.size() - 2 - reactionW.getProcessSegmentIndex()),
                     absoluteEditPoints0.get(absoluteEditPoints0.size() - 1 - reactionW.getProcessSegmentIndex()));
@@ -155,7 +142,7 @@ public class DissociationReactionModel extends GenericReactionModel{
             String l22Id = "cons_" + UUID.randomUUID();
             LinkModel l22 = new LinkModel(process, dissociation, new Link(normalizedSubLinesTuple2),
                     l22Id, "consumption", new StyleInfo(lineW.getLineWidth(), lineW.getLineColor(), l22Id));
-            System.out.println("link edit points: "+l21.getLink().getStart()+" "+l21.getLink().getEditPoints());
+            logger.trace("link edit points: "+l21.getLink().getStart()+" "+l21.getLink().getEditPoints());
 
             // merge links to get rid of association glyph
             LinkModel mergedLink1 = l22.mergeWith(link1, "production", link1.getId());

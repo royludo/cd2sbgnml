@@ -2,12 +2,13 @@ package fr.curie.cd2sbgnml.model;
 
 import fr.curie.cd2sbgnml.graphics.*;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
-import fr.curie.cd2sbgnml.xmlcdwrappers.SpeciesWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.SpeciesWrapper.ReferenceType;
 
 import java.awt.geom.Point2D;
-import java.util.List;
 
+/**
+ *
+ */
 public class ReactantModel extends GenericReactionElement{
 
     private AnchorPoint anchorPoint;

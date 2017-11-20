@@ -7,6 +7,10 @@ import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
 
 import java.awt.geom.Point2D;
 
+/**
+ * Represents the association or dissociation glyphs. They replace the process glyph in SBGN, and are present along
+ * the process glyph in CellDesigner.
+ */
 public class AssocDissoc extends ReactionNodeModel {
 
     private static final float ASSOCDISSOC_SIZE = 8;
