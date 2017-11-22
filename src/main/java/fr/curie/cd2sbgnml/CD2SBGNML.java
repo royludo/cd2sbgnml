@@ -123,7 +123,7 @@ public class CD2SBGNML extends GeneralConverter {
 
                 // put reaction into process glyph
                 // TODO if no process, add notes into the arc
-                processGlyph.setNotes(getSBGNNotes(Utils.getNotes(reactionW.getNotes())));
+                processGlyph.setNotes(getSBGNNotes(reactionW.getNotes()));
                 processGlyph.setExtension(getSBGNAnnotation(reactionW.getAnnotations(), processId));
 
                 // TODO process style ?

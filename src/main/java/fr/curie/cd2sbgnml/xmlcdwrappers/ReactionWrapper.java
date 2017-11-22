@@ -41,7 +41,7 @@ public class ReactionWrapper {
     private boolean hasProcess;
     private boolean isReversible;
     private LineWrapper lineWrapper;
-    private SBase.Notes notes;
+    private Element notes;
     private Element annotations;
 
     public ReactionWrapper (String id, ReactionType type,
@@ -72,7 +72,7 @@ public class ReactionWrapper {
         this.lineWrapper = new LineWrapper(reaction.getAnnotation().getExtension().getConnectScheme(),
                 reaction.getAnnotation().getExtension().getEditPoints(),
                 reaction.getAnnotation().getExtension().getLine());
-        this.notes = reaction.getNotes();
+        this.notes = Utils.getNotes(reaction.getNotes());
         this.annotations = Utils.getRDFAnnotations(reaction.getAnnotation().getAny());
 
         // fill the corresponding lists
@@ -462,7 +462,9 @@ public class ReactionWrapper {
 
         // notes and annotations
         if(this.getNotes() != null) {
-            reaction.setNotes(this.getNotes());
+            SBase.Notes notes = new SBase.Notes();
+            reaction.setNotes(notes);
+            notes.getAny().add(this.getNotes());
         }
 
         if(this.getAnnotations() != null) {
@@ -594,7 +596,7 @@ public class ReactionWrapper {
         this.lineWrapper = lineWrapper;
     }
 
-    public SBase.Notes getNotes() {
+    public Element getNotes() {
         return notes;
     }
 
@@ -622,7 +624,7 @@ public class ReactionWrapper {
         isReversible = reversible;
     }
 
-    public void setNotes(SBase.Notes notes) {
+    public void setNotes(Element notes) {
         this.notes = notes;
     }
 

@@ -1167,9 +1167,7 @@ public class SBGNML2CD extends GeneralConverter {
         // notes
         if(processGlyph.getNotes() != null
                 && processGlyph.getNotes().getAny().size() > 0) {
-            Element notesE = processGlyph.getNotes().getAny().get(0);
-            SBase.Notes notes = new SBase.Notes();
-            notes.getAny().add(notesE);
+            Element notes = processGlyph.getNotes().getAny().get(0);
             reactionW.setNotes(notes);
         }
 
