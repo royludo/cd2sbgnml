@@ -8,12 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
-import javax.rmi.CORBA.Util;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.math.BigDecimal;
 
-public class CompartmentWrapper {
+public class CompartmentWrapper implements INotesFeature, IAnnotationsFeature {
 
     private final Logger logger = LoggerFactory.getLogger(CompartmentWrapper.class);
 

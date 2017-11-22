@@ -6,16 +6,14 @@ import org.sbml.sbml.level2.version4.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import java.awt.geom.Point2D;
-import java.net.ConnectException;
 import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
 
 import static fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper.ModificationLinkType.*;
 
-public class ReactionWrapper {
+public class ReactionWrapper implements INotesFeature, IAnnotationsFeature {
 
     private static final Logger logger = LoggerFactory.getLogger(ReactionWrapper.class);
 

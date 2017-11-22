@@ -10,7 +10,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,7 +19,7 @@ import java.util.List;
 /**
  * wraps species and includedSpecies as they have a lot in common
  */
-public class SpeciesWrapper {
+public class SpeciesWrapper implements INotesFeature, IAnnotationsFeature {
 
     private final Logger logger = LoggerFactory.getLogger(SpeciesWrapper.class);
 

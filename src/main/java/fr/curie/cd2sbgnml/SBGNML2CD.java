@@ -18,7 +18,6 @@ import org.sbgn.ArcClazz;
 import org.sbgn.bindings.*;
 import org.sbgn.GlyphClazz;
 import org.sbgn.bindings.Map;
-import org.sbgn.bindings.Point;
 import org.sbml._2001.ns.celldesigner.*;
 import org.sbml.sbml.level2.version4.*;
 import org.sbml.sbml.level2.version4.OriginalModel.ListOfCompartments;
@@ -32,7 +31,6 @@ import org.w3c.dom.Element;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
@@ -99,6 +97,24 @@ public class SBGNML2CD extends GeneralConverter {
 
         // init the index maps
         this.buildMaps(sbgnMap);
+
+        // put notes and annotations from map to model
+        if(sbgnMap.getNotes() != null
+                && sbgnMap.getNotes().getAny().size() > 0) {
+            Element notesE = sbgnMap.getNotes().getAny().get(0);
+            SBase.Notes notes = new SBase.Notes();
+            notes.getAny().add(notesE);
+            sbml.getModel().setNotes(notes);
+        }
+
+        if(sbgnMap.getExtension() != null) {
+            for(Element e: sbgnMap.getExtension().getAny()){
+                if(e.getTagName().equals("annotation")) {
+                    Element rdf = SBGNUtils.sanitizeRdfURNs((Element) e.getElementsByTagName("rdf:RDF").item(0));
+                    sbml.getModel().getAnnotation().getAny().add(rdf);
+                }
+            }
+        }
 
 
         /*
@@ -194,6 +210,7 @@ public class SBGNML2CD extends GeneralConverter {
     }
 
     private void processReaction(Glyph processGlyph) {
+        // TODO add arc notes and annotations to reaction
         List<Arc> connectedArcs = processToArcs.get(processGlyph.getId());
         Point2D.Float processCoords = new Point2D.Float(
                 processGlyph.getBbox().getX(),
@@ -1164,24 +1181,8 @@ public class SBGNML2CD extends GeneralConverter {
 
         }
 
-        // notes
-        if(processGlyph.getNotes() != null
-                && processGlyph.getNotes().getAny().size() > 0) {
-            Element notes = processGlyph.getNotes().getAny().get(0);
-            reactionW.setNotes(notes);
-        }
-
-        // rdf annotations
-        if(processGlyph.getExtension() != null) {
-            for(Element e: processGlyph.getExtension().getAny()){
-                if(e.getTagName().equals("annotation")) {
-                    // TODO urn:miriam:CHEBI:12 doesn't seem to be loaded by CD
-                    // TODO find a way to resolve uri ?
-                    Element rdf = SBGNUtils.sanitizeRdfURNs((Element) e.getElementsByTagName("rdf:RDF").item(0));
-                    reactionW.setAnnotations(rdf);
-                }
-            }
-        }
+        setNotes(reactionW, processGlyph);
+        setAnnotations(reactionW, processGlyph);
 
         sbml.getModel().getListOfReactions().getReaction().add(reactionW.getCDReaction());
 
@@ -1903,24 +1904,8 @@ public class SBGNML2CD extends GeneralConverter {
             speciesW.getResidues().add(resW);
         }
 
-        // notes
-        if(glyph.getNotes() != null
-                && glyph.getNotes().getAny().size() > 0) {
-            Element notes = glyph.getNotes().getAny().get(0);
-            speciesW.setNotes(notes);
-        }
-
-        // rdf annotations
-        if(glyph.getExtension() != null) {
-            for(Element e: glyph.getExtension().getAny()){
-                if(e.getTagName().equals("annotation")) {
-                    // TODO urn:miriam:CHEBI:12 doesn't seem to be loaded by CD
-                    // TODO find a way to resolve uri ?
-                    Element rdf = SBGNUtils.sanitizeRdfURNs((Element) e.getElementsByTagName("rdf:RDF").item(0));
-                    speciesW.setAnnotations(rdf);
-                }
-            }
-        }
+        setNotes(speciesW, glyph);
+        setAnnotations(speciesW, glyph);
 
         // add species to correct list
         if(isIncluded) {
@@ -2013,24 +1998,8 @@ public class SBGNML2CD extends GeneralConverter {
             compM.setNamePoint(namePoint);
         }
 
-        // notes
-        if(glyph.getNotes() != null
-                && glyph.getNotes().getAny().size() > 0) {
-            Element notes = glyph.getNotes().getAny().get(0);
-            compM.setNotes(notes);
-        }
-
-        // rdf annotations
-        if(glyph.getExtension() != null) {
-            for(Element e: glyph.getExtension().getAny()){
-                if(e.getTagName().equals("annotation")) {
-                    // TODO urn:miriam:CHEBI:12 doesn't seem to be loaded by CD
-                    // TODO find a way to resolve uri ?
-                    Element rdf = SBGNUtils.sanitizeRdfURNs((Element) e.getElementsByTagName("rdf:RDF").item(0));
-                    compM.setAnnotations(rdf);
-                }
-            }
-        }
+        setNotes(compM, glyph);
+        setAnnotations(compM, glyph);
 
         sbml.getModel().getListOfCompartments().getCompartment()
                 .add(compM.getCDCompartment());
@@ -2276,6 +2245,37 @@ public class SBGNML2CD extends GeneralConverter {
             p.setLocation(p.getX() - xdiff, p.getY() - ydiff);
         }
         return points;
+    }
+
+    /**
+     * Get the notes from an SBGN entity and add it to the provided object
+     * @param notesFeature
+     * @param sbgnEntity
+     */
+    public void setNotes(INotesFeature notesFeature, SBGNBase sbgnEntity) {
+        if(sbgnEntity.getNotes() != null
+                && sbgnEntity.getNotes().getAny().size() > 0) {
+            Element notes = sbgnEntity.getNotes().getAny().get(0);
+            notesFeature.setNotes(notes);
+        }
+    }
+
+    /**
+     * Get the annotations from an SBGN element and add it to the provided object
+     * @param annotationsFeature
+     * @param sbgnEntity
+     */
+    public void setAnnotations(IAnnotationsFeature annotationsFeature, SBGNBase sbgnEntity) {
+        if(sbgnEntity.getExtension() != null) {
+            for(Element e: sbgnEntity.getExtension().getAny()){
+                if(e.getTagName().equals("annotation")) {
+                    // TODO urn:miriam:CHEBI:12 doesn't seem to be loaded by CD
+                    // TODO find a way to resolve uri ?
+                    Element rdf = SBGNUtils.sanitizeRdfURNs((Element) e.getElementsByTagName("rdf:RDF").item(0));
+                    annotationsFeature.setAnnotations(rdf);
+                }
+            }
+        }
     }
 
 
