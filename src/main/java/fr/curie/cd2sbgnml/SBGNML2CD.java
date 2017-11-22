@@ -1164,6 +1164,27 @@ public class SBGNML2CD extends GeneralConverter {
 
         }
 
+        // notes
+        if(processGlyph.getNotes() != null
+                && processGlyph.getNotes().getAny().size() > 0) {
+            Element notesE = processGlyph.getNotes().getAny().get(0);
+            SBase.Notes notes = new SBase.Notes();
+            notes.getAny().add(notesE);
+            reactionW.setNotes(notes);
+        }
+
+        // rdf annotations
+        if(processGlyph.getExtension() != null) {
+            for(Element e: processGlyph.getExtension().getAny()){
+                if(e.getTagName().equals("annotation")) {
+                    // TODO urn:miriam:CHEBI:12 doesn't seem to be loaded by CD
+                    // TODO find a way to resolve uri ?
+                    Element rdf = SBGNUtils.sanitizeRdfURNs((Element) e.getElementsByTagName("rdf:RDF").item(0));
+                    reactionW.setAnnotations(rdf);
+                }
+            }
+        }
+
         sbml.getModel().getListOfReactions().getReaction().add(reactionW.getCDReaction());
 
     }
@@ -1884,16 +1905,29 @@ public class SBGNML2CD extends GeneralConverter {
             speciesW.getResidues().add(resW);
         }
 
+        // notes
+        if(glyph.getNotes() != null
+                && glyph.getNotes().getAny().size() > 0) {
+            Element notes = glyph.getNotes().getAny().get(0);
+            speciesW.setNotes(notes);
+        }
+
+        // rdf annotations
+        if(glyph.getExtension() != null) {
+            for(Element e: glyph.getExtension().getAny()){
+                if(e.getTagName().equals("annotation")) {
+                    // TODO urn:miriam:CHEBI:12 doesn't seem to be loaded by CD
+                    // TODO find a way to resolve uri ?
+                    Element rdf = SBGNUtils.sanitizeRdfURNs((Element) e.getElementsByTagName("rdf:RDF").item(0));
+                    speciesW.setAnnotations(rdf);
+                }
+            }
+        }
+
         // add species to correct list
         if(isIncluded) {
             speciesW.setComplex(parentSpeciesId);
             speciesW.setIncludedSpecies(true);
-            /*org.sbml._2001.ns.celldesigner.Species species = speciesW.getCDIncludedSpecies(referenceId);
-            sbml.getModel().getAnnotation().getExtension().getListOfIncludedSpecies().getSpecies().add(species);*/
-        }
-        else {
-            /*Species species = speciesW.getCDNormalSpecies(referenceId);
-            sbml.getModel().getListOfSpecies().getSpecies().add(species);*/
         }
         speciesWrapperMap.put(speciesW.getId(), speciesW);
 

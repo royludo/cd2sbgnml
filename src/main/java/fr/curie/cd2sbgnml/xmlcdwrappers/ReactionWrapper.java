@@ -460,6 +460,14 @@ public class ReactionWrapper {
             ext.setListOfModification(listOfModification);
         }
 
+        // notes and annotations
+        if(this.getNotes() != null) {
+            reaction.setNotes(this.getNotes());
+        }
+
+        if(this.getAnnotations() != null) {
+            annotation.getAny().add(this.getAnnotations());
+        }
 
         return reaction;
     }

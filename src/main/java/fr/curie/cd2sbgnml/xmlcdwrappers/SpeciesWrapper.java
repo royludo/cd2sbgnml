@@ -2,6 +2,7 @@ package fr.curie.cd2sbgnml.xmlcdwrappers;
 
 import org.sbgn.bindings.Glyph;
 import org.sbml._2001.ns.celldesigner.*;
+import org.sbml.sbml.level2.version4.SBase;
 import org.sbml.sbml.level2.version4.Species;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,8 +43,13 @@ public class SpeciesWrapper {
     private ReferenceType type;
     private String referenceId;
     private Element notes;
-    private Element referenceNotes;
     private Element annotations;
+    /**
+     * Unlike the notes member, referenceNotes store the notes of the species' reference entity (protein, rna, gene
+     * or asrna).
+     */
+    private Element referenceNotes;
+
     /**
      * Reactions in which the species was involved as a modifier.
      * If connected through logic gates to a reaction, it must be listed.
@@ -375,6 +381,16 @@ public class SpeciesWrapper {
             }
         }
 
+        if(this.getNotes() != null) {
+            SBase.Notes notes = new SBase.Notes();
+            species.setNotes(notes);
+            notes.getAny().add(this.getNotes());
+        }
+
+        if(this.getAnnotations() != null) {
+            speciesAnnot.getAny().add(this.getAnnotations());
+        }
+
         return species;
     }
 
@@ -388,6 +404,23 @@ public class SpeciesWrapper {
 
         speciesAnnot.setComplexSpecies(this.getComplex());
         speciesAnnot.setSpeciesIdentity(getIdentity());
+
+        if(this.getNotes() != null) {
+            Notes notes = new Notes();
+            species.setNotes(notes);
+            notes.getAny().add(this.getNotes());
+        }
+
+        /*
+            putting rdf annotations in included species is impossible. The format doesn't allow it, and the interface
+            prevents you from doing it.
+        */
+        if(this.getAnnotations() != null) {
+            logger.error("Species: "+this.getId()+" with name "+this.getName()+" is an included species and has " +
+                    "rdf annotations. These annotations will be lost, due to CellDesigner not allowing them for" +
+                    "anything included inside a complex.");
+        }
+
 
         return species;
     }
