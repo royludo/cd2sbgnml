@@ -396,11 +396,11 @@ public class SBGNML2CD extends GeneralConverter {
 
             processLine = getProcessLine(productLink, absAssocPoint, reactionFeatures);
 
-            java.util.Map<String, List<Point2D.Float>> arcsId2Editpoints = new HashMap<>();
+            java.util.Map<String, List<Point2D.Float>> arcsId2Editpoints = new LinkedHashMap<>();
             arcsId2Editpoints.put(baseReactantArcs.get(0).getId(), localEditPoints0);
             arcsId2Editpoints.put(baseReactantArcs.get(1).getId(), localEditPoints1);
             arcsId2Editpoints.put(baseProductArcs.get(0).getId(), localEditPoints2);
-            LineWrapper lineWrapper = buildLineWrapper(
+            LineWrapper lineWrapper = buildLineWrapperWithProcess(
                     arcsId2Editpoints,
                     processGlyph.getId(),
                     localAssocPoint
@@ -448,11 +448,11 @@ public class SBGNML2CD extends GeneralConverter {
 
             processLine = getProcessLine(reactantLink, absDissocPoint, reactionFeatures);
 
-            java.util.Map<String, List<Point2D.Float>> arcsId2Editpoints = new HashMap<>();
+            java.util.Map<String, List<Point2D.Float>> arcsId2Editpoints = new LinkedHashMap<>();
             arcsId2Editpoints.put(baseReactantArcs.get(0).getId(), localEditPoints0);
             arcsId2Editpoints.put(baseProductArcs.get(0).getId(), localEditPoints1);
             arcsId2Editpoints.put(baseProductArcs.get(1).getId(), localEditPoints2);
-            LineWrapper lineWrapper = buildLineWrapper(
+            LineWrapper lineWrapper = buildLineWrapperWithProcess(
                     arcsId2Editpoints,
                     processGlyph.getId(),
                     localDissocPoint
@@ -535,46 +535,21 @@ public class SBGNML2CD extends GeneralConverter {
                 );
             }
 
-
             /*
                 Finally build the appropriate xml elements and pass it to the reaction
              */
-
-            int segmentCount = completeLinkPoints.size() - 1;
             int processSegmentIndex = reactantPoints.size() - 1;
 
-            ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, processSegmentIndex);
-
-            String lineColor = "ff000000";
-            float lineWidth = 1;
-            /*
-                Set a style only if all components' style are the same
-             */
-            if(mapHasStyle) {
-                StyleInfo baseReactantArcStyle = styleMap.get(baseReactantArcs.get(0).getId());
-                StyleInfo baseProductArcStyle = styleMap.get(baseProductArcs.get(0).getId());
-                StyleInfo processGlyphStyle = styleMap.get(processGlyph.getId());
-                if(baseReactantArcStyle.getLineWidth() == baseProductArcStyle.getLineWidth()
-                        && baseProductArcStyle.getLineWidth() == processGlyphStyle.getLineWidth()
-
-                        && baseReactantArcStyle.getLineColor().equals(baseProductArcStyle.getLineColor())
-                        && baseReactantArcStyle.getLineColor().equals(processGlyphStyle.getLineColor())) {
-                    lineWidth = baseReactantArcStyle.getLineWidth();
-                    lineColor = baseReactantArcStyle.getLineColor();
-                }
-            }
-
-
-            Line line = new Line();
-            line.setWidth(BigDecimal.valueOf(lineWidth));
-            line.setColor(lineColor);
-
-            List<String> editPointString = new ArrayList<>();
-            for(Point2D.Float p: localEditPoints) {
-                editPointString.add(p.getX()+","+p.getY());
-            }
-
-            LineWrapper lineWrapper = new LineWrapper(connectScheme, editPointString, line);
+            java.util.Map<String, List<Point2D.Float>> arcsId2Editpoints = new LinkedHashMap<>();
+            arcsId2Editpoints.put(baseReactantArcs.get(0).getId(),
+                    localEditPoints.subList(0,processSegmentIndex));
+            arcsId2Editpoints.put(baseProductArcs.get(0).getId(),
+                    localEditPoints.subList(processSegmentIndex, localEditPoints.size()));
+            LineWrapper lineWrapper = buildLineWrapperWithProcess(
+                    arcsId2Editpoints,
+                    processGlyph.getId(),
+                    null
+            );
 
             reactionW.setLineWrapper(lineWrapper);
 
@@ -2033,38 +2008,73 @@ public class SBGNML2CD extends GeneralConverter {
         }
     }
 
-    public LineWrapper buildLineWrapper(java.util.Map<String, List<Point2D.Float>> arcIds2LocalEditPoints,
-                                        String processGLyphId, Point2D.Float localAssocPoint) {
+    /**
+     *
+     * @param arcIds2LocalEditPoints at least 2 entries, 3 for branch reactions
+     * @param processGLyphId
+     * @param localAssocPoint
+     * @return
+     */
+    public LineWrapper buildLineWrapperWithProcess(java.util.Map<String, List<Point2D.Float>> arcIds2LocalEditPoints,
+                                                   String processGLyphId, Point2D.Float localAssocPoint) {
         // finally set up the xml elements and add to reactions
         List<String> arcsIds = new ArrayList<>();
         List<List<Point2D.Float>> editPointsList = new ArrayList<>();
         List<Integer> segmentCountList = new ArrayList<>();
+        int totalSegmentCount = 1;
+        int processSegmentIndex = 0;
+        boolean isBranchReactionType = localAssocPoint != null;
 
+        boolean isFirstEntry = true;
         for(java.util.Map.Entry<String, List<Point2D.Float>> entry: arcIds2LocalEditPoints.entrySet()) {
             arcsIds.add(entry.getKey());
             editPointsList.add(entry.getValue());
             segmentCountList.add(entry.getValue().size());
+            totalSegmentCount += entry.getValue().size();
+            if(isFirstEntry) {
+                isFirstEntry = false;
+                processSegmentIndex = entry.getValue().size();
+            }
+        }
+        System.out.println("PROCESS SEGMENT: "+totalSegmentCount+" "+processSegmentIndex);
+        System.out.println("arcsid "+arcsIds);
+        System.out.println("ditpoints "+editPointsList);
+        System.out.println("segemntcounts "+segmentCountList);
+
+        ConnectScheme connectScheme;
+        if(isBranchReactionType) {
+            connectScheme = getBranchConnectScheme(segmentCountList);
+        }
+        else {
+            connectScheme = getSimpleConnectScheme(totalSegmentCount, processSegmentIndex);
         }
 
-        ConnectScheme connectScheme = getBranchConnectScheme(segmentCountList);
 
         String lineColor = "ff000000";
         float lineWidth = 1;
-            /*
-                Set a style only if all components' style are the same
-             */
+        /*
+            Set a style only if all components' style are the same
+         */
         if(mapHasStyle) {
+            boolean areAllStyleTheSame = true;
             StyleInfo arcStyle1 = styleMap.get(arcsIds.get(0));
-            StyleInfo arcStyle2 = styleMap.get(arcsIds.get(1));
-            StyleInfo arcStyle3 = styleMap.get(arcsIds.get(2));
+            // check all styles are homogeneous by comparing all other arcs styles to arcStyle1
+            for(int i=1; i < arcsIds.size(); i++) {
+                StyleInfo arcStyle2 = styleMap.get(arcsIds.get(i));
+                if(arcStyle1.getLineWidth() != arcStyle2.getLineWidth()
+                        || !arcStyle1.getLineColor().equals(arcStyle2.getLineColor())) {
+                    areAllStyleTheSame = false;
+                    break;
+                }
+            }
+            // finally check that all arc's styles are consistent with process glyph style
             StyleInfo processGlyphStyle = styleMap.get(processGLyphId);
-            if(arcStyle1.getLineWidth() == arcStyle2.getLineWidth()
-                    && arcStyle2.getLineWidth() == processGlyphStyle.getLineWidth()
-                    && arcStyle2.getLineWidth() == arcStyle3.getLineWidth()
+            if(arcStyle1.getLineWidth() != processGlyphStyle.getLineWidth()
+                    || !arcStyle1.getLineColor().equals(processGlyphStyle.getLineColor())) {
+                areAllStyleTheSame = false;
+            }
 
-                    && arcStyle1.getLineColor().equals(arcStyle2.getLineColor())
-                    && arcStyle1.getLineColor().equals(arcStyle3.getLineColor())
-                    && arcStyle1.getLineColor().equals(processGlyphStyle.getLineColor())) {
+            if(areAllStyleTheSame) { // styles are all consistent
                 lineWidth = arcStyle1.getLineWidth();
                 lineColor = arcStyle1.getLineColor();
             }
@@ -2076,19 +2086,23 @@ public class SBGNML2CD extends GeneralConverter {
 
         List<String> editPointString = new ArrayList<>();
         List<Point2D.Float> mergedList = new ArrayList<>();
-        mergedList.addAll(editPointsList.get(0));
-        mergedList.addAll(editPointsList.get(1));
-        mergedList.addAll(editPointsList.get(2));
-        mergedList.add(localAssocPoint);
+        for(List<Point2D.Float> editPoints: editPointsList) {
+            mergedList.addAll(editPoints);
+        }
+        if(isBranchReactionType) { // the assocPoint needs to be added at the end of the string
+            mergedList.add(localAssocPoint);
+        }
         for(Point2D.Float p: mergedList) {
             editPointString.add(p.getX()+","+p.getY());
         }
 
         LineWrapper lineWrapper = new LineWrapper(connectScheme, editPointString, line);
-        lineWrapper.setNum0(segmentCountList.get(0));
-        lineWrapper.setNum1(segmentCountList.get(1));
-        lineWrapper.setNum2(segmentCountList.get(2));
-        lineWrapper.settShapeIndex(0);
+        if(isBranchReactionType) {
+            lineWrapper.setNum0(segmentCountList.get(0));
+            lineWrapper.setNum1(segmentCountList.get(1));
+            lineWrapper.setNum2(segmentCountList.get(2));
+            lineWrapper.settShapeIndex(0);
+        }
 
         return lineWrapper;
     }
