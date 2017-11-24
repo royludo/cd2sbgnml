@@ -617,30 +617,7 @@ public class SBGNML2CD extends GeneralConverter {
                     ));
             System.out.println("Local edit points "+localEditPoints);
 
-            String lineColor = "ff000000";
-            float lineWidth = 1;
-            if(mapHasStyle) {
-                System.out.println(additionalArc.getId());
-                StyleInfo styleInfo = styleMap.get(additionalArc.getId());
-                lineWidth = styleInfo.getLineWidth();
-                lineColor = styleInfo.getLineColor();
-            }
-
-            int segmentCount = localEditPoints.size() + 1;
-
-            ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
-
-            LineType2 line = new LineType2();
-            line.setWidth(BigDecimal.valueOf(lineWidth));
-            line.setColor(lineColor);
-            line.setType("Straight");
-
-            List<String> editPointString = new ArrayList<>();
-            for(Point2D.Float p: localEditPoints) {
-                editPointString.add(p.getX()+","+p.getY());
-            }
-
-            LineWrapper lineWrapper = new LineWrapper(connectScheme, editPointString, line);
+            LineWrapper lineWrapper = buildLineWrapper(additionalArc.getId(), localEditPoints, null);
 
             additionalW.setLineWrapper(lineWrapper);
             reactionW.getAdditionalReactants().add(additionalW);
@@ -696,30 +673,7 @@ public class SBGNML2CD extends GeneralConverter {
                     ));
             System.out.println("Local edit points "+localEditPoints);
 
-            int segmentCount = localEditPoints.size() + 1;
-
-            ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
-
-            String lineColor = "ff000000";
-            float lineWidth = 1;
-            if(mapHasStyle) {
-                System.out.println(additionalArc.getId());
-                StyleInfo styleInfo = styleMap.get(additionalArc.getId());
-                lineWidth = styleInfo.getLineWidth();
-                lineColor = styleInfo.getLineColor();
-            }
-
-            LineType2 line = new LineType2();
-            line.setWidth(BigDecimal.valueOf(lineWidth));
-            line.setColor(lineColor);
-            line.setType("Straight");
-
-            List<String> editPointString = new ArrayList<>();
-            for(Point2D.Float p: localEditPoints) {
-                editPointString.add(p.getX()+","+p.getY());
-            }
-
-            LineWrapper lineWrapper = new LineWrapper(connectScheme, editPointString, line);
+            LineWrapper lineWrapper = buildLineWrapper(additionalArc.getId(), localEditPoints, null);
 
             additionalW.setLineWrapper(lineWrapper);
             reactionW.getAdditionalProducts().add(additionalW);
@@ -895,31 +849,7 @@ public class SBGNML2CD extends GeneralConverter {
                 ));
         System.out.println("Local edit points "+localEditPoints);
 
-
-        int segmentCount = localEditPoints.size() + 1;
-
-        ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
-
-        String lineColor = "ff000000";
-        float lineWidth = 1;
-        if(mapHasStyle) {
-            System.out.println(orphanArc.getId());
-            StyleInfo styleInfo = styleMap.get(orphanArc.getId());
-            lineWidth = styleInfo.getLineWidth();
-            lineColor = styleInfo.getLineColor();
-        }
-
-        LineType2 line = new LineType2();
-        line.setWidth(BigDecimal.valueOf(lineWidth));
-        line.setColor(lineColor);
-        line.setType("Straight");
-
-        List<String> editPointString = new ArrayList<>();
-        for(Point2D.Float p: localEditPoints) {
-            editPointString.add(p.getX()+","+p.getY());
-        }
-
-        LineWrapper lineWrapper = new LineWrapper(connectScheme, editPointString, line);
+        LineWrapper lineWrapper = buildLineWrapper(orphanArc.getId(), localEditPoints, null);
 
         ReactionWrapper reactionW = new ReactionWrapper(
                 orphanArc.getId(),
@@ -987,30 +917,7 @@ public class SBGNML2CD extends GeneralConverter {
                 ));
         System.out.println("Local edit points "+localEditPoints);
 
-
-        int segmentCount = localEditPoints.size() + 1;
-
-        ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
-
-        String lineColor = "ff000000";
-        float lineWidth = 1;
-        if(mapHasStyle) {
-            StyleInfo styleInfo = styleMap.get(modificationArc.getId());
-            lineWidth = styleInfo.getLineWidth();
-            lineColor = styleInfo.getLineColor();
-        }
-
-        LineType2 line = new LineType2();
-        line.setWidth(BigDecimal.valueOf(lineWidth));
-        line.setColor(lineColor);
-        line.setType("Straight");
-
-        List<String> editPointString = new ArrayList<>();
-        for(Point2D.Float p: localEditPoints) {
-            editPointString.add(p.getX()+","+p.getY());
-        }
-
-        LineWrapper lineWrapper = new LineWrapper(connectScheme, editPointString, line);
+        LineWrapper lineWrapper = buildLineWrapper(modificationArc.getId(), localEditPoints, null);
 
         modificationW.setLineWrapper(lineWrapper);
         return modificationW;
@@ -1081,37 +988,13 @@ public class SBGNML2CD extends GeneralConverter {
                 ));
         System.out.println("Local edit points "+localEditPoints);
 
-
-        int segmentCount = localEditPoints.size() + 1;
-
-        ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
-
-        String lineColor = "ff000000";
-        float lineWidth = 1;
-        if(mapHasStyle) {
-            StyleInfo styleInfo = styleMap.get(modificationArc.getId());
-            lineWidth = styleInfo.getLineWidth();
-            lineColor = styleInfo.getLineColor();
-        }
-
-        LineType2 line = new LineType2();
-        line.setWidth(BigDecimal.valueOf(lineWidth));
-        line.setColor(lineColor);
-        line.setType("Straight");
-
-        List<String> editPointString = new ArrayList<>();
-        for(Point2D.Float p: localEditPoints) {
-            editPointString.add(p.getX()+","+p.getY());
-        }
-
         // logic gates have their own coordinate added to the edit point, in global coord system
         // we need to adjust to map translation factor
-        editPointString.add(
-                (finalStartPoint.getX() - mapBounds.getX())
-                        +","+
-                        (finalStartPoint.getY() - mapBounds.getY()));
+        Point2D.Float logicPoint = new Point2D.Float(
+                (float) (finalStartPoint.getX() - mapBounds.getX()),
+                (float) (finalStartPoint.getY() - mapBounds.getY()));
 
-        LineWrapper lineWrapper = new LineWrapper(connectScheme, editPointString, line);
+        LineWrapper lineWrapper = buildLineWrapper(modificationArc.getId(), localEditPoints, logicPoint);
 
         modificationW.setLineWrapper(lineWrapper);
         return modificationW;
@@ -1202,35 +1085,17 @@ public class SBGNML2CD extends GeneralConverter {
                 ));
         System.out.println("Local edit points "+localEditPoints);
 
-
-        int segmentCount = localEditPoints.size() + 1;
-
-        ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
-
-        String lineColor = "ff000000";
-        float lineWidth = 1;
-        if(mapHasStyle) {
-            StyleInfo styleInfo = styleMap.get(modificationArc.getId());
-            lineWidth = styleInfo.getLineWidth();
-            lineColor = styleInfo.getLineColor();
-        }
-
-        LineType2 line = new LineType2();
-        line.setWidth(BigDecimal.valueOf(lineWidth));
-        line.setColor(lineColor);
-        line.setType("Straight");
-
-        List<String> editPointString = new ArrayList<>();
-        for(Point2D.Float p: localEditPoints) {
-            editPointString.add(p.getX()+","+p.getY());
-        }
-
+        LineWrapper lineWrapper;
         // logic gates have their own coordinate added to the edit point, in global coord system
         if(SBGNUtils.isLogicGate(modificationGlyph)) {
-            editPointString.add(finalStartPoint.getX()+","+finalStartPoint.getY());
+            Point2D.Float logicPoint = new Point2D.Float(
+                    (float) finalStartPoint.getX(),
+                    (float) finalStartPoint.getY());
+            lineWrapper = buildLineWrapper(modificationArc.getId(), localEditPoints, logicPoint);
         }
-
-        LineWrapper lineWrapper = new LineWrapper(connectScheme, editPointString, line);
+        else {
+            lineWrapper = buildLineWrapper(modificationArc.getId(), localEditPoints, null);
+        }
 
         modificationW.setLineWrapper(lineWrapper);
         return modificationW;
@@ -2036,10 +1901,6 @@ public class SBGNML2CD extends GeneralConverter {
                 processSegmentIndex = entry.getValue().size();
             }
         }
-        System.out.println("PROCESS SEGMENT: "+totalSegmentCount+" "+processSegmentIndex);
-        System.out.println("arcsid "+arcsIds);
-        System.out.println("ditpoints "+editPointsList);
-        System.out.println("segemntcounts "+segmentCountList);
 
         ConnectScheme connectScheme;
         if(isBranchReactionType) {
@@ -2105,6 +1966,45 @@ public class SBGNML2CD extends GeneralConverter {
         }
 
         return lineWrapper;
+    }
+
+    /**
+     *
+     * @param arcId
+     * @param localEditPoints
+     * @param additionalPoint for logic gates, their coordinates must be added at the end of the edit points string
+     * @return
+     */
+    public LineWrapper buildLineWrapper(String arcId, List<Point2D.Float> localEditPoints, Point2D.Float additionalPoint) {
+
+        String lineColor = "ff000000";
+        float lineWidth = 1;
+        if(mapHasStyle) {
+            System.out.println(arcId);
+            StyleInfo styleInfo = styleMap.get(arcId);
+            lineWidth = styleInfo.getLineWidth();
+            lineColor = styleInfo.getLineColor();
+        }
+
+        int segmentCount = localEditPoints.size() + 1;
+
+        ConnectScheme connectScheme = getSimpleConnectScheme(segmentCount, -1);
+
+        LineType2 line = new LineType2();
+        line.setWidth(BigDecimal.valueOf(lineWidth));
+        line.setColor(lineColor);
+        line.setType("Straight");
+
+        List<String> editPointString = new ArrayList<>();
+        for(Point2D.Float p: localEditPoints) {
+            editPointString.add(p.getX()+","+p.getY());
+        }
+
+        if(additionalPoint != null) {
+            editPointString.add(additionalPoint.getX()+","+additionalPoint.getY());
+        }
+
+        return new LineWrapper(connectScheme, editPointString, line);
     }
 
     public static AnchorPoint inferAnchorPoint(Point2D.Float p, ReactantWrapper reactantW, Rectangle2D.Float rect) {
