@@ -1694,9 +1694,20 @@ public class SBGNML2CD extends GeneralConverter {
                 glyphToArc.get(targetGlyph.getId()).add(arc);
             }
 
-            if(!SBGNUtils.isLogicGate(sourceGlyph)
-                && !SBGNUtils.isLogicGate(targetGlyph)
-                && !isConnectedToProcess) {
+            /*
+                Filter things that will be considered as orphan arcs. We want all direct arcs (that is arcs that do
+                not connect a process) and arcs that are not linked to logic gates (because those are already treated
+                when connected to process) except when the arc is also connected to phenotypes or submap. Phenotypes
+                and submaps can have connected logic gates. Those logic gates have to be processed with the orphan arcs.
+             */
+            if(     !isConnectedToProcess
+                    &&
+                            ((!SBGNUtils.isLogicGate(sourceGlyph)
+                            && !SBGNUtils.isLogicGate(targetGlyph))
+                        ||
+                            (GlyphClazz.fromClazz(sourceGlyph.getClazz()) == PHENOTYPE
+                            || GlyphClazz.fromClazz(targetGlyph.getClazz()) == PHENOTYPE ))) {
+                // TODO include submaps here
                 orphanArcs.add(arc);
             }
         }
@@ -1894,7 +1905,7 @@ public class SBGNML2CD extends GeneralConverter {
         for(java.util.Map.Entry<String, List<Point2D.Float>> entry: arcIds2LocalEditPoints.entrySet()) {
             arcsIds.add(entry.getKey());
             editPointsList.add(entry.getValue());
-            segmentCountList.add(entry.getValue().size());
+            segmentCountList.add(entry.getValue().size()+1);
             totalSegmentCount += entry.getValue().size();
             if(isFirstEntry) {
                 isFirstEntry = false;
@@ -1959,9 +1970,10 @@ public class SBGNML2CD extends GeneralConverter {
 
         LineWrapper lineWrapper = new LineWrapper(connectScheme, editPointString, line);
         if(isBranchReactionType) {
-            lineWrapper.setNum0(segmentCountList.get(0));
-            lineWrapper.setNum1(segmentCountList.get(1));
-            lineWrapper.setNum2(segmentCountList.get(2));
+            // here the number of edit points is needed
+            lineWrapper.setNum0(segmentCountList.get(0) - 1);
+            lineWrapper.setNum1(segmentCountList.get(1) - 1);
+            lineWrapper.setNum2(segmentCountList.get(2) - 1);
             lineWrapper.settShapeIndex(0);
         }
 
