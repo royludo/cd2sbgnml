@@ -40,8 +40,8 @@ public class SBGNSBFCModel extends SBGNModel {
         try {
             String content = new String(Files.readAllBytes(f.toPath()));
 
-            // following line is when using 0.3 and processing 0.2
-            //content = content.replaceFirst("http://sbgn\\.org/libsbgn/0\\.2", "http://sbgn.org/libsbgn/0.3");
+            // following line is when loading 0.3 but we want to process 0.2
+            content = content.replaceFirst("http://sbgn\\.org/libsbgn/0\\.3", "http://sbgn.org/libsbgn/0.2");
 
             JAXBContext context = JAXBContext.newInstance("org.sbgn.bindings");
             Unmarshaller unmarshaller = context.createUnmarshaller();
