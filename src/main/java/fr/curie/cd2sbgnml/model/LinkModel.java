@@ -117,6 +117,8 @@ public class LinkModel {
                 return "POSITIVE_INFLUENCE";
             case NECESSARY_STIMULATION:
                 return "REDUCED_TRIGGER";
+            case EQUIVALENCE_ARC:
+                return "POSITIVE_INFLUENCE";
         }
         throw new IllegalArgumentException("Could not infer CellDesigner class from SBGN arc class: "+sbgnClass);
     }

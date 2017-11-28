@@ -112,6 +112,7 @@ public class ReactantModel extends GenericReactionElement{
                 }
             case "phenotype":
             case "perturbing agent":
+            case "submap":
                 return "PHENOTYPE";
             case "simple chemical":
             case "simple chemical multimer":

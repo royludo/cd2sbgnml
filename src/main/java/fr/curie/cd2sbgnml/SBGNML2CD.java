@@ -150,6 +150,7 @@ public class SBGNML2CD extends GeneralConverter {
                 case PHENOTYPE:
                 case SOURCE_AND_SINK:
                 case PERTURBING_AGENT:
+                case SUBMAP:
                     processSpecies(glyph, false, false, null, null);
                     break;
                 case COMPLEX:
@@ -1544,7 +1545,13 @@ public class SBGNML2CD extends GeneralConverter {
             speciesW.setCdClass("DRUG");
         }
         else {
-            speciesW.setCdClass(ReactantModel.getCdClass(glyph.getClazz(), subType));
+            try {
+                speciesW.setCdClass(ReactantModel.getCdClass(glyph.getClazz(), subType));
+            }
+            catch (Exception e) {
+                logger.error(e.getMessage()+" Glyph will be skipped and will not appear in translation.");
+                return;
+            }
         }
         System.out.println("cd clazz: "+speciesW.getCdClass());
 
@@ -1798,6 +1805,7 @@ public class SBGNML2CD extends GeneralConverter {
             }
         }
 
+        java.util.Map<String, Glyph> terminalId2Submap = new HashMap<>();
         for(Glyph g: map.getGlyph()) {
             GlyphClazz clazz = GlyphClazz.fromClazz(g.getClazz());
             idToGlyph.put(g.getId(), g);
@@ -1811,6 +1819,16 @@ public class SBGNML2CD extends GeneralConverter {
             if(clazz == AND || clazz == OR || clazz == NOT) {
                 orphanLogicGates.add(g);
             }
+
+            // in case of submap, go inside and index all terminals
+            if(clazz == SUBMAP) {
+                for(Glyph subGlyph: g.getGlyph()) {
+                    if(GlyphClazz.fromClazz(subGlyph.getClazz()) == TERMINAL) {
+                        terminalId2Submap.put(subGlyph.getId(), g);
+                    }
+                }
+            }
+
             glyphToArc.put(g.getId(), new ArrayList<>());
         }
 
@@ -1822,22 +1840,31 @@ public class SBGNML2CD extends GeneralConverter {
             if(arc.getSource() instanceof Port) {
                 Port p = (Port) arc.getSource();
                 sourceGlyph = portToGlyph.get(p.getId());
-                arcToSource.put(arc.getId(), sourceGlyph);
+            }
+            // for terminals, make links point directly at the parent submap
+            else if(arc.getSource() instanceof Glyph && ((Glyph) arc.getSource()).getClazz().equals("terminal")) {
+                // terminal should always be the target, not the source.
+                logger.warn("The arc: "+arc.getId()+" has a source terminal (id: "+((Glyph) arc.getSource()).getId()+"). " +
+                        "But Arcs should always have terminals as target.");
+                sourceGlyph = terminalId2Submap.get(((Glyph) arc.getSource()).getId());
             }
             else { // glyph itself
                 sourceGlyph = (Glyph) arc.getSource();
-                arcToSource.put(arc.getId(), sourceGlyph);
             }
+            arcToSource.put(arc.getId(), sourceGlyph);
 
             if(arc.getTarget() instanceof Port) {
                 Port p = (Port) arc.getTarget();
                 targetGlyph = portToGlyph.get(p.getId());
-                arcToTarget.put(arc.getId(), targetGlyph);
+            }
+            // for terminals, make links point directly at the parent submap
+            else if(arc.getTarget() instanceof Glyph && ((Glyph) arc.getTarget()).getClazz().equals("terminal")) {
+                targetGlyph = terminalId2Submap.get(((Glyph) arc.getTarget()).getId());
             }
             else { // glyph itself
                 targetGlyph = (Glyph) arc.getTarget();
-                arcToTarget.put(arc.getId(), targetGlyph);
             }
+            arcToTarget.put(arc.getId(), targetGlyph);
 
             if(processToArcs.containsKey(sourceGlyph.getId())){
                 processToArcs.get(sourceGlyph.getId()).add(arc);
@@ -1861,13 +1888,10 @@ public class SBGNML2CD extends GeneralConverter {
                 when connected to process) except when the arc is also connected to phenotypes or submap. Phenotypes
                 and submaps can have connected logic gates. Those logic gates have to be processed with the orphan arcs.
              */
-            if(     !isConnectedToProcess
+            if(         !isConnectedToProcess
                     &&
-                            ((!SBGNUtils.isLogicGate(sourceGlyph)
-                            && !SBGNUtils.isLogicGate(targetGlyph))
-                        ||
-                            (GlyphClazz.fromClazz(sourceGlyph.getClazz()) == PHENOTYPE
-                            || GlyphClazz.fromClazz(targetGlyph.getClazz()) == PHENOTYPE ))) {
+                        ((!SBGNUtils.isLogicGate(sourceGlyph)
+                            && !SBGNUtils.isLogicGate(targetGlyph)))) {
                 // TODO include submaps here
                 orphanArcs.add(arc);
             }

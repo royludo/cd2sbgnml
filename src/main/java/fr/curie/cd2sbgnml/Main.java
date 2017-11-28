@@ -82,7 +82,7 @@ public class Main {
             e.printStackTrace();
         }
 
-        if(true) {
+        if(false) {
             CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
             try {
                 cdModel.setModelFromFile(inputFile);
