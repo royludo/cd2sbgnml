@@ -16,18 +16,16 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * List of species included by complexes.
- * 
- * <p>Java class for listOfIncludedSpecies complex type.
+ * <p>Java class for listOfGateMember complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="listOfIncludedSpecies">
+ * &lt;complexType name="listOfGateMember">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="species" type="{http://www.sbml.org/2001/ns/celldesigner}species" maxOccurs="unbounded"/>
+ *         &lt;element name="GateMember" type="{http://www.sbml.org/2001/ns/celldesigner}modification" maxOccurs="unbounded"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -37,41 +35,41 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "listOfIncludedSpecies", propOrder = {
-    "species"
+@XmlType(name = "listOfGateMember", propOrder = {
+    "gateMember"
 })
-public class ListOfIncludedSpecies {
+public class ListOfGateMember {
 
-    @XmlElement(required = true)
-    protected List<Species> species;
+    @XmlElement(name = "GateMember", required = true)
+    protected List<Modification> gateMember;
 
     /**
-     * Gets the value of the species property.
+     * Gets the value of the gateMember property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the species property.
+     * This is why there is not a <CODE>set</CODE> method for the gateMember property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getSpecies().add(newItem);
+     *    getGateMember().add(newItem);
      * </pre>
      * 
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link Species }
+     * {@link Modification }
      * 
      * 
      */
-    public List<Species> getSpecies() {
-        if (species == null) {
-            species = new ArrayList<Species>();
+    public List<Modification> getGateMember() {
+        if (gateMember == null) {
+            gateMember = new ArrayList<Modification>();
         }
-        return this.species;
+        return this.gateMember;
     }
 
 }
