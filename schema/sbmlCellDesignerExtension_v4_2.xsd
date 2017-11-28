@@ -2037,7 +2037,7 @@
       </xs:simpleType>
     </xs:attribute>
   </xs:complexType>
-  <xs:complexType name="listOfModification">git 
+  <xs:complexType name="listOfModification">
     <xs:annotation>
       <xs:documentation>List of line modification.</xs:documentation>
     </xs:annotation>
