@@ -37,6 +37,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.stream.Collectors;
 
 import static org.sbgn.GlyphClazz.*;
 
@@ -1309,6 +1310,9 @@ public class SBGNML2CD extends GeneralConverter {
                                 String parentSpeciesId, String parentAliasId) {
         String label = glyph.getLabel() == null ? "": glyph.getLabel().getText();
         label = Utils.UTF8charsToCD(label);
+        List<Glyph> unitOfInfoList = glyph.getGlyph().stream()
+                .filter(g->GlyphClazz.fromClazz(g.getClazz()) == UNIT_OF_INFORMATION)
+                .collect(Collectors.toList());
 
         System.out.println(glyph.getClazz()+" "+isIncluded+" "+isComplex);
         // first determine specific subtypes
@@ -1320,33 +1324,48 @@ public class SBGNML2CD extends GeneralConverter {
                 case MACROMOLECULE:
                 case MACROMOLECULE_MULTIMER:
                     subType = SpeciesWrapper.ReferenceType.GENERIC; // default
-                    if(SBGNUtils.hasUnitOfInfo(glyph, "receptor")) {
+
+                    Optional<Glyph> g = SBGNUtils.getUnitOfInfo(glyph, "receptor");
+                    if(g.isPresent()) {
                         subType = SpeciesWrapper.ReferenceType.RECEPTOR;
+                        unitOfInfoList.remove(g.get());
                     }
-                    if(SBGNUtils.hasUnitOfInfo(glyph, "ion channel")) {
+                    g = SBGNUtils.getUnitOfInfo(glyph, "ion channel");
+                    if(g.isPresent()) {
                         subType = SpeciesWrapper.ReferenceType.ION_CHANNEL;
+                        unitOfInfoList.remove(g.get());
                     }
-                    if(SBGNUtils.hasUnitOfInfo(glyph, "truncated")) {
+                    g = SBGNUtils.getUnitOfInfo(glyph, "truncated");
+                    if(g.isPresent()) {
                         subType = SpeciesWrapper.ReferenceType.TRUNCATED;
+                        unitOfInfoList.remove(g.get());
                     }
                     break;
                 case NUCLEIC_ACID_FEATURE:
                 case NUCLEIC_ACID_FEATURE_MULTIMER:
                     subType = SpeciesWrapper.ReferenceType.GENE; // default
-                    if(SBGNUtils.hasUnitOfInfo(glyph, "rna")) {
+                    g = SBGNUtils.getUnitOfInfo(glyph, "rna");
+                    if(g.isPresent()) {
                         subType = SpeciesWrapper.ReferenceType.RNA;
+                        unitOfInfoList.remove(g.get());
                     }
-                    if(SBGNUtils.hasUnitOfInfo(glyph, "asrna")) {
+                    g = SBGNUtils.getUnitOfInfo(glyph, "asrna");
+                    if(g.isPresent()) {
                         subType = SpeciesWrapper.ReferenceType.ANTISENSE_RNA;
+                        unitOfInfoList.remove(g.get());
                     }
                     break;
                 case SIMPLE_CHEMICAL:
                 case SIMPLE_CHEMICAL_MULTIMER:
-                    if(SBGNUtils.hasUnitOfInfo(glyph, "ion")) {
+                    g = SBGNUtils.getUnitOfInfo(glyph, "ion");
+                    if(g.isPresent()) {
                         ionFlag = true;
+                        unitOfInfoList.remove(g.get());
                     }
-                    if(SBGNUtils.hasUnitOfInfo(glyph, "drug")) {
+                    g = SBGNUtils.getUnitOfInfo(glyph, "drug");
+                    if(g.isPresent()) {
                         drugFlag = true;
+                        unitOfInfoList.remove(g.get());
                     }
                     break;
             }
@@ -1380,6 +1399,47 @@ public class SBGNML2CD extends GeneralConverter {
             i++;
 
         }
+
+        // process unit of info
+        List<AliasInfoWrapper> infoWrapperList = new ArrayList<>();
+        for(Glyph infoUnit: unitOfInfoList) {
+            // !! beware angle direction is inversed for units of info...
+            double angle = -GeometryUtils.getAngleOfAuxUnit(
+                    SBGNUtils.getRectangleFromGlyph(glyph),
+                    SBGNUtils.getRectangleFromGlyph(infoUnit));
+
+            System.out.println("Info var: "+angle);
+
+            String value = infoUnit.getLabel().getText();
+            String prefix = "";
+            String infoLabel = "";
+            if(value.contains(":")) {
+                String[] tmp = value.split(":");
+                prefix = tmp[0];
+                // the prefix will be recognized by CellDesigner
+                if(prefix.startsWith("pc") || prefix.startsWith("mt")
+                        || prefix.startsWith("ct") || prefix.startsWith("N")) {
+                    infoLabel = tmp[1];
+                }
+                // CellDesigner won't accept the prefix, consider it a free input
+                else {
+                    prefix = "free input";
+                    infoLabel = tmp[0]+":"+tmp[1];
+                }
+            }
+            else {
+                prefix = "free input";
+                infoLabel = value;
+            }
+
+            AliasInfoWrapper infoWrapper = new AliasInfoWrapper(
+                    (float) angle,
+                    prefix,
+                    infoLabel);
+
+            infoWrapperList.add(infoWrapper);
+        }
+        System.out.println("processed unit of info: "+infoWrapperList.size());
 
         // create associated reference type (protein, gene...)
         // if no particular type, default to own id (for complex, simple molecules...)
@@ -1612,13 +1672,32 @@ public class SBGNML2CD extends GeneralConverter {
             aliasW.setComplexAlias(parentAliasId);
         }
 
+        // unit of info management
+        // CellDesigner only allows 1 unit of information, this can lead to loss of info
+        // only consider the first remaining info unit, output errors about the others
+        if(infoWrapperList.size() > 0) {
+            System.out.println("unit of info found "+infoWrapperList.get(0));
+            aliasW.setInfo(infoWrapperList.get(0));
+
+            if(infoWrapperList.size() > 1) {
+                for(int j=1; i < unitOfInfoList.size(); i++) {
+                    Glyph discardedUnit = unitOfInfoList.get(j);
+                    logger.error("Unit of information with id: "+discardedUnit.getId()+" and content: "
+                            +discardedUnit.getLabel().getText()+" on glyph with id: "+ glyph.getId()+" cannot be" +
+                            "translated and will be lost.");
+                }
+            }
+        }
+
         // add alias to correct list
         if(isComplex) {
+            System.out.println("before cd alias: "+aliasW.getInfo());
             ListOfComplexSpeciesAliases.ComplexSpeciesAlias complexSpeciesAlias = aliasW.getCDComplexSpeciesAlias();
             sbml.getModel().getAnnotation().getExtension().getListOfComplexSpeciesAliases()
                     .getComplexSpeciesAlias().add(complexSpeciesAlias);
         }
         else {
+            System.out.println("before cd alias: "+aliasW.getInfo());
             SpeciesAlias speciesAlias = aliasW.getCDSpeciesAlias();
             sbml.getModel().getAnnotation().getExtension().getListOfSpeciesAliases().getSpeciesAlias().add(speciesAlias);
         }
@@ -1892,7 +1971,6 @@ public class SBGNML2CD extends GeneralConverter {
                     &&
                         ((!SBGNUtils.isLogicGate(sourceGlyph)
                             && !SBGNUtils.isLogicGate(targetGlyph)))) {
-                // TODO include submaps here
                 orphanArcs.add(arc);
             }
         }

@@ -2,6 +2,7 @@ package fr.curie.cd2sbgnml;
 
 import fr.curie.cd2sbgnml.xmlcdwrappers.ResidueWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
+import jdk.nashorn.internal.runtime.regexp.joni.Option;
 import jdk.nashorn.internal.runtime.regexp.joni.Regex;
 import org.sbgn.ArcClazz;
 import org.sbgn.GlyphClazz;
@@ -180,6 +181,20 @@ public class SBGNUtils {
             }
         }
         return false;
+    }
+
+    public static Optional<Glyph> getUnitOfInfo(Glyph glyph, String regexp) {
+        Pattern p = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
+        for(Glyph subglyph: glyph.getGlyph()) {
+            if(subglyph.getClazz().equals("unit of information")) {
+                String info = subglyph.getLabel().getText();
+                Matcher m = p.matcher(info);
+                if(m.find()){
+                    return Optional.of(subglyph);
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     /**

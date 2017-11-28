@@ -195,8 +195,18 @@ public class AliasWrapper {
         alias.setBriefView(briefView);
 
         Info info = new Info();
-        info.setState("empty");
-        info.setAngle(BigDecimal.valueOf(-1.57));
+        System.out.println("in cd of alias: "+this.getInfo());
+        if(this.getInfo() != null) {
+            info.setState("open");
+            info.setAngle(BigDecimal.valueOf(this.getInfo().angle));
+            info.setPrefix(this.getInfo().prefix);
+            info.setLabel(this.getInfo().label);
+            System.out.println("get CD of info: "+info);
+        }
+        else {
+            info.setState("empty");
+            info.setAngle(BigDecimal.valueOf(-1.57));
+        }
         alias.setInfo(info);
 
         return alias;
@@ -267,8 +277,18 @@ public class AliasWrapper {
         alias.setBriefView(briefView);
 
         Info info = new Info();
-        info.setState("empty");
-        info.setAngle(BigDecimal.valueOf(-1.57));
+        System.out.println("in cd of alias: "+this.getInfo());
+        if(this.getInfo() != null) {
+            info.setState("open");
+            info.setAngle(BigDecimal.valueOf(this.getInfo().angle));
+            info.setPrefix(this.getInfo().prefix);
+            info.setLabel(this.getInfo().label);
+            System.out.println("get CD of info: "+info);
+        }
+        else {
+            info.setState("empty");
+            info.setAngle(BigDecimal.valueOf(-1.57));
+        }
         alias.setInfo(info);
 
         return alias;
