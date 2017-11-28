@@ -19,3 +19,5 @@ The xsd files in the `schema` directory comes from <https://github.com/funasoul/
    - NEGATIVE_INFLUENCE
    - REDUCED_MODULATION
    - REDUCED_TRIGGER
+ * `<listOfGateMembers>` and `<GateMember>` elements were added to be able to manage reactions of type BOOLEAN_LOGIC_GATE.
+ The `BOOLEAN_LOGIC_GATE` value was added to the reaction type enum.
