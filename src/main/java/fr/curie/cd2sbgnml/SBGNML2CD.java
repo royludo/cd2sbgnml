@@ -5,6 +5,7 @@ import fr.curie.cd2sbgnml.graphics.CdShape;
 import fr.curie.cd2sbgnml.graphics.GeometryUtils;
 import fr.curie.cd2sbgnml.graphics.Link;
 import fr.curie.cd2sbgnml.model.LinkModel;
+import fr.curie.cd2sbgnml.model.LogicGate;
 import fr.curie.cd2sbgnml.model.Process;
 import fr.curie.cd2sbgnml.xmlcdwrappers.*;
 import fr.curie.cd2sbgnml.model.ReactantModel;
@@ -28,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -72,6 +74,14 @@ public class SBGNML2CD extends GeneralConverter {
      * Or AF map arcs.
      */
     List<Arc> orphanArcs;
+
+    /**
+     * HashSet containing all logic gate glyphs that aren't associated to any process.
+     * The set is first built with all logic gates in the map, and they are removed as reactions are processed, if
+     * they are connected to a process.
+     * After all reactions are processed, only the orphan logic gates will remain in the set.
+     */
+    HashSet<Glyph> orphanLogicGates;
 
     /**
      * Those 2 maps index the source and target glyph attached to each link.
@@ -168,6 +178,12 @@ public class SBGNML2CD extends GeneralConverter {
             processOrphanArc(orphanArc);
         }
 
+        // process the remaining orphan logic gates
+        for(Glyph orphanLogic: orphanLogicGates) {
+            System.out.println("Orphan logic: "+orphanLogic.getId());
+            processLogicReaction(orphanLogic);
+        }
+
         processEnd();
 
 
@@ -208,6 +224,145 @@ public class SBGNML2CD extends GeneralConverter {
         for(AntisenseRNA p: asrnaMap.values()) {
             sbml.getModel().getAnnotation().getExtension().getListOfAntisenseRNAs().getAntisenseRNA().add(p);
         }
+    }
+
+    /**
+     * Logic gate reactions have different features than all other reactions in CellDesigner.
+     * They can have more than 2 baseReactants. Instead of modifications, they have gateMembers listed.
+     * @param logicGlyph
+     */
+    private void processLogicReaction(Glyph logicGlyph) {
+        List<Arc> connectedArcs = glyphToArc.get(logicGlyph.getId());
+        Point2D.Float logicCoords = new Point2D.Float(
+                logicGlyph.getBbox().getX() + logicGlyph.getBbox().getW() / 2,
+                logicGlyph.getBbox().getY() + logicGlyph.getBbox().getH() / 2
+        );
+
+        for(Arc arc: connectedArcs) {
+            System.out.println(arc.getId()+" "+arc.getClazz());
+        }
+
+        ReactionType reactionCDClass = ReactionType.BOOLEAN_LOGIC_GATE;
+
+        List<List<Arc>> tmp = SBGNUtils.getBLGReactantTypes(connectedArcs);
+        List<Arc> reactants = tmp.get(0);
+        Arc productArc = tmp.get(1).get(0);
+        System.out.println("connected glyphs: "+reactants.size()+" "+productArc.getId());
+
+        List<ReactantWrapper> baseReactantsW = new ArrayList<>();
+        List<Glyph> baseReactantGlyphs = new ArrayList<>();
+        List<Arc> baseReactantArcs = new ArrayList<>();
+
+        List<String> aliases = new ArrayList<>();
+        List<String> speciesModifiers = new ArrayList<>();
+
+        for(Arc arc: reactants) {
+            Glyph g = arcToSource.get(arc.getId());
+
+            AliasWrapper aliasW = aliasWrapperMap.get(g.getId()+"_alias1");
+            System.out.println("Reactant: "+g.getId()+" "+g.getClazz());
+
+            ReactantWrapper baseWrapper = new ReactantWrapper(aliasW, ReactantType.BASE_REACTANT);
+            //baseWrapper.setAnchorPoint(AnchorPoint.CENTER); // set to CENTER for now, but better computed after
+
+            // incoming arcs have the type of the product arc
+            baseWrapper.setModificationLinkType(
+                    ReactantWrapper.ModificationLinkType.valueOf(
+                            LinkModel.getCdClass(
+                                    ArcClazz.fromClazz(productArc.getClazz()))));
+
+            baseReactantsW.add(baseWrapper);
+            baseReactantGlyphs.add(g);
+            baseReactantArcs.add(arc);
+            aliases.add(aliasW.getId());
+            speciesModifiers.add(aliasW.getSpeciesId());
+        }
+
+        Glyph baseProductGlyph = arcToTarget.get(productArc.getId());
+        AliasWrapper aliasW = aliasWrapperMap.get(baseProductGlyph.getId()+"_alias1");
+        ReactantWrapper baseProductW = new ReactantWrapper(aliasW, ReactantType.BASE_PRODUCT);
+        baseProductW.setModificationLinkType(
+                ReactantWrapper.ModificationLinkType.valueOf(
+                        LinkModel.getCdClass(
+                                ArcClazz.fromClazz(productArc.getClazz()))));
+
+        ReactionWrapper reactionW = new ReactionWrapper(logicGlyph.getId().replaceAll("-","_"),
+                reactionCDClass, baseReactantsW, Collections.singletonList(baseProductW));
+
+        // 1st product link = logic gate associated link
+        SimpleEntry<Link, Link> tmpProductLink = baseLinkProcessingStep1(baseProductW,
+                baseProductGlyph,
+                productArc,
+                logicCoords,
+                false,
+                new ReactionFeatures(false, true, false));
+        List<Point2D.Float> localEditPointsProduct = tmpProductLink.getKey().getEditPoints();
+        Point2D.Float finalEndPoint = tmpProductLink.getKey().getEnd();
+        Link productLink = tmpProductLink.getValue();
+        // apply translation factor on logic gate
+        Point2D.Float logicPoint = new Point2D.Float(
+                (float) (logicCoords.getX() - mapBounds.getX()),
+                (float) (logicCoords.getY() - mapBounds.getY()));
+        LineWrapper productLineWrapper = buildLineWrapper(productArc.getId(), localEditPointsProduct, logicPoint);
+
+        LogicGateWrapper logicW = new LogicGateWrapper(
+                baseProductW,
+                LogicGate.getLogicGateType(GlyphClazz.fromClazz(logicGlyph.getClazz())),
+                speciesModifiers,
+                aliases,
+                baseProductW.getModificationLinkType());
+        logicW.setLineWrapper(productLineWrapper);
+        logicW.setTargetLineIndex("-1,0");
+        reactionW.getModifiers().add(logicW);
+
+
+        int i=0;
+        //java.util.Map<String, List<Point2D.Float>> arcsId2Editpoints = new LinkedHashMap<>();
+        for(ReactantWrapper reactantW: baseReactantsW) {
+            List<Point2D.Float> localEditPoints0 = baseLinkProcessingStep1(reactantW,
+                    baseReactantGlyphs.get(i),
+                    baseReactantArcs.get(i),
+                    logicCoords,
+                    true,
+                    new ReactionFeatures(false, true, false, true)).getKey().getEditPoints();
+            System.out.println("Lnks: "+localEditPoints0);
+
+            reactantW.setTargetLineIndex("-1,0");
+            List<String> editPointStringList = new ArrayList<>();
+            for(Point2D.Float p: localEditPoints0) {
+                editPointStringList.add(p.getX()+","+p.getY());
+            }
+
+            LineWrapper lineWrapper = buildLineWrapper(baseReactantArcs.get(i).getId(),
+                    localEditPoints0, null);
+            reactantW.setLineWrapper(lineWrapper);
+
+
+            //arcsId2Editpoints.put(baseReactantArcs.get(i).getId(), localEditPoints0);
+            i++;
+        }
+
+        //arcsId2Editpoints.put(productArc.getId(), localEditPointsProduct);
+
+        List<String> baseReactionEditPointString = new ArrayList<>();
+        /*List<Point2D.Float> mergedList = new ArrayList<>();
+        mergedList.addAll(productLink.getEditPoints());
+        mergedList.add(logicCoords);*/
+        for(Point2D.Float p: logicW.getLineWrapper().getEditPoints()) {
+            baseReactionEditPointString.add(p.getX()+","+p.getY());
+        }
+
+        Line line = new Line();
+        line.setWidth(BigDecimal.valueOf(1));
+        line.setColor("ff000000");
+
+
+        LineWrapper baseLineWrapper = new LineWrapper(null, baseReactionEditPointString, line);
+        reactionW.setLineWrapper(baseLineWrapper);
+
+        sbml.getModel().getListOfReactions().getReaction().add(reactionW.getCDReaction());
+
+
     }
 
     private void processReaction(Glyph processGlyph) {
@@ -744,6 +899,8 @@ public class SBGNML2CD extends GeneralConverter {
                         processedlogicW.getModificationLinkType()
                 );
 
+                orphanLogicGates.remove(modificationGlyph);
+
                 /*SpeciesWrapper logicSpW = new SpeciesWrapper(modificationGlyph.getId(),
                         modificationGlyph.getId(), null);
                 AliasWrapper logicAliasW = new AliasWrapper(modificationGlyph.getId()+"_alias1",
@@ -791,7 +948,7 @@ public class SBGNML2CD extends GeneralConverter {
     private void processOrphanArc(Arc orphanArc) {
         // process orphan arcs
 
-        System.out.println(orphanArc.getClazz());
+        System.out.println("orphan arc class: "+orphanArc.getClazz());
 
         Glyph targetGlyph = arcToTarget.get(orphanArc.getId());
         Glyph sourceGlyph = arcToSource.get(orphanArc.getId());
@@ -1623,6 +1780,7 @@ public class SBGNML2CD extends GeneralConverter {
         speciesWrapperMap = new HashMap<>();
         glyphToArc = new HashMap<>();
         orphanArcs = new ArrayList<>();
+        orphanLogicGates = new HashSet<>();
         protMap = new HashMap<>();
         rnaMap = new HashMap<>();
         geneMap = new HashMap<>();
@@ -1649,6 +1807,9 @@ public class SBGNML2CD extends GeneralConverter {
             if(clazz == PROCESS || clazz == UNCERTAIN_PROCESS || clazz == OMITTED_PROCESS
                     || clazz == ASSOCIATION || clazz == DISSOCIATION) {
                 processToArcs.put(g.getId(), new ArrayList<>());
+            }
+            if(clazz == AND || clazz == OR || clazz == NOT) {
+                orphanLogicGates.add(g);
             }
             glyphToArc.put(g.getId(), new ArrayList<>());
         }
@@ -1694,7 +1855,7 @@ public class SBGNML2CD extends GeneralConverter {
                 glyphToArc.get(targetGlyph.getId()).add(arc);
             }
 
-            /*
+            /*//
                 Filter things that will be considered as orphan arcs. We want all direct arcs (that is arcs that do
                 not connect a process) and arcs that are not linked to logic gates (because those are already treated
                 when connected to process) except when the arc is also connected to phenotypes or submap. Phenotypes
@@ -1718,11 +1879,20 @@ public class SBGNML2CD extends GeneralConverter {
         private boolean isReversible;
         private boolean isBranch;
         private boolean isAssociation;
+        private boolean isLogicGateReaction;
 
         public ReactionFeatures(boolean isReversible, boolean isBranch, boolean isAssociation) {
             this.isReversible = isReversible;
             this.isBranch = isBranch;
             this.isAssociation = isAssociation;
+            this.isLogicGateReaction = false;
+        }
+
+        public ReactionFeatures(boolean isReversible, boolean isBranch, boolean isAssociation, boolean isLogicGateReaction) {
+            this.isReversible = isReversible;
+            this.isBranch = isBranch;
+            this.isAssociation = isAssociation;
+            this.isLogicGateReaction = isLogicGateReaction;
         }
 
         public boolean isReversible() {
@@ -1739,6 +1909,10 @@ public class SBGNML2CD extends GeneralConverter {
 
         public boolean isReactionSimple() {
             return !isBranch;
+        }
+
+        public boolean isLogicGateReaction() {
+            return isLogicGateReaction;
         }
     }
 
@@ -1788,16 +1962,20 @@ public class SBGNML2CD extends GeneralConverter {
         if(!options.isReversible && isReactant)
             Collections.reverse(editpoints0);
         System.out.println("Edit points 0 from assoc: "+editpoints0);
-        List<Point2D.Float> localEditPoints0 = GeometryUtils.convertPoints(
-                editpoints0,
-                GeometryUtils.getTransformsToLocalCoords(
-                        absAssocPoint,
-                        finalPoint
-                ));
+
+        List<AffineTransform> transforms;
+        if(options.isLogicGateReaction) {
+            transforms = GeometryUtils.getTransformsToLocalCoords(finalPoint, absAssocPoint);
+        }
+        else {
+            transforms = GeometryUtils.getTransformsToLocalCoords(absAssocPoint, finalPoint);
+        }
+
+        List<Point2D.Float> localEditPoints0 = GeometryUtils.convertPoints(editpoints0, transforms);
         System.out.println("Branch 0: "+reactantLink0.getEditPoints()+" -> "+localEditPoints0);
         List<Point2D.Float> finalAndLocalPoints = new ArrayList<>();
         finalAndLocalPoints.add(new Point2D.Float());
-        finalAndLocalPoints.addAll(editpoints0);
+        finalAndLocalPoints.addAll(localEditPoints0);
         finalAndLocalPoints.add(finalPoint);
         return new SimpleEntry<>(new Link(finalAndLocalPoints), reactantLink0);
     }

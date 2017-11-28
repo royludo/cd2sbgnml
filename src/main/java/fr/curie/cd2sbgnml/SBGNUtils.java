@@ -263,6 +263,34 @@ public class SBGNUtils {
     }
 
     /**
+     * Determines which arcs are baseReactants and the baseProduct for a boolean logic gate reaction type
+     * @param arcs
+     * @return
+     */
+    public static List<List<Arc>> getBLGReactantTypes(List<Arc> arcs) {
+        List<List<Arc>> result = new ArrayList<>();
+        List<Arc> product = new ArrayList<>();
+        List<Arc> reactants = new ArrayList<>();
+        for(Arc arc: arcs){
+            ArcClazz clazz = ArcClazz.fromClazz(arc.getClazz());
+            switch(clazz) {
+                case LOGIC_ARC: reactants.add(arc); break;
+                default: product.add(arc);
+            }
+        }
+        if(product.size() > 1) {
+            // logic gates shouldn't have more than 1 output arc
+            // TODO output list of arc id
+            logger.error("Logic gate has more than 1 output arc, only the first arc will be considered, others are" +
+                    "discarded.");
+        }
+
+        result.add(reactants);
+        result.add(product);
+        return result;
+    }
+
+    /**
      * might be too complicated for now
      * @param process
      * @param reactants

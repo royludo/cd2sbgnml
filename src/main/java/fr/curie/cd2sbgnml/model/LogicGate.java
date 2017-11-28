@@ -1,10 +1,12 @@
 package fr.curie.cd2sbgnml.model;
 
+import com.sun.javafx.font.LogicalFont;
 import fr.curie.cd2sbgnml.graphics.CdShape;
 import fr.curie.cd2sbgnml.graphics.Glyph;
 import fr.curie.cd2sbgnml.graphics.SbgnShape;
 import fr.curie.cd2sbgnml.xmlcdwrappers.LogicGateWrapper.LogicGateType;
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
+import org.sbgn.GlyphClazz;
 
 import java.awt.geom.Point2D;
 
@@ -42,6 +44,15 @@ public class LogicGate extends ReactionNodeModel{
             //case UNKNOWN: break; // they are removed
         }
         throw new IllegalArgumentException("Could not infer SBGN class from logic type: "+logicType);
+    }
+
+    public static LogicGateType getLogicGateType(GlyphClazz clazz) {
+        switch(clazz) {
+            case OR: return LogicGateType.OR;
+            case AND: return LogicGateType.AND;
+            case NOT: return LogicGateType.NOT;
+        }
+        throw new IllegalArgumentException("Could not infer logic gate type from SBGN class: "+clazz);
     }
 
     public LogicGateType getType() {

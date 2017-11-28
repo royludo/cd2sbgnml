@@ -17,6 +17,9 @@ public class ReactionWrapper implements INotesFeature, IAnnotationsFeature {
 
     private static final Logger logger = LoggerFactory.getLogger(ReactionWrapper.class);
 
+    /**
+     * Possible values for the reactionType element of CellDesigner reactions.
+     */
     public enum ReactionType { STATE_TRANSITION, HETERODIMER_ASSOCIATION, DISSOCIATION,
         KNOWN_TRANSITION_OMITTED, UNKNOWN_TRANSITION,
         CATALYSIS, UNKNOWN_CATALYSIS,
@@ -25,7 +28,13 @@ public class ReactionWrapper implements INotesFeature, IAnnotationsFeature {
         TRANSCRIPTIONAL_ACTIVATION, TRANSCRIPTIONAL_INHIBITION,
         TRANSLATIONAL_ACTIVATION, TRANSLATIONAL_INHIBITION,
         PHYSICAL_STIMULATION, MODULATION, TRIGGER, REDUCED_MODULATION,
-        REDUCED_TRIGGER, NEGATIVE_INFLUENCE, POSITIVE_INFLUENCE}
+        REDUCED_TRIGGER, NEGATIVE_INFLUENCE, POSITIVE_INFLUENCE,
+
+        /**
+         * When the reaction involves only a logic gate, pointing directly at en entity, with no process involved.
+         */
+        BOOLEAN_LOGIC_GATE
+    }
 
     private String id;
     private List<ReactantWrapper> baseReactants;
@@ -428,34 +437,51 @@ public class ReactionWrapper implements INotesFeature, IAnnotationsFeature {
             ext.setListOfProductLinks(listOfProductLinks);
         }
 
-        if(this.getModifiers().size() > 0) {
-            ListOfModifierSpeciesReferences listOfModifiers = new ListOfModifierSpeciesReferences();
-            reaction.setListOfModifiers(listOfModifiers);
+        // if special logic gate reaction, we need to add gate members in addition to the base reactants and product
+        if(this.getReactionType().equals("BOOLEAN_LOGIC_GATE")) {
+            System.out.println("wiiiiizzz logic");
+            ListOfGateMember listOfGateMember = new ListOfGateMember();
+            /*ListOfModifierSpeciesReferences listOfModifiers = new ListOfModifierSpeciesReferences();
+            reaction.setListOfModifiers(listOfModifiers);*/
 
-            ListOfModification listOfModification = new ListOfModification();
-            System.out.println("Number of modifiers to serialize: "+this.getModifiers().size());
-            for(ReactantWrapper w: this.getModifiers()) {
-                listOfModification.getModification().add((Modification) w.getCDElement());
+            listOfGateMember.getGateMember().add(((LogicGateWrapper)this.getModifiers().get(0)).getCDElement());
 
-                // create associated speciesReference for the sbml list
-                System.out.println("modif type: "+w.getModificationLinkType()+" "+w.getAliasW()+" "+this.getId()+
-                " "+this.getModifiers().size()+" "+(w instanceof LogicGateWrapper));
-                if(w.getAliasW() != null)
-                    System.out.println("isincluded ? "+w.getAliasW().getSpeciesW().isIncludedSpecies());
-                /*
-                    Logic gates are not listed in the species reference
-                    If included species, the species reference must be the one of the topmost parent complex
-                 */
-                if(!(w.getModificationLinkType() == BOOLEAN_LOGIC_GATE_UNKNOWN
-                        || w.getModificationLinkType() == BOOLEAN_LOGIC_GATE_AND
-                        || w.getModificationLinkType() == BOOLEAN_LOGIC_GATE_OR
-                        || w.getModificationLinkType() == BOOLEAN_LOGIC_GATE_NOT)) {
-
-                    listOfModifiers.getModifierSpeciesReference().add(getModifierSpeciesReference(w, metaCounter));
-                    metaCounter++;
-                }
+            for(ReactantWrapper reactantWrapper: this.getBaseReactants()) {
+                listOfGateMember.getGateMember().add(reactantWrapper.getAsModification());
             }
-            ext.setListOfModification(listOfModification);
+
+            ext.setListOfGateMember(listOfGateMember);
+        }
+        else {
+            if (this.getModifiers().size() > 0) {
+                ListOfModifierSpeciesReferences listOfModifiers = new ListOfModifierSpeciesReferences();
+                reaction.setListOfModifiers(listOfModifiers);
+
+                ListOfModification listOfModification = new ListOfModification();
+                System.out.println("Number of modifiers to serialize: " + this.getModifiers().size());
+                for (ReactantWrapper w : this.getModifiers()) {
+                    listOfModification.getModification().add((Modification) w.getCDElement());
+
+                    // create associated speciesReference for the sbml list
+                    System.out.println("modif type: " + w.getModificationLinkType() + " " + w.getAliasW() + " " + this.getId() +
+                            " " + this.getModifiers().size() + " " + (w instanceof LogicGateWrapper));
+                    if (w.getAliasW() != null)
+                        System.out.println("isincluded ? " + w.getAliasW().getSpeciesW().isIncludedSpecies());
+                    /*
+                        Logic gates are not listed in the species reference
+                        If included species, the species reference must be the one of the topmost parent complex
+                     */
+                    if (!(w.getModificationLinkType() == BOOLEAN_LOGIC_GATE_UNKNOWN
+                            || w.getModificationLinkType() == BOOLEAN_LOGIC_GATE_AND
+                            || w.getModificationLinkType() == BOOLEAN_LOGIC_GATE_OR
+                            || w.getModificationLinkType() == BOOLEAN_LOGIC_GATE_NOT)) {
+
+                        listOfModifiers.getModifierSpeciesReference().add(getModifierSpeciesReference(w, metaCounter));
+                        metaCounter++;
+                    }
+                }
+                ext.setListOfModification(listOfModification);
+            }
         }
 
         // notes and annotations
