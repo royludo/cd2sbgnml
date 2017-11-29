@@ -1401,6 +1401,13 @@ public class SBGNML2CD extends GeneralConverter {
         }
 
         // process unit of info
+        // certain values are allowed by CellDesigner. Other things are considered free input.
+        HashSet<String> recognizedInfo = new HashSet<>(Arrays.asList(
+                "pc:T", "pc:V", "pc:pH",
+                "mt:ion", "mt:rad", "mt:rna", "mt:dna", "mt:prot", "mt:psac",
+                "ct:gene", "ct:tss","ct:coding","ct:grr","ct:mRNA"
+                )); // also N:\d+
+
         List<AliasInfoWrapper> infoWrapperList = new ArrayList<>();
         for(Glyph infoUnit: unitOfInfoList) {
             // !! beware angle direction is inversed for units of info...
@@ -1411,21 +1418,12 @@ public class SBGNML2CD extends GeneralConverter {
             System.out.println("Info var: "+angle);
 
             String value = infoUnit.getLabel().getText();
-            String prefix = "";
-            String infoLabel = "";
-            if(value.contains(":")) {
+            String prefix;
+            String infoLabel;
+            if(recognizedInfo.contains(value) || value.startsWith("N:")) {
                 String[] tmp = value.split(":");
                 prefix = tmp[0];
-                // the prefix will be recognized by CellDesigner
-                if(prefix.startsWith("pc") || prefix.startsWith("mt")
-                        || prefix.startsWith("ct") || prefix.startsWith("N")) {
-                    infoLabel = tmp[1];
-                }
-                // CellDesigner won't accept the prefix, consider it a free input
-                else {
-                    prefix = "free input";
-                    infoLabel = tmp[0]+":"+tmp[1];
-                }
+                infoLabel = tmp[1];
             }
             else {
                 prefix = "free input";
