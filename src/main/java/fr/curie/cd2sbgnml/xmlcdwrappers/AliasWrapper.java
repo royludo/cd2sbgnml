@@ -4,8 +4,12 @@ import org.sbml._2001.ns.celldesigner.*;
 import org.sbml._2001.ns.celldesigner.ComplexSpeciesAlias.BackupSize;
 
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.math.BigDecimal;
 import java.util.AbstractMap.SimpleEntry;
+
+import static fr.curie.cd2sbgnml.xmlcdwrappers.Utils.bounds2Rect;
+import static fr.curie.cd2sbgnml.xmlcdwrappers.Utils.rect2Bounds;
 
 /**
  * Wraps speciesAlias and complexSpeciesAlias xml entities as they have a lot in common.
@@ -22,7 +26,7 @@ public class AliasWrapper {
      * Retains the information about the original type of the alias, species or complexSpecies.
      */
     private AliasType aliasType;
-    private Bounds bounds; // TODO replace by a more generic Rect2D
+    private Rectangle2D bounds; // TODO replace by a more generic Rect2D
     private String id;
     private String complexAlias;
     private String compartmentAlias;
@@ -57,7 +61,7 @@ public class AliasWrapper {
      */
     public AliasWrapper(SpeciesAlias alias, SpeciesWrapper speciesW) {
         this.aliasType = AliasType.SPECIES;
-        this.bounds = alias.getBounds();
+        this.bounds = bounds2Rect(alias.getBounds());
         this.id = alias.getId();
         this.complexAlias = alias.getComplexSpeciesAlias();
         this.speciesW = speciesW;
@@ -81,7 +85,7 @@ public class AliasWrapper {
      */
     public AliasWrapper(ComplexSpeciesAlias alias, SpeciesWrapper speciesW) {
         this.aliasType = AliasType.COMPLEX;
-        this.bounds = alias.getBounds();
+        this.bounds = bounds2Rect(alias.getBounds());
         this.id = alias.getId();
         this.speciesW = speciesW;
 
@@ -104,8 +108,8 @@ public class AliasWrapper {
      */
     public Point2D.Float getCenterPoint() {
         return new Point2D.Float(
-                this.bounds.getX().floatValue() + this.bounds.getW().floatValue() / 2,
-                this.bounds.getY().floatValue() + this.bounds.getH().floatValue() / 2);
+                (float) this.bounds.getCenterX(),
+                (float) this.bounds.getCenterY());
     }
 
     /**
@@ -182,13 +186,7 @@ public class AliasWrapper {
     }
 
     private Bounds getBoundsElement() {
-        Bounds bounds = new Bounds();
-        bounds.setX(this.getBounds().getX());
-        bounds.setY(this.getBounds().getY());
-        bounds.setW(this.getBounds().getW());
-        bounds.setH(this.getBounds().getH());
-
-        return bounds;
+        return rect2Bounds(this.getBounds());
     }
 
     private Info getInfoElement() {
@@ -213,8 +211,8 @@ public class AliasWrapper {
         innerPosition.setY(BigDecimal.valueOf(0));
 
         BoxSize boxSize = new BoxSize();
-        boxSize.setWidth(this.getBounds().getW());
-        boxSize.setHeight(this.getBounds().getH());
+        boxSize.setWidth(BigDecimal.valueOf(this.getBounds().getWidth()));
+        boxSize.setHeight(BigDecimal.valueOf(this.getBounds().getHeight()));
 
         SingleLine singleLine = new SingleLine();
         singleLine.setWidth(BigDecimal.valueOf(this.getStyleInfo().getLineWidth()));
@@ -239,7 +237,7 @@ public class AliasWrapper {
     }
 
 
-    public Bounds getBounds() {
+    public Rectangle2D getBounds() {
         return bounds;
     }
 
@@ -279,7 +277,7 @@ public class AliasWrapper {
         return styleInfo;
     }
 
-    public void setBounds(Bounds bounds) {
+    public void setBounds(Rectangle2D bounds) {
         this.bounds = bounds;
     }
 

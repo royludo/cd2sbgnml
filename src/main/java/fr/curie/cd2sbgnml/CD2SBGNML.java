@@ -460,12 +460,7 @@ public class CD2SBGNML extends GeneralConverter {
 
         System.out.println(species.getId()+" "+species.getName()+" "+species.getCompartment());
         //System.out.println(bounds);
-        Rectangle2D.Float bboxRect = new Rectangle2D.Float(
-                aliasW.getBounds().getX().floatValue(),
-                aliasW.getBounds().getY().floatValue(),
-                aliasW.getBounds().getW().floatValue(),
-                aliasW.getBounds().getH().floatValue()
-        );
+        Rectangle2D.Float bboxRect = (Rectangle2D.Float) aliasW.getBounds();
 
         Glyph glyph = new Glyph();
 

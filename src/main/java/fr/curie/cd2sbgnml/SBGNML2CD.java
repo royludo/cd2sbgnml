@@ -1653,11 +1653,12 @@ public class SBGNML2CD extends GeneralConverter {
             aliasW.setCompartmentAlias(((Glyph) glyph.getCompartmentRef()).getId()+"_alias1"); // TODO get alias id properly
         }
 
-        Bounds bounds = new Bounds();
-        bounds.setX(BigDecimal.valueOf(glyph.getBbox().getX()- (float) mapBounds.getX()));
-        bounds.setY(BigDecimal.valueOf(glyph.getBbox().getY()- (float) mapBounds.getY()));
-        bounds.setW(BigDecimal.valueOf(glyph.getBbox().getW()));
-        bounds.setH(BigDecimal.valueOf(glyph.getBbox().getH()));
+        Rectangle2D.Float bounds = new Rectangle2D.Float();
+        bounds.setRect(
+                glyph.getBbox().getX()- (float) mapBounds.getX(),
+                glyph.getBbox().getY()- (float) mapBounds.getY(),
+                glyph.getBbox().getW(),
+                glyph.getBbox().getH());
         aliasW.setBounds(bounds);
 
         // style

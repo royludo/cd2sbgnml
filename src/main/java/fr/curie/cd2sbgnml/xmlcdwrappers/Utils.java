@@ -1,11 +1,14 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
+import org.sbml._2001.ns.celldesigner.Bounds;
 import org.sbml._2001.ns.celldesigner.Notes;
 import org.sbml.sbml.level2.version4.SBase;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import java.awt.geom.Rectangle2D;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -282,6 +285,31 @@ public class Utils {
         public String getPreferredPrefix(String namespaceUri, String suggestion, boolean requirePrefix) {
             return namespaceMap.getOrDefault(namespaceUri, suggestion);
         }
+    }
+
+    /**
+     * @param b a CellDesigner Bound xml element
+     * @return the corresponding Rectangle2D
+     */
+    public static Rectangle2D bounds2Rect(Bounds b) {
+        return new Rectangle2D.Float(
+                b.getX().floatValue(),
+                b.getY().floatValue(),
+                b.getW().floatValue(),
+                b.getH().floatValue());
+    }
+
+    /**
+     * @param r a Rectangle2D
+     * @return the corresponding CellDesigner Bounds xml element
+     */
+    public static Bounds rect2Bounds(Rectangle2D r) {
+        Bounds b = new Bounds();
+        b.setX(BigDecimal.valueOf(r.getX()));
+        b.setY(BigDecimal.valueOf(r.getY()));
+        b.setW(BigDecimal.valueOf(r.getWidth()));
+        b.setH(BigDecimal.valueOf(r.getHeight()));
+        return b;
     }
 
 }

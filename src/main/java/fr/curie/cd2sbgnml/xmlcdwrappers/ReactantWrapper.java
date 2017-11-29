@@ -455,11 +455,11 @@ public class ReactantWrapper {
     }*/
 
     public float getHeight() {
-        return this.aliasW.getBounds().getH().floatValue();
+        return (float) this.aliasW.getBounds().getHeight();
     }
 
     public float getWidth() {
-        return this.aliasW.getBounds().getW().floatValue();
+        return (float) this.aliasW.getBounds().getWidth();
     }
 
     /*@Override
