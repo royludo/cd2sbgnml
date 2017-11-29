@@ -2,25 +2,32 @@ package fr.curie.cd2sbgnml.xmlcdwrappers;
 
 import org.sbml._2001.ns.celldesigner.*;
 import org.sbml._2001.ns.celldesigner.ComplexSpeciesAlias.BackupSize;
-import org.w3c.dom.Node;
 
 import java.awt.geom.Point2D;
 import java.math.BigDecimal;
+import java.util.AbstractMap.SimpleEntry;
 
 /**
- * wraps speciesAlias and complexSpeciesAlias as they have a lot in common
+ * Wraps speciesAlias and complexSpeciesAlias xml entities as they have a lot in common.
+ * Compartments are too different and are treated separately.
  */
 public class AliasWrapper {
 
-    public enum AliasType {COMPLEX, COMPARTMENT, BASIC}
+    /**
+     * The different aliases possible. Aliases exist for complexes, species.
+     */
+    public enum AliasType {COMPLEX, SPECIES}
 
-    private Bounds bounds;
+    /**
+     * Retains the information about the original type of the alias, species or complexSpecies.
+     */
     private AliasType aliasType;
+    private Bounds bounds; // TODO replace by a more generic Rect2D
     private String id;
     private String complexAlias;
     private String compartmentAlias;
-    private String speciesId;
     private SpeciesWrapper speciesW;
+
     /**
      * For ion channels, determines if open (active) or closed (inactive)
      */
@@ -39,28 +46,24 @@ public class AliasWrapper {
         this.id = id;
         this.aliasType = type;
         this.speciesW = speciesW;
-        this.speciesId = speciesW.getId();
         // TODO if time, use this for proper ion channel state
         this.isActive = false; // no notion of activity in SBGN
     }
 
+    /**
+     * Parse speciesAlias from CellDesigner file.
+     * @param alias the speciesAlias xml element
+     * @param speciesW the parent species wrapper
+     */
     public AliasWrapper(SpeciesAlias alias, SpeciesWrapper speciesW) {
-        this.aliasType = AliasType.BASIC;
+        this.aliasType = AliasType.SPECIES;
         this.bounds = alias.getBounds();
         this.id = alias.getId();
         this.complexAlias = alias.getComplexSpeciesAlias();
-        this.speciesId = alias.getSpecies();
         this.speciesW = speciesW;
-        // I don't understand the exception that can be thrown here
-        // maybe a change in the celldesigner spec since the code was done
-        try {
-            this.compartmentAlias = alias.getCompartmentAlias();
-        } catch(Exception e) {
-            //e.printStackTrace();
-            this.compartmentAlias = null;
-        }
+        this.compartmentAlias = alias.getCompartmentAlias();
         this.isActive = alias.getActivity().equals("active");
-        //this.addAliasInfo(alias.getDomNode());
+
         if(!alias.getInfo().getState().equals("empty")) {
             this.info = new AliasInfoWrapper(
                     alias.getInfo().getAngle().floatValue(),
@@ -71,30 +74,22 @@ public class AliasWrapper {
 
     }
 
+    /**
+     * Parse complexSpeciesAlias from CellDesigner file.
+     * @param alias the complexSpeciesAlias xml element
+     * @param speciesW the parent species wrapper
+     */
     public AliasWrapper(ComplexSpeciesAlias alias, SpeciesWrapper speciesW) {
         this.aliasType = AliasType.COMPLEX;
         this.bounds = alias.getBounds();
         this.id = alias.getId();
-        this.speciesId = alias.getSpecies();
         this.speciesW = speciesW;
 
-        // TODO is this ok ?
         ListOfComplexSpeciesAliases.ComplexSpeciesAlias a = (ListOfComplexSpeciesAliases.ComplexSpeciesAlias) alias;
         this.complexAlias = a.getComplexSpeciesAlias();
-        // complexSpeciesAlias cannot be accessed through standard object structure
-        // probably because of outdated api of binom
-        // we need to fetch it manually in the xml, if present
-        /*if(alias.getDomNode().getAttributes().getNamedItem("complexSpeciesAlias") != null) {
-            this.complexAlias = alias.getDomNode().getAttributes().getNamedItem("complexSpeciesAlias").getNodeValue();
-        }
-        else {
-            this.complexAlias = null;
-        }*/
-
-         //alias.getDomNode().getAttributes().getNamedItem("complexSpeciesAlias").getNodeValue();
         this.compartmentAlias = alias.getCompartmentAlias();
         this.isActive = alias.getActivity ().equals("active");
-        //this.addAliasInfo(alias.getDomNode());
+
         if(!alias.getInfo().getState().equals("empty")) {
             this.info = new AliasInfoWrapper(
                     alias.getInfo().getAngle().floatValue(),
@@ -104,40 +99,18 @@ public class AliasWrapper {
         this.styleInfo = new StyleInfo(alias, speciesW.getId()+"_"+this.id);
     }
 
-    public AliasWrapper(CompartmentAlias alias, SpeciesWrapper speciesW) {
-        this.aliasType = AliasType.COMPARTMENT;
-        this.bounds = alias.getBounds();
-        this.id = alias.getId();
-        this.complexAlias = null;
-        this.compartmentAlias = null;
-        this.speciesW = speciesW;
-    }
-
-    private void addAliasInfo(Node aliasDomNode) {
-        for(int i=0; i < aliasDomNode.getChildNodes().getLength(); i++) {
-            Node child = aliasDomNode.getChildNodes().item(i);
-            if(child.getNodeName().equals("celldesigner_info")) {
-                String state = child.getAttributes().getNamedItem("state").getNodeValue();
-                if(!state.equals("empty")) {
-                    // interesting info to keep
-                    String prefix = child.getAttributes().getNamedItem("prefix").getNodeValue();
-                    String label = child.getAttributes().getNamedItem("label").getNodeValue();
-                    Float angle = Float.parseFloat(child.getAttributes().getNamedItem("angle").getNodeValue());
-                    this.info = new AliasInfoWrapper(angle, prefix, label);
-                }
-            }
-        }
-    }
-
+    /**
+     * @return the center coordinates determined from the alias' bounds.
+     */
     public Point2D.Float getCenterPoint() {
-        // TODO check if coords are center or corner (corner it seems)
         return new Point2D.Float(
                 this.bounds.getX().floatValue() + this.bounds.getW().floatValue() / 2,
                 this.bounds.getY().floatValue() + this.bounds.getH().floatValue() / 2);
     }
 
-    /*
-        the following 2 functions are huge duplicated chunks, TODO find a way to change that
+    /**
+     * Generates the xml for the speciesAlias element.
+     * @return a fully built SpeciesAlias object
      */
     public SpeciesAlias getCDSpeciesAlias() {
         SpeciesAlias alias = new SpeciesAlias();
@@ -149,69 +122,25 @@ public class AliasWrapper {
             alias.setComplexSpeciesAlias(this.getComplexAlias());
         }
 
-        Bounds bounds = new Bounds();
-        alias.setBounds(bounds);
-        bounds.setX(this.getBounds().getX());
-        bounds.setY(this.getBounds().getY());
-        bounds.setW(this.getBounds().getW());
-        bounds.setH(this.getBounds().getH());
+        alias.setBounds(this.getBoundsElement());
+        alias.setView(this.getSimpleViewElement());
+        SimpleEntry<UsualView, BriefView> viewsEntry = this.getViewElements();
+        alias.setUsualView(viewsEntry.getKey());
+        alias.setBriefView(viewsEntry.getValue());
+        alias.setInfo(this.getInfoElement());
+        // end of part that is the same as to ComplexSpeciesAlias, rest varies
 
         SpeciesAlias.Font font = new SpeciesAlias.Font();
         font.setSize((int) this.getStyleInfo().getFontSize());
         alias.setFont(font);
 
-        View view = new View();
-        view.setState("usual");
-        alias.setView(view);
-
-        // the 2 views components (will be the same)
-        InnerPosition innerPosition = new InnerPosition();
-        innerPosition.setX(BigDecimal.valueOf(0));
-        innerPosition.setY(BigDecimal.valueOf(0));
-
-        BoxSize boxSize = new BoxSize();
-        boxSize.setWidth(this.getBounds().getW());
-        boxSize.setHeight(this.getBounds().getH());
-
-        SingleLine singleLine = new SingleLine();
-        singleLine.setWidth(BigDecimal.valueOf(this.getStyleInfo().getLineWidth()));
-
-        Paint paint = new Paint();
-        paint.setColor(this.getStyleInfo().getBgColor());
-        paint.setScheme("Color");
-
-        UsualView usualView = new UsualView();
-        usualView.setBoxSize(boxSize);
-        usualView.setInnerPosition(innerPosition);
-        usualView.setPaint(paint);
-        usualView.setSingleLine(singleLine);
-        alias.setUsualView(usualView);
-
-        BriefView briefView = new BriefView();
-        briefView.setBoxSize(boxSize);
-        briefView.setInnerPosition(innerPosition);
-        briefView.setPaint(paint);
-        briefView.setSingleLine(singleLine);
-        alias.setBriefView(briefView);
-
-        Info info = new Info();
-        System.out.println("in cd of alias: "+this.getInfo());
-        if(this.getInfo() != null) {
-            info.setState("open");
-            info.setAngle(BigDecimal.valueOf(this.getInfo().angle));
-            info.setPrefix(this.getInfo().prefix);
-            info.setLabel(this.getInfo().label);
-            System.out.println("get CD of info: "+info);
-        }
-        else {
-            info.setState("empty");
-            info.setAngle(BigDecimal.valueOf(-1.57));
-        }
-        alias.setInfo(info);
-
         return alias;
     }
 
+    /**
+     * Generates the xml for the complexSpeciesAlias element.
+     * @return a fully built ComplexSpeciesAlias object
+     */
     public ListOfComplexSpeciesAliases.ComplexSpeciesAlias getCDComplexSpeciesAlias() {
         ListOfComplexSpeciesAliases.ComplexSpeciesAlias alias = new ListOfComplexSpeciesAliases.ComplexSpeciesAlias();
         alias.setId(this.getId());
@@ -222,20 +151,17 @@ public class AliasWrapper {
             alias.setComplexSpeciesAlias(this.getComplexAlias());
         }
 
-        Bounds bounds = new Bounds();
-        alias.setBounds(bounds);
-        bounds.setX(this.getBounds().getX());
-        bounds.setY(this.getBounds().getY());
-        bounds.setW(this.getBounds().getW());
-        bounds.setH(this.getBounds().getH());
+        alias.setBounds(this.getBoundsElement());
+        alias.setView(this.getSimpleViewElement());
+        SimpleEntry<UsualView, BriefView> viewsEntry = this.getViewElements();
+        alias.setUsualView(viewsEntry.getKey());
+        alias.setBriefView(viewsEntry.getValue());
+        alias.setInfo(this.getInfoElement());
+        // end of part that is the same as to SpeciesAlias, rest varies
 
         ComplexSpeciesAlias.Font font = new ComplexSpeciesAlias.Font();
         font.setSize((int) this.getStyleInfo().getFontSize());
         alias.setFont(font);
-
-        View view = new View();
-        view.setState("usual");
-        alias.setView(view);
 
         BackupSize backupSize = new BackupSize();
         alias.setBackupSize(backupSize);
@@ -246,6 +172,41 @@ public class AliasWrapper {
         backupView.setState("none");
         alias.setBackupView(backupView);
 
+        return alias;
+    }
+
+    private View getSimpleViewElement() {
+        View view = new View();
+        view.setState("usual");
+        return view;
+    }
+
+    private Bounds getBoundsElement() {
+        Bounds bounds = new Bounds();
+        bounds.setX(this.getBounds().getX());
+        bounds.setY(this.getBounds().getY());
+        bounds.setW(this.getBounds().getW());
+        bounds.setH(this.getBounds().getH());
+
+        return bounds;
+    }
+
+    private Info getInfoElement() {
+        Info info = new Info();
+        if(this.getInfo() != null) {
+            info.setState("open");
+            info.setAngle(BigDecimal.valueOf(this.getInfo().angle));
+            info.setPrefix(this.getInfo().prefix);
+            info.setLabel(this.getInfo().label);
+        }
+        else {
+            info.setState("empty");
+            info.setAngle(BigDecimal.valueOf(-1.57));
+        }
+        return info;
+    }
+
+    private SimpleEntry<UsualView, BriefView> getViewElements() {
         // the 2 views components (will be the same)
         InnerPosition innerPosition = new InnerPosition();
         innerPosition.setX(BigDecimal.valueOf(0));
@@ -267,31 +228,14 @@ public class AliasWrapper {
         usualView.setInnerPosition(innerPosition);
         usualView.setPaint(paint);
         usualView.setSingleLine(singleLine);
-        alias.setUsualView(usualView);
 
         BriefView briefView = new BriefView();
         briefView.setBoxSize(boxSize);
         briefView.setInnerPosition(innerPosition);
         briefView.setPaint(paint);
         briefView.setSingleLine(singleLine);
-        alias.setBriefView(briefView);
 
-        Info info = new Info();
-        System.out.println("in cd of alias: "+this.getInfo());
-        if(this.getInfo() != null) {
-            info.setState("open");
-            info.setAngle(BigDecimal.valueOf(this.getInfo().angle));
-            info.setPrefix(this.getInfo().prefix);
-            info.setLabel(this.getInfo().label);
-            System.out.println("get CD of info: "+info);
-        }
-        else {
-            info.setState("empty");
-            info.setAngle(BigDecimal.valueOf(-1.57));
-        }
-        alias.setInfo(info);
-
-        return alias;
+        return new SimpleEntry<>(usualView, briefView);
     }
 
 
@@ -316,7 +260,7 @@ public class AliasWrapper {
     }
 
     public String getSpeciesId() {
-        return speciesId;
+        return speciesW.getId();
     }
 
     public SpeciesWrapper getSpeciesW() {
@@ -353,10 +297,6 @@ public class AliasWrapper {
 
     public void setCompartmentAlias(String compartmentAlias) {
         this.compartmentAlias = compartmentAlias;
-    }
-
-    public void setSpeciesId(String speciesId) {
-        this.speciesId = speciesId;
     }
 
     public void setSpeciesW(SpeciesWrapper speciesW) {

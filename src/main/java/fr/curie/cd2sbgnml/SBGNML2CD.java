@@ -906,7 +906,7 @@ public class SBGNML2CD extends GeneralConverter {
                 /*SpeciesWrapper logicSpW = new SpeciesWrapper(modificationGlyph.getId(),
                         modificationGlyph.getId(), null);
                 AliasWrapper logicAliasW = new AliasWrapper(modificationGlyph.getId()+"_alias1",
-                        AliasWrapper.AliasType.BASIC, logicSpW);
+                        AliasWrapper.AliasType.SPECIES, logicSpW);
                 finalLogicW.setAliasW(logicAliasW);*/
                 finalLogicW.setAnchorPoint(AnchorPoint.CENTER);
 
@@ -1578,7 +1578,7 @@ public class SBGNML2CD extends GeneralConverter {
         }
         else {
             speciesW = new SpeciesWrapper(glyph.getId(), label, subType, referenceId);
-            aliasW = new AliasWrapper(aliasId, AliasWrapper.AliasType.BASIC, speciesW);
+            aliasW = new AliasWrapper(aliasId, AliasWrapper.AliasType.SPECIES, speciesW);
         }
         speciesW.getAliases().add(aliasW);
 
