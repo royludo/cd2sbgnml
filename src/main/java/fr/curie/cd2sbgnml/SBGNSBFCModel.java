@@ -14,6 +14,7 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class SBGNSBFCModel extends SBGNModel {
 
@@ -34,13 +35,14 @@ public class SBGNSBFCModel extends SBGNModel {
     }
 
     public void setModelFromFile(String fileName) throws ReadModelException {
-        // set given sbgn to always be 0.2 to avoid compatibility problems
 
-        File f = new File(fileName);
         try {
-            String content = new String(Files.readAllBytes(f.toPath()));
+            BufferedReader reader = new BufferedReader(
+                    new FileReader(fileName));
+            BOMskip(reader);
+            String content = reader.lines().collect(Collectors.joining());
 
-            // following line is when loading 0.3 but we want to process 0.2
+            // set given sbgn to always be 0.2 to avoid compatibility problems
             content = content.replaceFirst("http://sbgn\\.org/libsbgn/0\\.3", "http://sbgn.org/libsbgn/0.2");
 
             JAXBContext context = JAXBContext.newInstance("org.sbgn.bindings");
@@ -50,12 +52,6 @@ public class SBGNSBFCModel extends SBGNModel {
             e.printStackTrace();
         }
 
-
-        /*try {
-            this.model = SbgnUtil.readFromFile(new File(fileName));
-        } catch (JAXBException e) {
-            throw new ReadModelException(e.getCause());
-        }*/
     }
 
     @Override
@@ -79,5 +75,22 @@ public class SBGNSBFCModel extends SBGNModel {
             e.printStackTrace();
         }
 
+    }
+
+    /**
+     * Skip BOM char. BOM is present in output of Newt.
+     * See https://stackoverflow.com/a/18275066
+     * @param reader
+     * @throws IOException
+     */
+    public static void BOMskip(Reader reader) throws IOException {
+        reader.mark(1);
+        char[] possibleBOM = new char[1];
+        reader.read(possibleBOM);
+
+        if (possibleBOM[0] != '\ufeff')
+        {
+            reader.reset();
+        }
     }
 }
