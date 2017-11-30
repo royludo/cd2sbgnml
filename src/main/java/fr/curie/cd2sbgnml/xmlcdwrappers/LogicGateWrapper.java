@@ -1,9 +1,5 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
-
-import fr.curie.cd2sbgnml.graphics.AnchorPoint;
-import org.sbml._2001.ns.celldesigner.LinkAnchor;
-import org.sbml._2001.ns.celldesigner.LinkTarget;
 import org.sbml._2001.ns.celldesigner.Modification;
 
 import java.util.List;
@@ -23,7 +19,6 @@ public class LogicGateWrapper extends ReactantWrapper {
         this.setPositionIndex(i);
         this.modifiers = modif.getModifiers();
         this.aliases = modif.getAliases();
-        System.out.println("LOGIC MODIFICAITON "+modif.getModificationType());
         this.logicGateModificationType = ModificationLinkType.valueOf(modif.getModificationType());
         switch (ModificationLinkType.valueOf(modif.getType())) {
             case BOOLEAN_LOGIC_GATE_OR: this.type = LogicGateType.OR; break;

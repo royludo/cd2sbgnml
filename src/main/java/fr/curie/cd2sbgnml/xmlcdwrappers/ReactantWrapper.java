@@ -5,12 +5,10 @@ import org.sbml._2001.ns.celldesigner.*;
 import org.sbml.sbml.level2.version4.Reaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Node;
 
 import java.awt.geom.Point2D;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -55,7 +53,6 @@ public class ReactantWrapper {
 
     public ReactantWrapper (ReactantWrapper w) {
         this.reactantType = w.getReactantType();
-        System.out.println("copy reactantwrapper "+w.getModificationLinkType());
         this.modificationLinkType = w.getModificationLinkType();
         this.aliasW = w.getAliasW();
         this.targetLineIndex = w.getTargetLineIndex();

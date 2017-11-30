@@ -1,8 +1,6 @@
 package fr.curie.cd2sbgnml.xmlcdwrappers;
 
 import org.sbml._2001.ns.celldesigner.*;
-import org.sbml.sbml.level2.version4.Reaction;
-import org.w3c.dom.Node;
 
 import java.util.HashMap;
 import java.util.List;

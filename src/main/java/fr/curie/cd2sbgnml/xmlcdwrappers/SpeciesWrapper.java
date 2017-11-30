@@ -80,7 +80,6 @@ public class SpeciesWrapper implements INotesFeature, IAnnotationsFeature {
         this.notes = Utils.getNotes(species.getNotes());
         this.annotations = Utils.getRDFAnnotations(species.getAnnotation().getAny());
         this.catalyzedReactions = new ArrayList<>();
-        System.out.println("annotation for species: "+this.id+" "+this.annotations);
 
         this.commonConstructor(species.getAnnotation().getExtension().getSpeciesIdentity(), modelW);
 
@@ -94,7 +93,6 @@ public class SpeciesWrapper implements INotesFeature, IAnnotationsFeature {
         this.complex = species.getAnnotation().getComplexSpecies();
         this.compartment = null;
         this.notes = Utils.getNotes(species.getNotes());
-        //this.annotations = Utils.getRDFAnnotations(species.getAnnotation().); TODO not applicable ?
 
         this.commonConstructor(species.getAnnotation().getSpeciesIdentity(), modelW);
     }
@@ -185,7 +183,7 @@ public class SpeciesWrapper implements INotesFeature, IAnnotationsFeature {
 
                 mapOfReferenceModif = new HashMap<>();
                 for (ModificationResidue modif : listOfReferenceModif) {
-                    System.out.println("Residue found for "+prot.getId()+" resid "+modif.getId()+" angle "+modif.getAngle());
+                    logger.debug("Residue found for "+prot.getId()+" resid "+modif.getId()+" angle "+modif.getAngle());
                     ResidueWrapper residueWrapper = new ResidueWrapper(modif.getId());
                     residueWrapper.angle = modif.getAngle().floatValue();
                     if(modif.getName() != null) {
@@ -193,7 +191,6 @@ public class SpeciesWrapper implements INotesFeature, IAnnotationsFeature {
                     }
                     mapOfReferenceModif.put(residueWrapper.id, residueWrapper);
                 }
-                System.out.println(mapOfReferenceModif.size()+" res for protein "+protId);
                 logger.debug(mapOfReferenceModif.size()+" res for protein "+protId);
             }
 
@@ -237,7 +234,7 @@ public class SpeciesWrapper implements INotesFeature, IAnnotationsFeature {
             if(gene.getListOfRegions() != null) {
                 // loop through reference list of regions
                 mapOfReferenceModif = mapOfRegion(gene.getListOfRegions());
-                System.out.println("GENE MODIF COUNT: "+mapOfReferenceModif.size()+" "+gene.getListOfRegions().getRegion().size());
+                logger.debug("GENE MODIF COUNT: "+mapOfReferenceModif.size()+" "+gene.getListOfRegions().getRegion().size());
 
             }
 
@@ -270,7 +267,7 @@ public class SpeciesWrapper implements INotesFeature, IAnnotationsFeature {
 
                 // loop through the species' residues
                 for (ListOfModifications.Modification modif : listOfModif) {
-                    System.out.println("adding state: "+modif.getState()+" for res "+modif.getResidue());
+                    logger.debug("adding state: "+modif.getState()+" for res "+modif.getResidue());
                     String residueId = modif.getResidue();
                     ResidueWrapper residueWrapper = mapOfReferenceModif.get(residueId);
                     /*
@@ -291,7 +288,7 @@ public class SpeciesWrapper implements INotesFeature, IAnnotationsFeature {
         }
         // finally set this species' residue wrapper list
         this.residues.addAll(mapOfReferenceModif.values());
-        System.out.println("final residue size for species "+this.getId()+" : "+this.residues.size());
+        logger.debug("final residue size for species "+this.getId()+" : "+this.residues.size());
 
     }
 

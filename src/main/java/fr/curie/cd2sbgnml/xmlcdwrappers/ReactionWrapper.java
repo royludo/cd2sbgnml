@@ -77,8 +77,6 @@ public class ReactionWrapper implements INotesFeature, IAnnotationsFeature {
                 case ADDITIONAL_PRODUCT: this.additionalProducts.add(reactW); break;
                 case MODIFICATION: this.modifiers.add(reactW); break;
             }
-
-            //System.out.println("Reactant link start point: "+ reaction.getId()+" "+reactW.getAliasW().getId()+" "+reactW.getLinkStartingPoint());
         }
 
     }
@@ -420,10 +418,7 @@ public class ReactionWrapper implements INotesFeature, IAnnotationsFeature {
 
         // if special logic gate reaction, we need to add gate members in addition to the base reactants and product
         if(this.getReactionType().equals("BOOLEAN_LOGIC_GATE")) {
-            System.out.println("wiiiiizzz logic");
             ListOfGateMember listOfGateMember = new ListOfGateMember();
-            /*ListOfModifierSpeciesReferences listOfModifiers = new ListOfModifierSpeciesReferences();
-            reaction.setListOfModifiers(listOfModifiers);*/
 
             listOfGateMember.getGateMember().add(((LogicGateWrapper)this.getModifiers().get(0)).getCDElement());
 
@@ -439,15 +434,15 @@ public class ReactionWrapper implements INotesFeature, IAnnotationsFeature {
                 reaction.setListOfModifiers(listOfModifiers);
 
                 ListOfModification listOfModification = new ListOfModification();
-                System.out.println("Number of modifiers to serialize: " + this.getModifiers().size());
+                logger.debug("Number of modifiers to serialize: " + this.getModifiers().size());
                 for (ReactantWrapper w : this.getModifiers()) {
                     listOfModification.getModification().add((Modification) w.getCDElement());
 
                     // create associated speciesReference for the sbml list
-                    System.out.println("modif type: " + w.getModificationLinkType() + " " + w.getAliasW() + " " + this.getId() +
+                    logger.debug("modif type: " + w.getModificationLinkType() + " " + w.getAliasW() + " " + this.getId() +
                             " " + this.getModifiers().size() + " " + (w instanceof LogicGateWrapper));
                     if (w.getAliasW() != null)
-                        System.out.println("isincluded ? " + w.getAliasW().getSpeciesW().isIncludedSpecies());
+                        logger.debug("isincluded ? " + w.getAliasW().getSpeciesW().isIncludedSpecies());
                     /*
                         Logic gates are not listed in the species reference
                         If included species, the species reference must be the one of the topmost parent complex

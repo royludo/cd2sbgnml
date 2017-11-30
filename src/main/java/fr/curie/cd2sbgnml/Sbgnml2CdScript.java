@@ -5,8 +5,6 @@ import com.beust.jcommander.Parameter;
 import org.sbfc.converter.exceptions.ConversionException;
 import org.sbfc.converter.exceptions.ReadModelException;
 import org.sbfc.converter.exceptions.WriteModelException;
-import org.sbfc.converter.models.SBGNModel;
-import org.sbgn.SbgnUtil;
 import org.sbml.sbml.level2.version4.Sbml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +18,6 @@ import javax.xml.bind.util.ValidationEventCollector;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.io.File;
-import java.io.IOException;
 
 public class Sbgnml2CdScript {
     @Parameter(names = { "-i", "--input"}, required = true)
@@ -42,7 +39,6 @@ public class Sbgnml2CdScript {
     }
 
     public static void convert(String inputFileName, String outputFileName) {
-        System.out.println("In script");
         SBGNML2CD toCDConverter = new SBGNML2CD();
 
 

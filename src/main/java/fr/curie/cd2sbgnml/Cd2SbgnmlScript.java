@@ -5,7 +5,6 @@ import com.beust.jcommander.Parameter;
 import org.sbfc.converter.exceptions.ConversionException;
 import org.sbfc.converter.exceptions.ReadModelException;
 import org.sbfc.converter.exceptions.WriteModelException;
-import org.sbfc.converter.models.SBGNModel;
 import org.sbgn.SbgnUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +34,6 @@ public class Cd2SbgnmlScript {
     }
 
     public static void convert(String inputFileName, String outputFileName) {
-        System.out.println("In script");
         CD2SBGNML toSBGNConverter = new CD2SBGNML();
 
 

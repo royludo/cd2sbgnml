@@ -3,7 +3,6 @@ package fr.curie.cd2sbgnml;
 import org.sbfc.converter.exceptions.ReadModelException;
 import org.sbfc.converter.exceptions.WriteModelException;
 import org.sbfc.converter.models.SBGNModel;
-import org.sbgn.SbgnUtil;
 import org.sbgn.bindings.Sbgn;
 
 import javax.xml.bind.JAXBContext;
@@ -11,9 +10,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.*;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class SBGNSBFCModel extends SBGNModel {

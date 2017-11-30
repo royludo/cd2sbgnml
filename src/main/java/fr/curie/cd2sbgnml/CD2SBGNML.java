@@ -10,7 +10,6 @@ import org.sbfc.converter.GeneralConverter;
 import org.sbfc.converter.exceptions.ConversionException;
 import org.sbfc.converter.exceptions.ReadModelException;
 import org.sbfc.converter.models.GeneralModel;
-import org.sbfc.converter.models.SBGNModel;
 import org.sbgn.Language;
 import org.sbgn.bindings.*;
 import org.sbgn.bindings.Glyph.State;
@@ -18,18 +17,13 @@ import org.sbgn.bindings.Map;
 import org.sbml._2001.ns.celldesigner.Bounds;
 import org.sbml._2001.ns.celldesigner.CompartmentAlias;
 import org.sbml._2001.ns.celldesigner.ModelDisplay;
-import org.sbml._2001.ns.celldesigner.RNA;
 import org.sbml.sbml.level2.version4.Compartment;
 import org.sbml.sbml.level2.version4.Sbml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.awt.geom.Point2D;
@@ -67,10 +61,10 @@ public class CD2SBGNML extends GeneralConverter {
 
         //System.exit(1);
 
-        System.out.println(modelW.getListOfSpecies().size());
-        System.out.println(modelW.getListOfIncludedSpecies().size());
-        System.out.println(modelW.getListOfCompartments().size());
-        System.out.println("compartment aliases count: "+modelW.getListOfCompartmentAliases().size());
+        logger.debug("number of species "+modelW.getListOfSpecies().size());
+        logger.debug("number of included species "+modelW.getListOfIncludedSpecies().size());
+        logger.debug("number of compartments "+modelW.getListOfCompartments().size());
+        logger.debug("compartment aliases count: "+modelW.getListOfCompartmentAliases().size());
 
 
         this.glyphList = new ArrayList<>();
@@ -96,18 +90,13 @@ public class CD2SBGNML extends GeneralConverter {
             //ReactionWrapper reactionW = modelW.getReactionWrapperFor(reaction.getId());
             GenericReactionModel genericReactionModel = ReactionModelFactory.create(reactionW);
 
-
             // PROCESS
-
-            System.out.println(reactionW.getId()+" "+reactionW.getReactantList().size());
-            //System.out.println("branch ? "+reactionW.isBranchType()+" right: "+reactionW.isBranchTypeRight()+" left: "+reactionW.isBranchTypeLeft());
+            logger.debug(reactionW.getId()+" "+reactionW.getReactantList().size());
 
             String processId = null;
             if(reactionW.hasProcess()) {
                 Process process = genericReactionModel.getProcess();
                 Point2D processCoord = process.getGlyph().getCenter();
-                System.out.println("process coord " + processCoord);
-
 
                 Glyph processGlyph = new Glyph();
                 processGlyph.setClazz(Process.getSbgnClass(genericReactionModel.getCdReactionType().toString()));
@@ -159,8 +148,6 @@ public class CD2SBGNML extends GeneralConverter {
                     LogicGate logicGate = (LogicGate) nodeModel;
 
                     Point2D logicCoord = logicGate.getGlyph().getCenter();
-                    System.out.println("process coord " + logicCoord);
-
 
                     Glyph logicGlyph = new Glyph();
                     logicGlyph.setClazz(LogicGate.getSbgnClass(logicGate.getType()));
@@ -201,61 +188,6 @@ public class CD2SBGNML extends GeneralConverter {
 
                 }
             }
-
-            // ARCS
-
-            /*
-            ReactantWrapper baseReactant = reactionW.getBaseReactants().get(0);
-            ReactantWrapper baseProduct = reactionW.getBaseProducts().get(0);
-
-            if(reactionW.isBranchTypeLeft()) {
-                System.out.println("REACTION: "+reactionW.getId());
-
-                // add association glyph
-                Glyph assocGlyph = new Glyph();
-                assocGlyph.setClazz("association");
-                AssocDissoc assocDissoc = genericReactionModel.getAssocDissoc();
-                String assocId = assocDissoc.getId();
-                assocGlyph.setId(assocId);
-
-                Point2D assocCoord = assocDissoc.getGlyph().getCenter();
-                Bbox assocBbox = new Bbox();
-                assocBbox.setX((float) assocCoord.getX() - assocDissoc.getSize() / 2);
-                assocBbox.setY((float) assocCoord.getY() - assocDissoc.getSize() / 2);
-                assocBbox.setH(assocDissoc.getSize());
-                assocBbox.setW(assocDissoc.getSize());
-                assocGlyph.setBbox(assocBbox);
-
-                glyphList.add(assocGlyph);
-                glyphMap.put(assocId, assocGlyph);
-                styleInfoList.add(assocDissoc.getStyleInfo());
-                map.getGlyph().add(assocGlyph);
-
-            }
-            else if(reactionW.isBranchTypeRight()) {
-                System.out.println("REACTION: "+reactionW.getId());
-
-                // add association glyph
-                Glyph dissocGlyph = new Glyph();
-                dissocGlyph.setClazz("dissociation");
-                AssocDissoc assocDissoc = genericReactionModel.getAssocDissoc();
-                String dissocId = assocDissoc.getId();
-                dissocGlyph.setId(dissocId);
-
-                Point2D dissocCoord = assocDissoc.getGlyph().getCenter();
-                Bbox dissocBbox = new Bbox();
-                dissocBbox.setX((float) dissocCoord.getX() - assocDissoc.getSize() / 2);
-                dissocBbox.setY((float) dissocCoord.getY() - assocDissoc.getSize() / 2);
-                dissocBbox.setH(assocDissoc.getSize());
-                dissocBbox.setW(assocDissoc.getSize());
-                dissocGlyph.setBbox(dissocBbox);
-
-                glyphList.add(dissocGlyph);
-                glyphMap.put(dissocId, dissocGlyph);
-                styleInfoList.add(assocDissoc.getStyleInfo());
-                map.getGlyph().add(dissocGlyph);
-
-            }*/
 
             for(LinkModel ln: genericReactionModel.getLinkModels()) {
                 styleInfoList.add(ln.getStyleInfo());
@@ -298,10 +230,6 @@ public class CD2SBGNML extends GeneralConverter {
 
 
         // finally process style info objects
-        for(StyleInfo sinfo: styleInfoList) {
-            System.out.println(sinfo);
-        }
-        System.out.println(StyleInfo.getMapOfColorDefinitions(styleInfoList));
         SBGNBase.Extension ext = new SBGNBase.Extension();
         ext.getAny().add(getAllStyles(styleInfoList, sbml));
         map.setExtension(ext);
@@ -312,9 +240,7 @@ public class CD2SBGNML extends GeneralConverter {
 
     public void processCompartment(Compartment compartment, ModelWrapper modelW, Map map) {
         if(! compartment.getId().equals("default")) {
-            //System.out.println(compartment.getId()+" "+compartment.getName().getStringValue() +" "+compartment.getOutside());
             for(CompartmentAlias alias : modelW.getCompartmentAliasFor(compartment.getId())) {
-                //System.out.println(alias.getCelldesignerBounds());
                 Bounds cdBounds = alias.getBounds();
                 org.sbml._2001.ns.celldesigner.Point cdPoint = alias.getPoint();
 
@@ -399,7 +325,7 @@ public class CD2SBGNML extends GeneralConverter {
             // TODO is piling up <html> elements in 1 note ok ?
             if(glyph.getNotes() != null) {
                 glyph.getNotes().getAny().set(0, Utils.mergeHtmls(glyph.getNotes().getAny().get(0), species.getReferenceNotes()));
-                System.out.println("MULTIPLE NOTES "+glyph.getNotes().getAny());
+                logger.debug("MULTIPLE NOTES "+glyph.getNotes().getAny());
             }
             else {
                 glyph.setNotes(getSBGNNotes(species.getReferenceNotes()));
@@ -407,12 +333,10 @@ public class CD2SBGNML extends GeneralConverter {
         }
 
         if(species.isComplex()) {
-            System.out.println("COMPLEX species: "+species.getId()+" alias: "+alias.getId());
-            System.out.println("include list "+modelW.getIncludedAliasWrapperFor(alias.getId()));
             if(modelW.getIncludedAliasWrapperFor(alias.getId()) == null) {
                 // empty complex, should probably not happen
                 //throw new IllegalStateException("empty complex for species "+species.getId()+" alias: "+alias.getId()+" name: "+species.getName());
-                System.out.println("warning: empty complex for species "+species.getId()+" alias: "+alias.getId()+" name: "+species.getName());
+                logger.warn("Empty complex for species "+species.getId()+" alias: "+alias.getId()+" name: "+species.getName());
             }
             else {
                 for(AliasWrapper includedAlias: modelW.getIncludedAliasWrapperFor(alias.getId())) {
@@ -458,8 +382,6 @@ public class CD2SBGNML extends GeneralConverter {
         String id = aliasW.getSpeciesW().getId()+"_"+aliasW.getId();
         SpeciesWrapper species = aliasW.getSpeciesW();
 
-        System.out.println(species.getId()+" "+species.getName()+" "+species.getCompartment());
-        //System.out.println(bounds);
         Rectangle2D.Float bboxRect = (Rectangle2D.Float) aliasW.getBounds();
 
         Glyph glyph = new Glyph();
@@ -532,10 +454,8 @@ public class CD2SBGNML extends GeneralConverter {
         }
 
         // state variables
-        System.out.println("Create residues for "+species.getId()+" size: "+species.getResidues().size());
         for(ResidueWrapper residueW: species.getResidues()) {
 
-            System.out.println("statevar: received: "+residueW.angle+" passed: "+GeometryUtils.unsignedRadianToSignedDegree(residueW.angle));
             Glyph residue = getStateVariableFromResidueWrapper(residueW, bboxRect);
 
             glyph.getGlyph().add(residue);
@@ -582,7 +502,6 @@ public class CD2SBGNML extends GeneralConverter {
         }
 
         glyph.setNotes(getSBGNNotes(species.getNotes()));
-        System.out.println("add annotations");
         glyph.setExtension(getSBGNAnnotation(species.getAnnotations(), id));
 
 
@@ -629,15 +548,12 @@ public class CD2SBGNML extends GeneralConverter {
 
         Rectangle2D.Float infoRect;
         if(residueW.useAngle) {
-            System.out.println("From residueW Use angle");
             infoRect = GeometryUtils.getAuxUnitBboxFromAngle(parentBbox, prefix+":"+value,
                     GeometryUtils.unsignedRadianToSignedDegree(residueW.angle));
         }
         else {
-            System.out.println("From residueW Use top ratio");
             infoRect = GeometryUtils.getAuxUnitBboxFromRelativeTopRatio(parentBbox, prefix+":"+value, residueW.relativePos);
         }
-        System.out.println("Info rect final: "+infoRect);
 
         Bbox infoBbox = new Bbox();
         infoBbox.setX((float) infoRect.getX());
@@ -736,7 +652,6 @@ public class CD2SBGNML extends GeneralConverter {
 
         Point2D startPoint = link.getStart();
         Point2D endPoint = link.getEnd();
-        System.out.println("ARC!!!! -> "+startPoint+" "+link.getEditPoints()+" "+endPoint);
 
         // start end
         Arc.Start s1 = new Arc.Start();
@@ -814,7 +729,6 @@ public class CD2SBGNML extends GeneralConverter {
                 idListMap.get(sinfo.getId()).add(sinfo.getRefId());
             }
         }
-        System.out.println(idListMap);
 
         for(String styleId: styleMap.keySet()) {
             StyleInfo sinfo = styleMap.get(styleId);
@@ -842,7 +756,6 @@ public class CD2SBGNML extends GeneralConverter {
      */
     public SBGNBase.Notes getSBGNNotes(Element notes) {
         SBGNBase.Notes newNotes = new SBGNBase.Notes();
-        //System.out.println((Element) modelW.getModel().getNotes().getDomNode());
         if(notes != null ){
             newNotes.getAny().add(notes);
             return newNotes;
@@ -856,7 +769,6 @@ public class CD2SBGNML extends GeneralConverter {
      * @return
      */
     public SBGNBase.Extension getSBGNAnnotation(Element rdf, String refId) {
-        System.out.println("rdf: "+rdf);
         if(rdf == null) {
             return null;
         }
@@ -866,7 +778,6 @@ public class CD2SBGNML extends GeneralConverter {
         description.setAttribute("rdf:about", "#"+refId);
 
         SBGNBase.Extension newExt = new SBGNBase.Extension();
-        //System.out.println((Element) modelW.getModel().getNotes().getDomNode());
         Element annotationElement = rdf.getOwnerDocument().createElement("annotation");
         annotationElement.appendChild(rdf.cloneNode(true));
         newExt.getAny().add(annotationElement);

@@ -5,7 +5,6 @@ import org.sbml._2001.ns.celldesigner.Bounds;
 import org.sbml._2001.ns.celldesigner.Notes;
 import org.sbml.sbml.level2.version4.SBase;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import java.awt.geom.Rectangle2D;
 import java.math.BigDecimal;
@@ -86,16 +85,8 @@ public class Utils {
      * @return
      */
     public static boolean isNoteEmpty(Element note) {
-        //System.out.println("note is empty?");
         Element title = (Element) note.getElementsByTagName("title").item(0);
         Element body = (Element) note.getElementsByTagName("body").item(0);
-
-        /*System.out.println(title.getChildNodes().getLength());
-        System.out.println(body.getChildNodes().getLength());
-
-        if(body.getChildNodes().getLength() != 1) {
-            System.out.println(">>>>>>>>>>>>>>>>");
-        }*/
 
         return (title == null || title.getChildNodes().getLength() == 0)
                 && (body == null || body.getChildNodes().getLength() == 0);

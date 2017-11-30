@@ -1,19 +1,14 @@
 package fr.curie.cd2sbgnml;
 
-import fr.curie.cd2sbgnml.xmlcdwrappers.ResidueWrapper;
 import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
-import jdk.nashorn.internal.runtime.regexp.joni.Option;
-import jdk.nashorn.internal.runtime.regexp.joni.Regex;
 import org.sbgn.ArcClazz;
 import org.sbgn.GlyphClazz;
 import org.sbgn.bindings.*;
-import org.sbml._2001.ns.celldesigner.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.*;
@@ -265,10 +260,7 @@ public class SBGNUtils {
 
         if(isReversible) {
             // transfer one product to the reactant list
-            System.out.println("Transfer element");
-            System.out.println(reactants.size()+" "+products.size()+" "+modifiers.size());
             reactants.add(products.remove(0));
-            System.out.println(reactants.size()+" "+products.size()+" "+modifiers.size());
         }
 
         result.add(reactants);
@@ -313,7 +305,6 @@ public class SBGNUtils {
      * @return
      */
     public static boolean isReactionAssociation(Glyph process, List<Arc> reactants, List<Arc> products) {
-        System.out.println("isASSociation ? "+process.getClazz());
         if(process.getClazz().equals("association")) { // trivial case of specific process node
             return true;
         }
@@ -371,7 +362,6 @@ public class SBGNUtils {
 
     public static void sanitizeSubGlyphs(List<Glyph> subglyphs) {
         for(Glyph g: subglyphs) {
-            System.out.println("Replace id: "+g.getId());
             g.setId(g.getId().replaceAll("-", "_"));
             sanitizeSubGlyphs(g.getGlyph());
         }
@@ -390,15 +380,13 @@ public class SBGNUtils {
     public static Sbgn sanitizeIds(Sbgn sbgn) {
         for(Glyph g: sbgn.getMap()/*.get(0)*/.getGlyph()){
 
-            System.out.println("Replace id: "+g.getId());
             g.setId(g.getId().replaceAll("-", "_"));
 
             sanitizeSubGlyphs(g.getGlyph());
 
             if(g.getPort().size() > 0) {
                 for(Port p: g.getPort()) {
-                    System.out.println("Replace id: "+p.getId());
-                    p.setId(p.getId().replaceAll("-", "_"));
+                     p.setId(p.getId().replaceAll("-", "_"));
                 }
             }
         }
@@ -415,7 +403,6 @@ public class SBGNUtils {
 
                     for (int i = 0; i < nodeList.getLength(); i++) {
                         Element e2 = (Element) nodeList.item(i);
-                        System.out.println("Replace id: " + e2.getAttribute("idList"));
                         e2.setAttribute("idList", e2.getAttribute("idList").replaceAll("-", "_"));
                     }
                 }
