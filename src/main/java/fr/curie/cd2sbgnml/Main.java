@@ -66,7 +66,7 @@ public class Main {
             e.printStackTrace();
         }*/
 
-        String inputFile = "samples/reaction.xml";
+        String inputFile = "samples/components44.xml";
 
         SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         Schema schema = null;
@@ -82,7 +82,7 @@ public class Main {
             e.printStackTrace();
         }
 
-        if(false) {
+        if(true) {
             CellDesignerSBFCModel cdModel = new CellDesignerSBFCModel();
             try {
                 cdModel.setModelFromFile(inputFile);
