@@ -15,7 +15,7 @@ public class LogicGateWrapper extends ReactantWrapper {
     private LogicGateType type;
     private String modifiers;
     private String aliases;
-    private ReactantWrapper.ModificationLinkType logicGateModificationType;
+    private ModificationLinkType logicGateModificationType;
 
     public LogicGateWrapper(Modification modif, int i) {
         super(modif, null, i);

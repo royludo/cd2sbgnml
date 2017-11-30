@@ -110,7 +110,7 @@ public class CD2SBGNML extends GeneralConverter {
 
 
                 Glyph processGlyph = new Glyph();
-                processGlyph.setClazz(Process.getSbgnClass(genericReactionModel.getCdReactionType()));
+                processGlyph.setClazz(Process.getSbgnClass(genericReactionModel.getCdReactionType().toString()));
                 processId = process.getId();
                 processGlyph.setId(processId);
 

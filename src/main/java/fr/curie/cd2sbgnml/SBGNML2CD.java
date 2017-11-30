@@ -10,7 +10,7 @@ import fr.curie.cd2sbgnml.model.Process;
 import fr.curie.cd2sbgnml.xmlcdwrappers.*;
 import fr.curie.cd2sbgnml.model.ReactantModel;
 import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper.ReactantType;
-import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper.ReactionType;
+import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionType;
 import org.sbfc.converter.GeneralConverter;
 import org.sbfc.converter.exceptions.ConversionException;
 import org.sbfc.converter.exceptions.ReadModelException;
@@ -269,7 +269,7 @@ public class SBGNML2CD extends GeneralConverter {
 
             // incoming arcs have the type of the product arc
             baseWrapper.setModificationLinkType(
-                    ReactantWrapper.ModificationLinkType.valueOf(
+                    ModificationLinkType.valueOf(
                             LinkModel.getCdClass(
                                     ArcClazz.fromClazz(productArc.getClazz()))));
 
@@ -284,7 +284,7 @@ public class SBGNML2CD extends GeneralConverter {
         AliasWrapper aliasW = aliasWrapperMap.get(baseProductGlyph.getId()+"_alias1");
         ReactantWrapper baseProductW = new ReactantWrapper(aliasW, ReactantType.BASE_PRODUCT);
         baseProductW.setModificationLinkType(
-                ReactantWrapper.ModificationLinkType.valueOf(
+                ModificationLinkType.valueOf(
                         LinkModel.getCdClass(
                                 ArcClazz.fromClazz(productArc.getClazz()))));
 
@@ -500,7 +500,7 @@ public class SBGNML2CD extends GeneralConverter {
             //baseWrapper.setAnchorPoint(AnchorPoint.CENTER); // set to CENTER for now, but better computed after
 
             modifWrapper.setModificationLinkType(
-                    ReactantWrapper.ModificationLinkType.valueOf(
+                    ModificationLinkType.valueOf(
                             LinkModel.getCdClass(
                                     ArcClazz.fromClazz(arc.getClazz()))));
             modificationsW.add(modifWrapper);
@@ -875,7 +875,7 @@ public class SBGNML2CD extends GeneralConverter {
 
                     // modifications linked to logic gates inherit their link type
                     modifWrapper.setModificationLinkType(
-                            ReactantWrapper.ModificationLinkType.valueOf(
+                            ModificationLinkType.valueOf(
                                     LinkModel.getCdClass(
                                             ArcClazz.fromClazz(modificationArc.getClazz()))));
 

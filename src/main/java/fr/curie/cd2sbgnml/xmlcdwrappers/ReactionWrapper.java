@@ -11,30 +11,11 @@ import java.awt.geom.Point2D;
 import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
 
-import static fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper.ModificationLinkType.*;
+import static fr.curie.cd2sbgnml.xmlcdwrappers.ModificationLinkType.*;
 
 public class ReactionWrapper implements INotesFeature, IAnnotationsFeature {
 
     private static final Logger logger = LoggerFactory.getLogger(ReactionWrapper.class);
-
-    /**
-     * Possible values for the reactionType element of CellDesigner reactions.
-     */
-    public enum ReactionType { STATE_TRANSITION, HETERODIMER_ASSOCIATION, DISSOCIATION,
-        KNOWN_TRANSITION_OMITTED, UNKNOWN_TRANSITION,
-        CATALYSIS, UNKNOWN_CATALYSIS,
-        INHIBITION, UNKNOWN_INHIBITION,
-        TRANSPORT,
-        TRANSCRIPTIONAL_ACTIVATION, TRANSCRIPTIONAL_INHIBITION,
-        TRANSLATIONAL_ACTIVATION, TRANSLATIONAL_INHIBITION,
-        PHYSICAL_STIMULATION, MODULATION, TRIGGER, REDUCED_MODULATION,
-        REDUCED_TRIGGER, NEGATIVE_INFLUENCE, POSITIVE_INFLUENCE,
-
-        /**
-         * When the reaction involves only a logic gate, pointing directly at en entity, with no process involved.
-         */
-        BOOLEAN_LOGIC_GATE
-    }
 
     private String id;
     private List<ReactantWrapper> baseReactants;
@@ -44,7 +25,7 @@ public class ReactionWrapper implements INotesFeature, IAnnotationsFeature {
     private List<ReactantWrapper> modifiers;
     private List<LogicGateWrapper> logicGates;
     private int processSegmentIndex;
-    private String reactionType; // TODO change to ReactionType
+    private ReactionType reactionType;
     private boolean hasProcess;
     private boolean isReversible;
     private LineWrapper lineWrapper;
@@ -54,7 +35,7 @@ public class ReactionWrapper implements INotesFeature, IAnnotationsFeature {
     public ReactionWrapper (String id, ReactionType type,
                             List<ReactantWrapper> baseReactants, List<ReactantWrapper> baseProducts) {
         this.id = id;
-        this.reactionType = type.toString();
+        this.reactionType = type;
         this.baseReactants = baseReactants;
         this.baseProducts = baseProducts;
         this.additionalProducts = new ArrayList<>();
@@ -73,7 +54,7 @@ public class ReactionWrapper implements INotesFeature, IAnnotationsFeature {
         this.modifiers = new ArrayList<>();
         this.logicGates = new ArrayList<>();
         this.processSegmentIndex = getProcessSegment(reaction);
-        this.reactionType = reaction.getAnnotation().getExtension().getReactionType();
+        this.reactionType = ReactionType.valueOf(reaction.getAnnotation().getExtension().getReactionType());
         this.hasProcess = hasProcess(reaction);
         this.isReversible = reaction.isReversible(); //  reaction.isSetReversible() ? Boolean.parseBoolean(reaction.getReversible()) : true;
         this.lineWrapper = new LineWrapper(reaction.getAnnotation().getExtension().getConnectScheme(),
@@ -377,13 +358,13 @@ public class ReactionWrapper implements INotesFeature, IAnnotationsFeature {
         Extension ext = new Extension();
         annotation.setExtension(ext);
 
-        ext.setReactionType(this.getReactionType());
+        ext.setReactionType(this.getReactionType().toString());
 
         ext.setConnectScheme(this.getLineWrapper().getCDConnectScheme());
         ext.setLine(this.getLineWrapper().getCDLine());
         boolean isBranchType =
-                ReactionType.valueOf(this.getReactionType()) == ReactionType.HETERODIMER_ASSOCIATION
-                || ReactionType.valueOf(this.getReactionType()) == ReactionType.DISSOCIATION;
+                this.getReactionType() == ReactionType.HETERODIMER_ASSOCIATION
+                || this.getReactionType() == ReactionType.DISSOCIATION;
 
         if(this.getLineWrapper().getEditPoints().size() > 0) {
             ext.setEditPoints(this.getLineWrapper().getCDEditPoints(isBranchType));
@@ -600,7 +581,7 @@ public class ReactionWrapper implements INotesFeature, IAnnotationsFeature {
         return processSegmentIndex;
     }
 
-    public String getReactionType() {
+    public ReactionType getReactionType() {
         return reactionType;
     }
 
@@ -636,7 +617,7 @@ public class ReactionWrapper implements INotesFeature, IAnnotationsFeature {
         this.processSegmentIndex = processSegmentIndex;
     }
 
-    public void setReactionType(String reactionType) {
+    public void setReactionType(ReactionType reactionType) {
         this.reactionType = reactionType;
     }
 

@@ -97,7 +97,7 @@ public class SimpleReactionModel extends GenericReactionModel{
 
             String l2Id = "prod_" + UUID.randomUUID();
             LinkModel l2 = new LinkModel(process, endModel, new Link(subLinesTuple2),
-                    l2Id, LinkModel.getSbgnClass(reactionW.getReactionType()),
+                    l2Id, LinkModel.getSbgnClass(reactionW.getReactionType().toString()),
                     new StyleInfo(reactionW.getLineWrapper().getLineWidth(),
                             reactionW.getLineWrapper().getLineColor(), l2Id));
 
@@ -119,7 +119,7 @@ public class SimpleReactionModel extends GenericReactionModel{
         else {
             String linkid = "direct_" + UUID.randomUUID();
             LinkModel l1 = new LinkModel(startModel, endModel, new Link(absoluteEditPoints),
-                    linkid, LinkModel.getSbgnClass(reactionW.getReactionType()),
+                    linkid, LinkModel.getSbgnClass(reactionW.getReactionType().toString()),
                     new StyleInfo(reactionW.getLineWrapper().getLineWidth(),
                             reactionW.getLineWrapper().getLineColor(), linkid));
 

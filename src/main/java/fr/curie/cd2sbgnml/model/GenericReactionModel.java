@@ -4,11 +4,8 @@ import fr.curie.cd2sbgnml.graphics.AnchorPoint;
 import fr.curie.cd2sbgnml.graphics.GeometryUtils;
 import fr.curie.cd2sbgnml.graphics.Link;
 
-import fr.curie.cd2sbgnml.xmlcdwrappers.LogicGateWrapper;
+import fr.curie.cd2sbgnml.xmlcdwrappers.*;
 import fr.curie.cd2sbgnml.xmlcdwrappers.LogicGateWrapper.LogicGateType;
-import fr.curie.cd2sbgnml.xmlcdwrappers.ReactantWrapper;
-import fr.curie.cd2sbgnml.xmlcdwrappers.ReactionWrapper;
-import fr.curie.cd2sbgnml.xmlcdwrappers.StyleInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +26,7 @@ public class GenericReactionModel {
     private List<ReactantModel> reactantModels;
     private List<LinkModel> linkModels;
 
-    private String cdReactionType;
+    private ReactionType cdReactionType;
     private boolean hasProcess;
     private String id;
 
@@ -411,7 +408,7 @@ public class GenericReactionModel {
         return linkModels;
     }
 
-    public String getCdReactionType() {
+    public ReactionType getCdReactionType() {
         return cdReactionType;
     }
 
