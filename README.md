@@ -18,6 +18,9 @@ More information can be found in the [Wiki](https://github.com/royludo/cd2sbgnml
 
 Javadoc is available [here](https://royludo.github.io/cd2sbgnml).
 
+All known issues and limitations of the translator are listed in the [issues](https://github.com/royludo/cd2sbgnml/issues)
+and on this [wiki page](https://github.com/royludo/cd2sbgnml/wiki/Limitations).
+
 ## Requirements
 
  - Java 8 (with JavaFX if you want to use the GUI)
