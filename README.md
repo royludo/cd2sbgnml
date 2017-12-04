@@ -1,4 +1,4 @@
-Under finalization
+[![Build Status](https://travis-ci.org/royludo/cd2sbgnml.svg?branch=master)](https://travis-ci.org/royludo/cd2sbgnml)
 
 ## Project
 
