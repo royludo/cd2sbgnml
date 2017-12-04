@@ -102,18 +102,7 @@ public class ReactantWrapper {
         // get reactanct's link anchor point
         this.anchorPoint = AnchorPoint.CENTER; // default to center
         if(reactantLink.getLinkAnchor() != null) {
-            // !!!!!!! limitation of the API here, getCelldesignerLinkAnchor() crashes !!!
-
             this.anchorPoint = AnchorPoint.valueOf(reactantLink.getLinkAnchor().getPosition());
-
-            /*for(int i=0; i < reactantLink.getDomNode().getChildNodes().getLength(); i++) {
-                Node n = reactantLink.getDomNode().getChildNodes().item(i);
-                if(n.getNodeName().equals("celldesigner_linkAnchor") &&
-                        ! n.getAttributes().getNamedItem("position").getNodeValue().equals("INACTIVE")) {
-                    this.anchorPoint = AnchorPoint.valueOf(n.getAttributes().getNamedItem("position").getNodeValue());
-                    break;
-                }
-            }*/
         }
 
         this.lineWrapper = new LineWrapper(reactantLink.getConnectScheme(),
@@ -131,16 +120,7 @@ public class ReactantWrapper {
         // get reactanct's link anchor point
         this.anchorPoint = AnchorPoint.CENTER; // default to center
         if(productLink.getLinkAnchor() != null) {
-            // !!!!!!! limitation of the API here, getCelldesignerLinkAnchor() crashes !!!
             this.anchorPoint = AnchorPoint.valueOf(productLink.getLinkAnchor().getPosition());
-            /*for(int i=0; i < productLink.getDomNode().getChildNodes().getLength(); i++) {
-                Node n = productLink.getDomNode().getChildNodes().item(i);
-                if(n.getNodeName().equals("celldesigner_linkAnchor") &&
-                        ! n.getAttributes().getNamedItem("position").getNodeValue().equals("INACTIVE")) {
-                    this.anchorPoint = AnchorPoint.valueOf(n.getAttributes().getNamedItem("position").getNodeValue());
-                    break;
-                }
-            }*/
         }
 
         this.lineWrapper = new LineWrapper(productLink.getConnectScheme(),
@@ -284,37 +264,6 @@ public class ReactantWrapper {
         return Integer.parseInt(targetLineIndex.split(",")[1]);
     }
 
-    public List<Point2D.Float> getEditPointsForBranch(int b) {
-        List<Point2D.Float> editPoints = this.getLineWrapper().getEditPoints();
-        int num0 = this.getLineWrapper().getNum0();
-        int num1 = this.getLineWrapper().getNum1();
-        int num2 = this.getLineWrapper().getNum2();
-
-        List<Point2D.Float> finalEditPoints = new ArrayList<>();
-        switch(b) {
-            case 0:
-                for(int i=0; i < num0; i++) {
-                    finalEditPoints.add(editPoints.get(i));
-                }
-                break;
-            case 1:
-                for(int i=num0; i < num0 + num1; i++) {
-                    finalEditPoints.add(editPoints.get(i));
-                }
-                break;
-            case 2:
-                // don't go to the end of edit points list, last one may be
-                // for association/dissociation point or for logic gate
-                for(int i=num0 + num1; i < num0 + num1 + num2; i++) {
-                    finalEditPoints.add(editPoints.get(i));
-                }
-                break;
-            default:
-                throw new RuntimeException("Value: "+b+" not allowed for branch index. Authorized values: 0, 1, 2.");
-        }
-        return finalEditPoints;
-    }
-
     public Object getCDElement() {
         switch(this.reactantType) {
             case BASE_REACTANT:
@@ -428,14 +377,6 @@ public class ReactantWrapper {
         return reactantType;
     }
 
-    /*public LinkWrapper getLink() {
-        return link;
-    }*/
-
-    /*public void setLink(LinkWrapper link) {
-        this.link = link;
-    }*/
-
     public float getHeight() {
         return (float) this.aliasW.getBounds().getHeight();
     }
@@ -443,11 +384,6 @@ public class ReactantWrapper {
     public float getWidth() {
         return (float) this.aliasW.getBounds().getWidth();
     }
-
-    /*@Override
-    public SpeciesWrapper.CdShape getShape() {
-        return this.aliasW.getSpeciesW().getCdShape();
-    }*/
 
     public AnchorPoint getAnchorPoint() {
         return anchorPoint;

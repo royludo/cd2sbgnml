@@ -199,37 +199,6 @@ public class ReactionWrapper implements INotesFeature, IAnnotationsFeature {
         return parseEditPointsString(editPointString);
     }
 
-    public static List<Point2D.Float> getEditPointsForBranch(Reaction reaction, int b) {
-        List<Point2D.Float> editPoints = getBaseEditPoints(reaction);
-        int num0 = (int) reaction.getAnnotation().getExtension().getEditPoints().getNum0();
-        int num1 = (int) reaction.getAnnotation().getExtension().getEditPoints().getNum1();
-        int num2 = (int) reaction.getAnnotation().getExtension().getEditPoints().getNum2();
-
-        List<Point2D.Float> finalEditPoints = new ArrayList<>();
-        switch(b) {
-            case 0:
-                for(int i=0; i < num0; i++) {
-                    finalEditPoints.add(editPoints.get(i));
-                }
-                break;
-            case 1:
-                for(int i=num0; i < num0 + num1; i++) {
-                    finalEditPoints.add(editPoints.get(i));
-                }
-                break;
-            case 2:
-                // don't go to the end of edit points list, last one may be
-                // for association/dissociation point or for logic gate
-                for(int i=num0 + num1; i < num0 + num1 + num2; i++) {
-                    finalEditPoints.add(editPoints.get(i));
-                }
-                break;
-            default:
-                throw new RuntimeException("Value: "+b+" not allowed for branch index. Authorized values: 0, 1, 2.");
-        }
-        return finalEditPoints;
-    }
-
     public List<Point2D.Float> getEditPointsForBranch(int b) {
         List<Point2D.Float> editPoints = this.getLineWrapper().getEditPoints();
         int num0 = this.getLineWrapper().getNum0();
