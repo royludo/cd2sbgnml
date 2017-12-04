@@ -107,6 +107,7 @@
                 </configuration>
             </plugin>
 
+            <!-- javadoc -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -114,7 +115,7 @@
                 <configuration>
                     <reportOutputDirectory>${project.basedir}</reportOutputDirectory>
                     <destDir>docs</destDir>
-                    <additionalparam>-Xdoclint:none</additionalparam>
+                    <additionalparam>-Xdoclint:none -notimestamp</additionalparam>
                 </configuration>
             </plugin>
         </plugins>
