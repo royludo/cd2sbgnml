@@ -1,0 +1,33 @@
+.root {
+    -fx-background: #616161;
+    -fx-font-family: Roboto, Calibri, Arial, sans-serif;
+}
+
+.button {
+    -fx-background-color: #373737;
+    -fx-text-fill: white;
+    -fx-cursor: hand;
+    -fx-padding: 5px;
+}
+
+.button.toggle {
+    -fx-padding: 10px;
+    -fx-font-weight: bold;
+}
+
+.button.normal:pressed {
+    -fx-background-color: #1976d2;
+}
+
+.button.normal.important {
+    -fx-padding: 10px;
+    -fx-font-weight: bold;
+}
+
+.glyph-icon {
+    -fx-fill: white;
+}
+
+.label.bold {
+    -fx-font-weight: bold;
+}

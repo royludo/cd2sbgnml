@@ -1,19 +1,27 @@
 package fr.curie.cd2sbgnml;
 
+import de.jensd.fx.glyphs.GlyphsDude;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.*;
+
+import static fr.curie.cd2sbgnml.App.ConvertionChoice.*;
 
 public class App extends Application {
 
@@ -27,50 +35,85 @@ public class App extends Application {
         @Override
         public String toString() {
             switch (this) {
-                case CD2SBGN: return "CellDesigner -> SBGN-ML";
-                case SBGN2CD: return "SBGN-ML -> CellDesigner";
+                case CD2SBGN: return "CellDesigner ➡ SBGN-ML";
+                case SBGN2CD: return "SBGN-ML ➡ CellDesigner";
             }
             throw new IllegalArgumentException("No valid enum was given");
         }
     }
 
+    private ObjectProperty<ConvertionChoice> directionChoice = new SimpleObjectProperty<>(CD2SBGN);
+
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("CellDesigner <-> SBGN-ML");
+        primaryStage.setTitle("CellDesigner ⬌ SBGN-ML");
 
         VBox vbox = new VBox(10);
-        vbox.setPadding(new Insets(10, 10, 10, 10));
-
+        vbox.setPadding(new Insets(20, 20, 20, 20));
+        vbox.setAlignment(Pos.CENTER);
 
         GridPane grid = new GridPane();
-        grid.setAlignment(Pos.CENTER);
+        grid.setAlignment(Pos.CENTER_LEFT);
         grid.setHgap(10);
         grid.setVgap(10);
         vbox.getChildren().add(grid);
 
+        Button cd2sbgnRadio = new Button(CD2SBGN.toString());
+        Button sbgn2cdRadio = new Button(SBGN2CD.toString());
 
-        // --- 0th row --- //
-        Label directionLabel = new Label("Convertion Direction:");
-        grid.add(directionLabel, 0, 0);
+        cd2sbgnRadio.getStyleClass().add("toggle");
+        cd2sbgnRadio.setPrefWidth(250);
+        cd2sbgnRadio.setStyle("-fx-background-color: #1976d2");
+        cd2sbgnRadio.setOnAction(e -> directionChoice.setValue(CD2SBGN));
+        Animation b1select = buildAnimation(cd2sbgnRadio, true);
+        Animation b1unselect = buildAnimation(cd2sbgnRadio, false);
 
-        ChoiceBox directionChoice = new ChoiceBox<>(FXCollections.observableArrayList(
-                ConvertionChoice.CD2SBGN.toString(),
-                ConvertionChoice.SBGN2CD.toString())
-        );
-        grid.add(directionChoice, 1, 0);
-        directionChoice.getSelectionModel().selectFirst(); // set first as default
+
+        sbgn2cdRadio.getStyleClass().add("toggle");
+        sbgn2cdRadio.setPrefWidth(250);
+        sbgn2cdRadio.setOnAction(e -> directionChoice.setValue(SBGN2CD));
+        Animation b2select = buildAnimation(sbgn2cdRadio, true);
+        Animation b2unselect = buildAnimation(sbgn2cdRadio, false);
+
+
+        // event on direction change
+        directionChoice.addListener((observable, oldValue, newValue) -> {
+            if(newValue == SBGN2CD) {
+                b1unselect.play();
+                cd2sbgnRadio.setStyle("-fx-background-color: #373737");
+                b2select.play();
+                sbgn2cdRadio.setStyle("-fx-background-color: #1976d2");
+            }
+            else {
+                b1select.play();
+                cd2sbgnRadio.setStyle("-fx-background-color: #1976d2");
+                b2unselect.play();
+                sbgn2cdRadio.setStyle("-fx-background-color: #373737");
+            }
+        });
+
+        grid.add(cd2sbgnRadio, 1, 0);
+        grid.add(sbgn2cdRadio, 1, 1);
+        GridPane.setMargin(sbgn2cdRadio, new Insets(0,0,20,0));
+
+
 
         // --- 1st row --- //
-        Label inputFileLabel = new Label("Input File:");
-        grid.add(inputFileLabel, 0, 1);
+        Label inputFileLabel = new Label("Input File");
+        inputFileLabel.getStyleClass().addAll("bold");
+        inputFileLabel.setPrefWidth(150);
+        inputFileLabel.setAlignment(Pos.CENTER_RIGHT);
+        grid.add(inputFileLabel, 0, 2);
+        //GridPane.setHalignment(inputFileLabel, HPos.RIGHT);
 
         TextField inputFileText = new TextField();
-        grid.add(inputFileText, 1, 1);
+        grid.add(inputFileText, 1, 2);
 
         FileChooser inputFileChooser = new FileChooser();
 
-        Button inputFileOpenButton = new Button("Choose file");
-        grid.add(inputFileOpenButton, 2, 1);
+        Button inputFileOpenButton = GlyphsDude.createIconButton(FontAwesomeIcon.FOLDER_OPEN);
+        inputFileOpenButton.getStyleClass().add("normal");
+        grid.add(inputFileOpenButton, 2, 2);
         inputFileOpenButton.setOnAction(
                 e -> {
                     File file = inputFileChooser.showOpenDialog(primaryStage);
@@ -80,16 +123,19 @@ public class App extends Application {
                 });
 
         // --- 2nd row --- //
-        Label outputFileLabel = new Label("Output File:");
-        grid.add(outputFileLabel, 0, 2);
+        Label outputFileLabel = new Label("Output File");
+        outputFileLabel.getStyleClass().addAll("bold");
+        grid.add(outputFileLabel, 0, 3);
+        GridPane.setHalignment(outputFileLabel, HPos.RIGHT);
 
         TextField outputFileText = new TextField();
-        grid.add(outputFileText, 1, 2);
+        grid.add(outputFileText, 1, 3);
 
         FileChooser outputFileChooser = new FileChooser();
 
-        Button outputFileOpenButton = new Button("Save to");
-        grid.add(outputFileOpenButton, 2, 2);
+        Button outputFileOpenButton = GlyphsDude.createIconButton(FontAwesomeIcon.FOLDER_OPEN);
+        outputFileOpenButton.getStyleClass().add("normal");
+        grid.add(outputFileOpenButton, 2, 3);
         outputFileOpenButton.setOnAction(
                 e -> {
                     File file = outputFileChooser.showSaveDialog(primaryStage);
@@ -99,16 +145,19 @@ public class App extends Application {
                 });
 
         // --- 3rd row --- //
-        Label logFileLabel = new Label("Log file:");
-        grid.add(logFileLabel, 0, 3);
+        Label logFileLabel = new Label("Log File");
+        logFileLabel.getStyleClass().addAll("bold");
+        grid.add(logFileLabel, 0, 4);
+        GridPane.setHalignment(logFileLabel, HPos.RIGHT);
 
         TextField logFileText = new TextField();
-        grid.add(logFileText, 1, 3);
+        grid.add(logFileText, 1, 4);
 
         FileChooser logFileChooser = new FileChooser();
 
-        Button logFileOpenButton = new Button("Save log to");
-        grid.add(logFileOpenButton, 2, 3);
+        Button logFileOpenButton = GlyphsDude.createIconButton(FontAwesomeIcon.FOLDER_OPEN);
+        logFileOpenButton.getStyleClass().add("normal");
+        grid.add(logFileOpenButton, 2, 4);
         logFileOpenButton.setOnAction(
                 e -> {
                     File file = logFileChooser.showSaveDialog(primaryStage);
@@ -121,7 +170,15 @@ public class App extends Application {
         // --- final row --- //
         final Label infoLabel = new Label();
         Button convertButton = new Button("Convert");
-        grid.add(convertButton, 1, 4, 3,1);
+        convertButton.getStyleClass().addAll("normal", "important");
+        grid.add(convertButton, 1, 5);
+        GridPane.setHalignment(convertButton, HPos.CENTER);
+        GridPane.setMargin(convertButton, new Insets(20,0,0,0));
+
+        // info row
+        grid.add(infoLabel, 1, 6);
+        GridPane.setHalignment(infoLabel, HPos.CENTER);
+
         convertButton.setOnAction(e -> {
 
             //System.setProperty(SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "DEBUG");
@@ -147,36 +204,28 @@ public class App extends Application {
                 return;
             }
 
-            if(directionChoice.getValue().equals(ConvertionChoice.CD2SBGN.toString())) {
+            if(directionChoice.get() == CD2SBGN) {
                 System.out.println("Convert button clicked, launch script");
                 Task task = new Task<Void>() {
                     @Override
                     public Void call() {
-                        Platform.runLater(() -> {
-                            infoLabel.setText("Running...");
-                        });
+                        Platform.runLater(() -> infoLabel.setText("Running..."));
                         Cd2SbgnmlScript.convert(inputFileText.getText(), outputFileText.getText());
-                        Platform.runLater(() -> {
-                            infoLabel.setText("Done");
-                        });
+                        Platform.runLater(() -> infoLabel.setText("Done"));
                         return null;
                     }
                 };
                 new Thread(task).start();
 
             }
-            else if(directionChoice.getValue().equals(ConvertionChoice.SBGN2CD.toString())) {
+            else if(directionChoice.get() == SBGN2CD) {
                 System.out.println("Convert button clicked, launch script");
                 Task task = new Task<Void>() {
                     @Override
                     public Void call() {
-                        Platform.runLater(() -> {
-                            infoLabel.setText("Running...");
-                        });
+                        Platform.runLater(() -> infoLabel.setText("Running..."));
                         Sbgnml2CdScript.convert(inputFileText.getText(), outputFileText.getText());
-                        Platform.runLater(() -> {
-                            infoLabel.setText("Done");
-                        });
+                        Platform.runLater(() -> infoLabel.setText("Done"));
                         return null;
                     }
                 };
@@ -189,8 +238,6 @@ public class App extends Application {
 
         });
 
-        // info row
-        grid.add(infoLabel, 1, 5);
 
         // --- console --- //
         /*
@@ -203,7 +250,8 @@ public class App extends Application {
         System.setOut(printStream);
         System.setErr(printStream);*/
 
-        Scene scene = new Scene(vbox, 800, 400);
+        Scene scene = new Scene(vbox, 610, 400);
+        scene.getStylesheets().add(this.getClass().getResource("/guiStyle.css").toExternalForm());
         primaryStage.setScene(scene);
 
         primaryStage.show();
@@ -223,5 +271,34 @@ public class App extends Application {
             // scrolls the text area to the end of data
             textArea.positionCaret(textArea.getText().length());
         }
+    }
+
+    private Animation buildAnimation(Button button, boolean select) {
+        final Animation animation = new Transition() {
+            Color startColor, endColor;
+            {
+                setCycleDuration(Duration.millis(100));
+                setInterpolator(Interpolator.LINEAR);
+                String normalColor = "#373737";
+                String selectedColor = "#1976d2";
+
+                if(select) {
+                    startColor = Color.web(normalColor);
+                    endColor = Color.web(selectedColor);
+                }
+                else { // unselect
+                    startColor = Color.web(selectedColor);
+                    endColor = Color.web(normalColor);
+                }
+
+            }
+
+            @Override
+            protected void interpolate(double frac) {
+                Color finalColor = startColor.interpolate(endColor, frac);
+                button.setBackground(new Background(new BackgroundFill(finalColor, null, null)));
+            }
+        };
+        return animation;
     }
 }

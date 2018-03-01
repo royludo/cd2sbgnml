@@ -177,6 +177,13 @@
             <version>2.3.0</version>
         </dependency>
 
+        <!-- for better gui -->
+        <dependency>
+            <groupId>de.jensd</groupId>
+            <artifactId>fontawesomefx</artifactId>
+            <version>8.9</version>
+        </dependency>
+
     </dependencies>
 
 </project>
