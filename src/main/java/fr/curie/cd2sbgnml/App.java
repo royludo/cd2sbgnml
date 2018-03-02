@@ -180,7 +180,6 @@ public class App extends Application {
 
 
         // --- final row --- //
-        final Label infoLabel = new Label();
         Button convertButton = new Button("Convert");
         convertButton.getStyleClass().addAll("normal", "important");
         grid.add(convertButton, 1, 5);
@@ -188,8 +187,14 @@ public class App extends Application {
         GridPane.setMargin(convertButton, new Insets(20,0,0,0));
 
         // info row
-        grid.add(infoLabel, 1, 6);
-        GridPane.setHalignment(infoLabel, HPos.CENTER);
+        final Label infoLabel = new Label();
+        final ProgressIndicator progressWheel = new ProgressIndicator();
+        progressWheel.setPrefHeight(20d);
+
+        HBox infosBox = new HBox(infoLabel);
+        infosBox.setAlignment(Pos.CENTER);
+        grid.add(infosBox, 1, 6);
+        GridPane.setHalignment(infosBox, HPos.CENTER);
 
         convertButton.setOnAction(e -> {
 
@@ -221,9 +226,22 @@ public class App extends Application {
                 Task task = new Task<Void>() {
                     @Override
                     public Void call() {
-                        Platform.runLater(() -> infoLabel.setText("Running..."));
-                        Cd2SbgnmlScript.convert(inputFileText.getText(), outputFileText.getText());
-                        Platform.runLater(() -> infoLabel.setText("Done"));
+                        Platform.runLater(() ->{
+                            infoLabel.setText("");
+                            infosBox.getChildren().add(progressWheel);
+                        });
+                        try {
+                            Cd2SbgnmlScript.convert(inputFileText.getText(), outputFileText.getText());
+                            Platform.runLater(() -> infoLabel.setText("Done."));
+                        }
+                        catch (Exception e) {
+                            Platform.runLater(() -> infoLabel.setText("An exception occured, see the log."));
+                        }
+                        finally {
+                            System.out.println("remove");
+                            Platform.runLater(() -> infosBox.getChildren().remove(progressWheel));
+                        }
+
                         return null;
                     }
                 };
@@ -235,9 +253,22 @@ public class App extends Application {
                 Task task = new Task<Void>() {
                     @Override
                     public Void call() {
-                        Platform.runLater(() -> infoLabel.setText("Running..."));
-                        Sbgnml2CdScript.convert(inputFileText.getText(), outputFileText.getText());
-                        Platform.runLater(() -> infoLabel.setText("Done"));
+                        Platform.runLater(() ->{
+                            infoLabel.setText("");
+                            infosBox.getChildren().add(progressWheel);
+                        });
+                        try {
+                            Sbgnml2CdScript.convert(inputFileText.getText(), outputFileText.getText());
+                            Platform.runLater(() -> infoLabel.setText("Done."));
+                        }
+                        catch (Exception e) {
+                            Platform.runLater(() -> infoLabel.setText("An exception occured, see the log."));
+                        }
+                        finally {
+                            System.out.println("remove");
+                            Platform.runLater(() -> infosBox.getChildren().remove(progressWheel));
+                        }
+
                         return null;
                     }
                 };

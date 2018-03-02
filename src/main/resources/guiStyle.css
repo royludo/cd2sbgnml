@@ -44,3 +44,7 @@
 .hyperlink:visited {
     -fx-border-width: 0px;
 }
+
+.progress-indicator {
+    -fx-progress-color: white;
+}
