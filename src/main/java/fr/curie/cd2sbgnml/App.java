@@ -15,6 +15,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -250,7 +252,31 @@ public class App extends Application {
         System.setOut(printStream);
         System.setErr(printStream);*/
 
-        Scene scene = new Scene(vbox, 610, 400);
+
+        // issue message
+        Text issueMessage = new Text("If you encounter a problem, please open an issue on");
+        issueMessage.getStyleClass().add("small");
+
+        Hyperlink issueLink = new Hyperlink("github");
+        issueLink.getStyleClass().add("small");
+        issueLink.setStyle("-fx-underline: true;");
+
+        TextFlow wholeMessage = new TextFlow(issueMessage, issueLink);
+        wholeMessage.setPrefWidth(170d);
+
+        HBox footer = new HBox(wholeMessage);
+        footer.setAlignment(Pos.BOTTOM_RIGHT);
+
+        issueLink.setOnMouseClicked(e -> {
+            getHostServices().showDocument("https://github.com/royludo/cd2sbgnml/issues");
+        });
+
+        AnchorPane anchorPane = new AnchorPane(vbox, footer);
+        AnchorPane.setTopAnchor(vbox, 20d);
+        AnchorPane.setBottomAnchor(footer, 0d);
+        AnchorPane.setRightAnchor(footer, 0d);
+
+        Scene scene = new Scene(anchorPane, 610, 400);
         scene.getStylesheets().add(this.getClass().getResource("/guiStyle.css").toExternalForm());
         primaryStage.setScene(scene);
 

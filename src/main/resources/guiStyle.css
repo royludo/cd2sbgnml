@@ -31,3 +31,13 @@
 .label.bold {
     -fx-font-weight: bold;
 }
+
+.small {
+    -fx-font-size: 10px;
+    -fx-text-fill: white;
+    -fx-fill: white;
+}
+
+.hyperlink:visited {
+    -fx-border-width: 0px;
+}
