@@ -1,6 +1,8 @@
 .root {
     -fx-background: #616161;
     -fx-font-family: Roboto, Calibri, Arial, sans-serif;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }
 
 .button {
@@ -8,6 +10,7 @@
     -fx-text-fill: white;
     -fx-cursor: hand;
     -fx-padding: 5px;
+    -fx-background-radius: 4px;
 }
 
 .button.toggle {

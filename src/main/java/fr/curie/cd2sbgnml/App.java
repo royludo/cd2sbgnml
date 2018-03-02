@@ -72,6 +72,7 @@ public class App extends Application {
 
         cd2sbgnRadio.getStyleClass().add("toggle");
         cd2sbgnRadio.setPrefWidth(250);
+        cd2sbgnRadio.setPrefHeight(36d);
         cd2sbgnRadio.setStyle("-fx-background-color: #1976d2");
         cd2sbgnRadio.setOnAction(e -> directionChoice.setValue(CD2SBGN));
         Animation b1select = buildAnimation(cd2sbgnRadio, true);
@@ -80,6 +81,7 @@ public class App extends Application {
 
         sbgn2cdRadio.getStyleClass().add("toggle");
         sbgn2cdRadio.setPrefWidth(250);
+        sbgn2cdRadio.setPrefHeight(36d);
         sbgn2cdRadio.setOnAction(e -> directionChoice.setValue(SBGN2CD));
         Animation b2select = buildAnimation(sbgn2cdRadio, true);
         Animation b2unselect = buildAnimation(sbgn2cdRadio, false);
@@ -333,7 +335,10 @@ public class App extends Application {
             @Override
             protected void interpolate(double frac) {
                 Color finalColor = startColor.interpolate(endColor, frac);
-                button.setBackground(new Background(new BackgroundFill(finalColor, null, null)));
+                button.setBackground(new Background(new BackgroundFill(
+                        finalColor,
+                        new CornerRadii(4d),
+                        new Insets(0,0,-1,0))));
             }
         };
         return animation;
