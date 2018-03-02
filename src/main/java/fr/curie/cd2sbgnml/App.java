@@ -22,6 +22,8 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static fr.curie.cd2sbgnml.App.ConvertionChoice.*;
 
@@ -62,6 +64,11 @@ public class App extends Application {
 
         Button cd2sbgnRadio = new Button(CD2SBGN.toString());
         Button sbgn2cdRadio = new Button(SBGN2CD.toString());
+
+        TextField inputFileText = new TextField();
+        TextField outputFileText = new TextField();
+        TextField logFileText = new TextField();
+
 
         cd2sbgnRadio.getStyleClass().add("toggle");
         cd2sbgnRadio.setPrefWidth(250);
@@ -108,7 +115,6 @@ public class App extends Application {
         grid.add(inputFileLabel, 0, 2);
         //GridPane.setHalignment(inputFileLabel, HPos.RIGHT);
 
-        TextField inputFileText = new TextField();
         grid.add(inputFileText, 1, 2);
 
         FileChooser inputFileChooser = new FileChooser();
@@ -121,6 +127,8 @@ public class App extends Application {
                     File file = inputFileChooser.showOpenDialog(primaryStage);
                     if (file != null) {
                         inputFileText.setText(file.getAbsolutePath());
+                        autoFillFromInputFile(file, outputFileText, logFileText);
+                        inputFileText.positionCaret(inputFileText.getText().length());
                     }
                 });
 
@@ -130,7 +138,6 @@ public class App extends Application {
         grid.add(outputFileLabel, 0, 3);
         GridPane.setHalignment(outputFileLabel, HPos.RIGHT);
 
-        TextField outputFileText = new TextField();
         grid.add(outputFileText, 1, 3);
 
         FileChooser outputFileChooser = new FileChooser();
@@ -143,6 +150,7 @@ public class App extends Application {
                     File file = outputFileChooser.showSaveDialog(primaryStage);
                     if (file != null) {
                         outputFileText.setText(file.getAbsolutePath());
+                        outputFileText.positionCaret(outputFileText.getText().length());
                     }
                 });
 
@@ -152,7 +160,6 @@ public class App extends Application {
         grid.add(logFileLabel, 0, 4);
         GridPane.setHalignment(logFileLabel, HPos.RIGHT);
 
-        TextField logFileText = new TextField();
         grid.add(logFileText, 1, 4);
 
         FileChooser logFileChooser = new FileChooser();
@@ -165,6 +172,7 @@ public class App extends Application {
                     File file = logFileChooser.showSaveDialog(primaryStage);
                     if (file != null) {
                         logFileText.setText(file.getAbsolutePath());
+                        logFileText.positionCaret(logFileText.getText().length());
                     }
                 });
 
@@ -299,6 +307,9 @@ public class App extends Application {
         }
     }
 
+    /**
+     * The short color fade animation used for the translation direction choice buttons.
+     */
     private Animation buildAnimation(Button button, boolean select) {
         final Animation animation = new Transition() {
             Color startColor, endColor;
@@ -326,5 +337,36 @@ public class App extends Application {
             }
         };
         return animation;
+    }
+
+    private void autoFillFromInputFile(File inputFile, TextField outputField, TextField logField) {
+        Path inputPath = inputFile.toPath().getParent();
+        String inputName = inputFile.toPath().getFileName().toString();
+
+        // strip extension
+        String noExt;
+        if(inputName.contains(".")) {
+            noExt = inputName.substring(0, inputName.lastIndexOf('.'));
+        }
+        else {
+            noExt = inputName;
+        }
+
+        String outputExt;
+        if(directionChoice.get() == CD2SBGN) {
+            outputExt = "sbgn";
+        }
+        else {
+            outputExt = "xml";
+        }
+
+        Path outputFullPath = Paths.get(inputPath.toString(), noExt+"."+outputExt);
+        Path logFullPath = Paths.get(inputPath.toString(), noExt+".log");
+
+        outputField.setText(outputFullPath.toString());
+        logField.setText(logFullPath.toString());
+
+        outputField.positionCaret(outputField.getText().length());
+        logField.positionCaret(logField.getText().length());
     }
 }
