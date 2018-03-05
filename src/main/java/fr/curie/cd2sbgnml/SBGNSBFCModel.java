@@ -83,10 +83,12 @@ public class SBGNSBFCModel extends SBGNModel {
         reader.mark(1);
         char[] possibleBOM = new char[1];
         reader.read(possibleBOM);
-
-        if (possibleBOM[0] != '\ufeff')
-        {
+        // on windows, starts with 00ef
+        if (possibleBOM[0] != '\ufeff' && possibleBOM[0] != '\u00ef') {
             reader.reset();
+        }
+        else if(possibleBOM[0] == '\u00ef') {
+            reader.read(new char[2]);
         }
     }
 }

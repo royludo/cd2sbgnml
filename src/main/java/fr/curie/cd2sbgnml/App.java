@@ -50,7 +50,7 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("CellDesigner ⬌ SBGN-ML");
+        primaryStage.setTitle("CellDesigner ⇄ SBGN-ML");
 
         VBox vbox = new VBox(10);
         vbox.setPadding(new Insets(20, 20, 20, 20));
@@ -91,15 +91,11 @@ public class App extends Application {
         directionChoice.addListener((observable, oldValue, newValue) -> {
             if(newValue == SBGN2CD) {
                 b1unselect.play();
-                cd2sbgnRadio.setStyle("-fx-background-color: #373737");
                 b2select.play();
-                sbgn2cdRadio.setStyle("-fx-background-color: #1976d2");
             }
             else {
                 b1select.play();
-                cd2sbgnRadio.setStyle("-fx-background-color: #1976d2");
                 b2unselect.play();
-                sbgn2cdRadio.setStyle("-fx-background-color: #373737");
             }
         });
 
@@ -238,7 +234,6 @@ public class App extends Application {
                             Platform.runLater(() -> infoLabel.setText("An exception occured, see the log."));
                         }
                         finally {
-                            System.out.println("remove");
                             Platform.runLater(() -> infosBox.getChildren().remove(progressWheel));
                         }
 
@@ -265,7 +260,6 @@ public class App extends Application {
                             Platform.runLater(() -> infoLabel.setText("An exception occured, see the log."));
                         }
                         finally {
-                            System.out.println("remove");
                             Platform.runLater(() -> infosBox.getChildren().remove(progressWheel));
                         }
 
@@ -366,10 +360,7 @@ public class App extends Application {
             @Override
             protected void interpolate(double frac) {
                 Color finalColor = startColor.interpolate(endColor, frac);
-                button.setBackground(new Background(new BackgroundFill(
-                        finalColor,
-                        new CornerRadii(4d),
-                        new Insets(0,0,-1,0))));
+                button.setStyle("-fx-background-color: "+toRGBCode(finalColor));
             }
         };
         return animation;
@@ -404,5 +395,15 @@ public class App extends Application {
 
         outputField.positionCaret(outputField.getText().length());
         logField.positionCaret(logField.getText().length());
+    }
+
+    /**
+     * From https://stackoverflow.com/a/18803814
+     */
+    private static String toRGBCode( Color color ) {
+        return String.format( "#%02X%02X%02X",
+                (int)( color.getRed() * 255 ),
+                (int)( color.getGreen() * 255 ),
+                (int)( color.getBlue() * 255 ) );
     }
 }
