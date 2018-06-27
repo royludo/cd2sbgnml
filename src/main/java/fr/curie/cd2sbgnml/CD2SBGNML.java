@@ -103,6 +103,32 @@ public class CD2SBGNML extends GeneralConverter {
                 processId = process.getId();
                 processGlyph.setId(processId);
 
+                // include process into correct compartment
+                // only if base reactants and products are in the same compartment, else no decision is taken
+                String processCompartmentId = null;
+                boolean sameCompartmentForAllReactants = true;
+
+                List<ReactantWrapper> combinedBaseWrapper = new ArrayList<>(reactionW.getBaseReactants());
+                combinedBaseWrapper.addAll(reactionW.getBaseProducts());
+
+                for(ReactantWrapper reactantW: combinedBaseWrapper) {
+                    String reactantCompId = reactantW.getAliasW().getSpeciesW().getCompartment();
+                    logger.debug(reactantW.getAliasW().getId()+" has compartment "+reactantCompId);
+                    if(processCompartmentId == null) {
+                        processCompartmentId = reactantCompId;
+                    }
+                    else if(!processCompartmentId.equals(reactantCompId)) {
+                        sameCompartmentForAllReactants = false;
+                        break;
+                    }
+                }
+
+                logger.debug("Final process compartment is: "+processCompartmentId);
+
+                if (sameCompartmentForAllReactants && !processCompartmentId.equals("default")) {
+                    processGlyph.setCompartmentRef(this.glyphMap.get(processCompartmentId));
+                }
+
                 Bbox processBbox = new Bbox();
                 processBbox.setX((float) processCoord.getX() - process.getSize() / 2);
                 processBbox.setY((float) processCoord.getY() - process.getSize() / 2);
@@ -161,6 +187,42 @@ public class CD2SBGNML extends GeneralConverter {
                     logicBbox.setH(logicGate.getSize());
                     logicBbox.setW(logicGate.getSize());
                     logicGlyph.setBbox(logicBbox);
+
+                    // assign compartment
+                    // find glyphs associated to this logic gate
+                    List<Glyph> connectedGLyphs = new ArrayList<>();
+                    for(LinkModel lm: genericReactionModel.getLinkModels()) {
+                        if(lm.getEnd().getId().equals(logicGate.getId())) {
+                            String modifierId = lm.getStart().getId();
+                            connectedGLyphs.add(glyphMap.get(modifierId));
+                        }
+                        else if(lm.getStart().getId().equals(logicGate.getId())) {
+                            String modifierId = lm.getEnd().getId();
+                            connectedGLyphs.add(glyphMap.get(modifierId));
+                        }
+                    }
+
+                    String logicCompartmentId = null;
+                    boolean sameCompartmentForAllReactants = true;
+                    Glyph compartmentGlyph = null;
+
+                    for(Glyph g: connectedGLyphs) {
+                        String glyphCompartmentId = ((Glyph) g.getCompartmentRef()).getId();
+                        if(logicCompartmentId == null) {
+                            logicCompartmentId = glyphCompartmentId;
+                            compartmentGlyph = (Glyph) g.getCompartmentRef();
+                        }
+                        else if(!logicCompartmentId.equals(glyphCompartmentId)) {
+                            sameCompartmentForAllReactants = false;
+                            break;
+                        }
+                    }
+
+                    logger.debug("Final logic compartment is: "+logicCompartmentId);
+                    if (sameCompartmentForAllReactants && !logicCompartmentId.equals("default")) {
+                        logicGlyph.setCompartmentRef(compartmentGlyph);
+                    }
+
 
                     // ports
                     Port p1 = new Port();
