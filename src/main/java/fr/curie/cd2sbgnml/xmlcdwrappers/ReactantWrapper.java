@@ -227,7 +227,7 @@ public class ReactantWrapper {
             // we assume that the logic gate will always be defined before it's linked reactants
             // targetLineIndex may not be present, when additional glyphs are added to an already existing logic gate
             // TODO make this clean using the ids defined in the logic gate
-            else if(logicGateRef != null && ( modif.getTargetLineIndex() != null ||
+            else if(logicGateRef != null && ( modif.getTargetLineIndex() == null ||
                     modif.getTargetLineIndex().endsWith("0"))){ // glyph connected to logic gate case
                 reactantList.add(new ReactantWrapper(modif, modelW.getAliasWrapperFor(modif.getAliases()), i, logicGateRef));
             }
