@@ -113,7 +113,6 @@ public class CD2SBGNML extends GeneralConverter {
 
                 for(ReactantWrapper reactantW: combinedBaseWrapper) {
                     String reactantCompId = reactantW.getAliasW().getSpeciesW().getCompartment();
-                    logger.debug(reactantW.getAliasW().getId()+" has compartment "+reactantCompId);
                     if(processCompartmentId == null) {
                         processCompartmentId = reactantCompId;
                     }
@@ -207,7 +206,14 @@ public class CD2SBGNML extends GeneralConverter {
                     Glyph compartmentGlyph = null;
 
                     for(Glyph g: connectedGLyphs) {
-                        String glyphCompartmentId = ((Glyph) g.getCompartmentRef()).getId();
+                        String glyphCompartmentId;
+                        if(g.getCompartmentRef() == null) { // glyph is outside, no compartment defined
+                            glyphCompartmentId = "default";
+                        }
+                        else {
+                            glyphCompartmentId = ((Glyph) g.getCompartmentRef()).getId();
+                        }
+
                         if(logicCompartmentId == null) {
                             logicCompartmentId = glyphCompartmentId;
                             compartmentGlyph = (Glyph) g.getCompartmentRef();
