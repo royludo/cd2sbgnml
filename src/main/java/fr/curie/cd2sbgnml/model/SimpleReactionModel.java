@@ -37,11 +37,11 @@ public class SimpleReactionModel extends GenericReactionModel{
         Point2D.Float baseLinkEndPoint = endModel.getAbsoluteAnchorCoordinate(endR.getAnchorPoint());
 
         List<Point2D.Float> editPoints = reactionW.getLineWrapper().getEditPoints();
-        List<AffineTransform> transformList = GeometryUtils.getTransformsToGlobalCoords(baseLinkStartPoint, baseLinkEndPoint);
+        AffineTransform transform = GeometryUtils.getTransformsToGlobalCoords(baseLinkStartPoint, baseLinkEndPoint);
 
         List<Point2D.Float> absoluteEditPoints = new ArrayList<>();
         absoluteEditPoints.add(baseLinkStartPoint);
-        absoluteEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
+        absoluteEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transform));
         absoluteEditPoints.add(baseLinkEndPoint);
 
         absoluteEditPoints = GeometryUtils.getNormalizedEndPoints(absoluteEditPoints,

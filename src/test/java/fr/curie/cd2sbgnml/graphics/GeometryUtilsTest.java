@@ -3,6 +3,7 @@ package fr.curie.cd2sbgnml.graphics;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -26,6 +27,7 @@ public class GeometryUtilsTest {
     List<Point2D.Float> _3segmentp0p50;
     Line2D.Float Xaxis, Yaxis, positiveAxisDiag, positiveInverseDiagAt3, inverseDiagAt50;
     Rectangle2D.Float rectAtOrigin;
+    Point2D.Float p2010, p2050;
 
     @Before
     public void setUp() {
@@ -52,6 +54,8 @@ public class GeometryUtilsTest {
         positiveInverseDiagAt3 = new Line2D.Float(new Point2D.Float(0,3), new Point2D.Float(3,0));
         inverseDiagAt50 = new Line2D.Float(new Point2D.Float(50,0), new Point2D.Float(0, 50));
         rectAtOrigin = new Rectangle2D.Float(0, 0, 10, 10);
+        p2010 = new Point2D.Float(20, 10);
+        p2050 = new Point2D.Float(20, 50);
 
     }
 
@@ -308,4 +312,48 @@ public class GeometryUtilsTest {
     }
 
     //    <<<<< END rectanglePerimeterPointFromAngle >>>>>
+
+    //    <<<<< START convertPoints >>>>>
+
+    @Test
+    public void convertWithDiagAxis1() {
+
+        AffineTransform t = GeometryUtils.getTransformsToGlobalCoords(p0, p10);
+        Point2D.Float res = GeometryUtils.convertPoints(Arrays.asList(new Point2D.Float(0.5f,0)), t).get(0);
+        assertEquals(5, res.getX(), 1E-6);
+        assertEquals(5, res.getY(), 1E-6);
+
+    }
+
+    @Test
+    public void convertWithDiagAxis2() {
+
+        AffineTransform t = GeometryUtils.getTransformsToGlobalCoords(p0, p10);
+        Point2D.Float res = GeometryUtils.convertPoints(Arrays.asList(new Point2D.Float(0,1)), t).get(0);
+        assertEquals(-10, res.getX(), 1E-6);
+        assertEquals(10, res.getY(), 1E-6);
+
+    }
+
+    @Test
+    public void convertArbitraryAxis() {
+
+        AffineTransform t = GeometryUtils.getTransformsToGlobalCoords(p2010, p2050);
+        Point2D.Float res = GeometryUtils.convertPoints(Arrays.asList(new Point2D.Float(0,1)), t).get(0);
+        assertEquals(-20, res.getX(), 1E-6);
+        assertEquals(10, res.getY(), 1E-6);
+
+    }
+
+    @Test
+    public void convertArbitraryAxis2() {
+
+        AffineTransform t = GeometryUtils.getTransformsToGlobalCoords(p2010, p2050);
+        Point2D.Float res = GeometryUtils.convertPoints(Arrays.asList(new Point2D.Float(0.5f,-0.5f)), t).get(0);
+        assertEquals(40, res.getX(), 1E-6);
+        assertEquals(30, res.getY(), 1E-6);
+
+    }
+
+    //    <<<<< END convertPoints >>>>>
 }

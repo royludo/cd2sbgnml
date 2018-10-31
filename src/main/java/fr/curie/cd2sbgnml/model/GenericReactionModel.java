@@ -76,13 +76,13 @@ public class GenericReactionModel {
                 }
             }
 
-            List<AffineTransform> transformList =
+            AffineTransform transform =
                     GeometryUtils.getTransformsToGlobalCoords(
                             logicGateGlobalCoord,
                             processAnchorPoint);
             List<Point2D.Float> absoluteEditPoints = new ArrayList<>();
             absoluteEditPoints.add(logicGateGlobalCoord);
-            absoluteEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
+            absoluteEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transform));
             absoluteEditPoints.add(processAnchorPoint);
 
             absoluteEditPoints = GeometryUtils.getNormalizedEndPoints(absoluteEditPoints,
@@ -189,14 +189,14 @@ public class GenericReactionModel {
 
             logger.trace("edit points: "+editPoints);
 
-            List<AffineTransform> transformList =
+            AffineTransform transform =
                     GeometryUtils.getTransformsToGlobalCoords(
                             modifModel.getAbsoluteAnchorCoordinate(
                                     reactantW.getAnchorPoint()),
                             genericNodeAnchorPoint);
             List<Point2D.Float> absoluteEditPoints = new ArrayList<>();
             absoluteEditPoints.add(modifModel.getAbsoluteAnchorCoordinate(reactantW.getAnchorPoint()));
-            absoluteEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
+            absoluteEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transform));
             absoluteEditPoints.add(genericNodeAnchorPoint);
 
             absoluteEditPoints = GeometryUtils.getNormalizedEndPoints(absoluteEditPoints,
@@ -233,7 +233,7 @@ public class GenericReactionModel {
         for(ReactantWrapper reactantW: reactionW.getAdditionalReactants()) {
             ReactantModel reactantModel = new ReactantModel(reactantW);
 
-            List<AffineTransform> transformList =
+            AffineTransform transform =
                     GeometryUtils.getTransformsToGlobalCoords(
                             reactantModel.getAbsoluteAnchorCoordinate(
                                     reactantW.getAnchorPoint()),
@@ -247,7 +247,7 @@ public class GenericReactionModel {
 
             List<Point2D.Float> absoluteEditPoints = new ArrayList<>();
             absoluteEditPoints.add(reactantModel.getAbsoluteAnchorCoordinate(reactantW.getAnchorPoint()));
-            absoluteEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
+            absoluteEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transform));
             absoluteEditPoints.add(process.getAbsoluteAnchorCoords(0));
             logger.trace("ABSOLUTE POINTS: "+absoluteEditPoints);
 
@@ -258,7 +258,7 @@ public class GenericReactionModel {
 
             List<Point2D.Float> normalizedEditPoints = new ArrayList<>();
             normalizedEditPoints.add(normalizedStart);
-            normalizedEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
+            normalizedEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transform));
             normalizedEditPoints.add(process.getPortIn());
 
             String reactLinkId = "addreact_"+ UUID.randomUUID();
@@ -282,7 +282,7 @@ public class GenericReactionModel {
         for(ReactantWrapper reactantW: reactionW.getAdditionalProducts()) {
             ReactantModel reactantModel = new ReactantModel(reactantW);
 
-            List<AffineTransform> transformList =
+            AffineTransform transform =
                     GeometryUtils.getTransformsToGlobalCoords(
                             process.getAbsoluteAnchorCoords(1),
                             reactantModel.getAbsoluteAnchorCoordinate(
@@ -296,7 +296,7 @@ public class GenericReactionModel {
 
             List<Point2D.Float> absoluteEditPoints = new ArrayList<>();
             absoluteEditPoints.add(process.getAbsoluteAnchorCoords(1));
-            absoluteEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
+            absoluteEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transform));
             absoluteEditPoints.add(reactantModel.getAbsoluteAnchorCoordinate(reactantW.getAnchorPoint()));
             logger.trace("ABSOLUTE POINTS: "+absoluteEditPoints);
 
@@ -307,7 +307,7 @@ public class GenericReactionModel {
 
             List<Point2D.Float> normalizedEditPoints = new ArrayList<>();
             normalizedEditPoints.add(process.getPortOut());
-            normalizedEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transformList));
+            normalizedEditPoints.addAll(GeometryUtils.convertPoints(editPoints, transform));
             normalizedEditPoints.add(normalizedEnd);
 
             String reactLinkId = "addprod_" + UUID.randomUUID();
@@ -334,9 +334,8 @@ public class GenericReactionModel {
 
         // transform association glyph point
         Point2D.Float absolutePoint = new Point2D.Float((float) editPoint.getX(), (float) editPoint.getY());
-        for(AffineTransform t: GeometryUtils.getTransformsToGlobalCoords(origin, pX, pY)) {
-            t.transform(absolutePoint, absolutePoint);
-        }
+        AffineTransform t = GeometryUtils.getTransformsToGlobalCoords(origin, pX, pY);
+        t.transform(absolutePoint, absolutePoint);
 
         /*
             In ACSN we can produce NaN here
@@ -364,9 +363,8 @@ public class GenericReactionModel {
         for (Point2D editP : reactionW.getEditPointsForBranch(branch)) {
             Point2D p = new Point2D.Double(editP.getX(), editP.getY());
 
-            for(AffineTransform t: GeometryUtils.getTransformsToGlobalCoords(origin, pX)) {
-                t.transform(p, p);
-            }
+            AffineTransform t = GeometryUtils.getTransformsToGlobalCoords(origin, pX);
+            t.transform(p, p);
 
             logger.trace("BRANCH "+branch+" result: " + editP + " -> " + p.toString());
             absoluteEditPoints.add(new Point2D.Float((float) p.getX(), (float) p.getY()));

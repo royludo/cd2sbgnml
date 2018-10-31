@@ -1960,15 +1960,15 @@ public class SBGNML2CD extends GeneralConverter {
         if(!options.isReversible && isReactant)
             Collections.reverse(editpoints0);
 
-        List<AffineTransform> transforms;
+        AffineTransform transform;
         if(options.isLogicGateReaction) {
-            transforms = GeometryUtils.getTransformsToLocalCoords(finalPoint, absAssocPoint);
+            transform = GeometryUtils.getTransformsToLocalCoords(finalPoint, absAssocPoint);
         }
         else {
-            transforms = GeometryUtils.getTransformsToLocalCoords(absAssocPoint, finalPoint);
+            transform = GeometryUtils.getTransformsToLocalCoords(absAssocPoint, finalPoint);
         }
 
-        List<Point2D.Float> localEditPoints0 = GeometryUtils.convertPoints(editpoints0, transforms);
+        List<Point2D.Float> localEditPoints0 = GeometryUtils.convertPoints(editpoints0, transform);
         List<Point2D.Float> finalAndLocalPoints = new ArrayList<>();
         finalAndLocalPoints.add(new Point2D.Float());
         finalAndLocalPoints.addAll(localEditPoints0);
